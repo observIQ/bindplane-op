@@ -65,7 +65,7 @@ jobs:
           restore-keys: npm-cache-
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v2
+        uses: goreleaser/goreleaser-action@v3
         with:
           version: v1.9.0
           args: release --rm-dist --parallelism 1

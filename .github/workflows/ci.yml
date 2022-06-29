@@ -279,7 +279,7 @@ jobs:
         with:
           filter: reference=observiq/bindplane-*:${{ env.GITHUB_SHA_SHORT }}
       - name: Test GoReleaser
-        uses: goreleaser/goreleaser-action@v2
+        uses: goreleaser/goreleaser-action@v3
         with:
           version: v1.9.0
           args: release --skip-publish --rm-dist
