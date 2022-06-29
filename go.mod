@@ -34,7 +34,7 @@ require (
 )
 
 require (
-	cloud.google.com/go/datastore v1.6.0
+	cloud.google.com/go/datastore v1.8.0
 	cloud.google.com/go/pubsub v1.3.1
 	github.com/AlecAivazis/survey/v2 v2.3.5
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v1.8.2
@@ -54,7 +54,7 @@ require (
 )
 
 require (
-	cloud.google.com/go v0.102.0 // indirect
+	cloud.google.com/go v0.102.1 // indirect
 	cloud.google.com/go/compute v1.7.0 // indirect
 	cloud.google.com/go/iam v0.3.0 // indirect
 	cloud.google.com/go/kms v1.4.0 // indirect
