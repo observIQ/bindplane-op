@@ -75,7 +75,7 @@
     "@graphql-codegen/typescript-operations": "^2.3.5",
     "@graphql-codegen/typescript-react-apollo": "^3.2.16",
     "@material-ui/icons": "^4.11.3",
-    "@mui/icons-material": "^5.8.2",
+    "@mui/icons-material": "^5.8.4",
     "@mui/material": "^5.8.0",
     "@mui/x-data-grid": "^5.11.0",
     "@storybook/addon-actions": "^6.5.9",
