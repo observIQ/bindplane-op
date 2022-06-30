@@ -18,6 +18,7 @@ func login(ctx *gin.Context, bindplane server.BindPlane) {
 	session, err := bindplane.Store().UserSessions().Get(ctx.Request, CookieName)
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, errors.New("failed to retrieve session"))
+		return
 	}
 
 	username := ctx.PostForm("username")
@@ -34,11 +35,17 @@ func login(ctx *gin.Context, bindplane server.BindPlane) {
 	bindplane.Logger().Info("logging in user.", zap.String("user", username))
 
 	// Save and write the session
-	session.Save(ctx.Request, ctx.Writer)
+	if err := session.Save(ctx.Request, ctx.Writer); err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, errors.New("failed to save session"))
+	}
 }
 
 func logout(ctx *gin.Context, bindplane server.BindPlane) {
-	session, _ := bindplane.Store().UserSessions().Get(ctx.Request, CookieName)
+	session, err := bindplane.Store().UserSessions().Get(ctx.Request, CookieName)
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, errors.New("failed to retrieve session"))
+		return
+	}
 
 	// Revoke users authentication
 	session.Values["authenticated"] = false
@@ -46,7 +53,10 @@ func logout(ctx *gin.Context, bindplane server.BindPlane) {
 	session.Options.MaxAge = -1
 
 	bindplane.Logger().Info("logging out user.", zap.Any("user", session.Values["user"]))
-	session.Save(ctx.Request, ctx.Writer)
+	// Save and write the session
+	if err := session.Save(ctx.Request, ctx.Writer); err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, errors.New("failed to save session"))
+	}
 }
 
 func verify(c *gin.Context, bindplane server.BindPlane) {
