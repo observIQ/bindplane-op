@@ -186,7 +186,7 @@ func (s *serverInitOptions) serverQuestions() questions {
 					Message: "Sessions Secret",
 					Default: s.SessionsSecret,
 				},
-				Validate: survey.Required,
+				Validate: validateUUID,
 			},
 		},
 		{
@@ -297,4 +297,9 @@ func (s *serverInitOptions) completePassword() error {
 	}
 	s.Password = password
 	return nil
+}
+
+func validateUUID(ans interface{}) error {
+	_, err := uuid.Parse(ans.(string))
+	return err
 }
