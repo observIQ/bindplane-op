@@ -15,12 +15,11 @@
 
 set -e
 
+package_name="bindplane"
+
 PREREQS="printf sed uname curl"
 INDENT_WIDTH='  '
 indent=""
-
-# Set with sed by Goreleaser
-version="SED_VERSION"
 
 bin_dir="${HOME}/bin"
 bindplane_home_dir="${HOME}/.bindplane"
@@ -212,15 +211,36 @@ check_prereqs() {
     decrease_indent
 }
 
-install() {
-    url="https://storage.googleapis.com/observiq-cloud/bindplane/${version}/bindplane-v${version}-darwin-${arch}.zip"
+# latest_version gets the tag of the latest release, without the v prefix.
+latest_version() {
+  curl -sSL -H"Accept: application/vnd.github.v3+json" https://api.github.com/repos/observiq/bindplane-op/releases/latest | \
+    grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | cut -c2-
+}
 
-    echo "$url"
+# download_url returns the url for downloading a package with
+# the given version and arch.
+download_url() {
+  # Detect latest release if version not set
+  if [ -z "$version" ] ; then
+    version=$(latest_version)
+  fi
+
+  if [ -z "$version" ] ; then
+    error_exit "$LINENO" "Could not determine version to install"
+  fi
+
+  # Example:
+  #       https://github.com/observIQ/bindplane-op/releases/download/v0.0.47/bindplane-v0.0.47-darwin-amd64.zip
+  url="https://github.com/observiq/bindplane-op/releases/download/v$version/${package_name}-v${version}-darwin-${arch}.zip"
+  printf "%s" "$url"
+}
+
+install() {
+    url=$(download_url)
 
     # ensure bin dir exists and has temp dir
     mkdir -p "${bin_dir}/temp"
-
-    curl -s -o "${bin_dir}/temp/bindplane.zip" "$url"
+    curl -fsSlL -o "${bin_dir}/temp/bindplane.zip" "$url" || error_exit "$LINENO" "Failed to download BindPlane package from ${url}"
 
     cd "${bin_dir}/temp" && unzip bindplane.zip
 

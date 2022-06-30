@@ -30,6 +30,7 @@ install-tools: install-git-hooks
 	cd $(TOOLS_MOD_DIR) && go install github.com/mgechev/revive
 	cd $(TOOLS_MOD_DIR) && go install github.com/uw-labs/lichen
 	cd $(TOOLS_MOD_DIR) && go install honnef.co/go/tools/cmd/staticcheck
+	cd $(TOOLS_MOD_DIR) && go install github.com/client9/misspell/cmd/misspell
 
 .PHONY: install-ui
 install-ui:
@@ -236,14 +237,6 @@ build:
 clean:
 	rm -rf $(OUTDIR)
 
-# Release prep injects the current version into the install scripts.
-.PHONY: release-prep
-release-prep:
-	rm -rf release-stage
-	mkdir release-stage
-	sed "s/SED_VERSION/$$VERSION/g" scripts/install-linux.sh > release-stage/install-linux.sh
-	sed "s/SED_VERSION/$$VERSION/g" scripts/install-macos.sh > release-stage/install-macos.sh
-
 .PHONY: release-test
 release-test:
 	goreleaser release --rm-dist --skip-publish --skip-validate --snapshot
@@ -272,3 +265,14 @@ kitchen:
 .PHONY: kitchen-clean
 kitchen-clean:
 	kitchen destroy -c 10
+
+ALLDOC=$(shell find . \( -name "*.md" -o -name "*.yaml" \) | grep -v ui/node_modules)
+
+.PHONY: misspell
+misspell:
+	misspell -error $(ALLDOC)
+
+.PHONY: misspell-fix
+misspell-fix:
+	misspell -w $(ALLDOC)
+
