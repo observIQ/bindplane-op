@@ -20,7 +20,7 @@ host: 127.0.0.1
 port: "3001"
 serverURL: http://127.0.0.1:3001
 username: admin
-password: test
+password: admin
 logFilePath: /var/log/bindplane/bindplane.log
 server:
     storageFilePath: /var/lib/bindplane/storage/bindplane.db
