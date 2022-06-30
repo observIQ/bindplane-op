@@ -11,6 +11,8 @@
 
 BindPlane OP is an open source observability pipeline that gives you the ability to collect, refine, and ship metrics, logs, and traces to any destination. BindPlane OP provides the controls you need to reduce observability costs and simplify the deployment and management of telemetry agents at scale.
 
+<p align="center"><img src="docs/images/BindPlane_Architecture_Diagram.jpg?raw=true"></p>
+
 ## Features
 
   * Manage the lifecycle of telemetry agents, starting with the [observIQ OpenTelemetry Collector](https://github.com/observIQ/observiq-otel-collector)
@@ -37,7 +39,6 @@ BindPlane OP does not have any dependencies and can run on Windows, Linux, or ma
   * Ubuntu LTS 18.04, 20.04
   * Suse Linux 12 and 15
   * Alma and Rocky Linux
-
 
 The BindPlane CLI (included in the BindPlane OP binary) will run on Linux, Windows, and macOS. For a detailed list of commands and installation instructions for remote clients, see our [CLI](https://docs.bindplane.observiq.com/docs/cli) documentation page.
 
