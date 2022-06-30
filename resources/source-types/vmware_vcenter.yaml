@@ -12,12 +12,187 @@ spec:
     - linux
     - windows
   parameters:
+    # Metrics
+    - name: enable_metrics
+      label: Enable Metrics
+      description: Enable to send metrics.
+      type: bool
+      default: true
+
+    - name: hostname
+      label: Hostname
+      description: The hostname or IP address of the vCenter system.
+      type: string
+      default: ""
+      required: true
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: port
+      label: Port
+      description: The TCP port of the vCenter system.
+      type: int
+      default: 15672
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    - name: username
+      label: Username
+      description: The username to use when connecting to vCenter.
+      type: string
+      default: ""
+      required: true
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: password
+      label: Password
+      description: The password to use when connecting to vCenter.
+      type: string
+      default: ""
+      required: true
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: collection_interval
+      label: Collection Interval
+      description: How often (minutes) to scrape for metrics.
+      type: int
+      default: 2
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    - name: enable_tls
+      label: Enable TLS
+      description: Whether or not to use TLS when connecting to vCenter.
+      type: bool
+      default: false
+      advancedConfig: true
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: strict_tls_verify
+      label: Strict TLS Certificate Verification
+      description: Enable to require TLS certificate verification.
+      type: bool
+      default: false
+      advancedConfig: true
+      relevantIf:
+        - name: enable_tls
+          operator: equals
+          value: true
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: ca_file
+      label: TLS Certificate Authority File
+      description: Certificate authority used to validate TLS certificates. Not required if the collector's operating system already trusts the certificate authority.
+      type: string
+      required: false
+      default: ""
+      relevantIf:
+        - name: enable_tls
+          operator: equals
+          value: true
+        - name: strict_tls_verify
+          operator: equals
+          value: true
+        - name: enable_metrics
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    - name: mutual_tls
+      label: Mutual TLS Authentication
+      description: Enable to require TLS mutual authentication.
+      type: bool
+      default: false
+      relevantIf:
+        - name: strict_tls_verify
+          operator: equals
+          value: true
+        - name: enable_metrics
+          operator: equals
+          value: true
+        - name: enable_tls
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    - name: cert_file
+      label: Mutual TLS Client Certificate File
+      description: A TLS certificate used for client authentication, if mutual TLS is enabled.
+      type: string
+      required: true
+      default: ""
+      relevantIf:
+        - name: strict_tls_verify
+          operator: equals
+          value: true
+        - name: mutual_tls
+          operator: equals
+          value: true
+        - name: enable_metrics
+          operator: equals
+          value: true
+        - name: enable_tls
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    - name: key_file
+      label: Mutual TLS Client Private Key File
+      description: A TLS private key used for client authentication, if mutual TLS is enabled.
+      type: string
+      required: true
+      default: ""
+      relevantIf:
+        - name: strict_tls_verify
+          operator: equals
+          value: true
+        - name: mutual_tls
+          operator: equals
+          value: true
+        - name: enable_metrics
+          operator: equals
+          value: true
+        - name: enable_tls
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    # Logging
+    - name: enable_logs
+      label: Enable Logs
+      description: Enable to collect vCenter logs.
+      type: bool
+      default: true
+
     - name: listen_port
       label: Listening Port
       description: The port to bind to and receive syslog. Collector must be running as root (Linux) or Administrator (windows) when binding to a port below 1024.
       type: int
       default: 5140
       required: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
 
     - name: listen_ip
       label: Listening IP Address
@@ -25,13 +200,21 @@ spec:
       type: string
       default: "0.0.0.0"
       advancedConfig: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
 
-    - name: enable_tls
-      label: Enable TLS
-      description: Whether or not to use TLS.
+    - name: enable_tls_logs
+      label: Enable TLS (Syslog)
+      description: Whether or not to use TLS when receiving incoming syslog.
       type: bool
       default: false
       advancedConfig: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
 
     - name: cert_file
       label: TLS Certificate File
@@ -40,6 +223,9 @@ spec:
       required: false
       default: ""
       relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
         - name: enable_tls
           operator: equals
           value: true
@@ -52,10 +238,54 @@ spec:
       required: false
       default: ""
       relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
         - name: enable_tls
           operator: equals
           value: true
       advancedConfig: true
+
+  metrics:
+    receivers: |
+      {{ if .enable_metrics }}
+      - vcenter:
+          {{ if .enable_tls }}
+          endpoint: https://{{ .hostname }}:{{ .port }}
+          {{ else }}
+          endpoint: http://{{ .hostname }}:{{ .port }}
+          {{ end }}
+
+          username: {{ .username }}
+          password: {{ .password }}
+          collection_interval: {{ .collection_interval }}s
+
+          {{ if .enable_tls }}
+          tls:
+            insecure: false
+            {{ if .strict_tls_verify }}
+            insecure_skip_verify: false
+            {{ if .ca_file }}
+            ca_file: {{ .ca_file }}
+            {{ end }}
+            {{ else }}
+            insecure_skip_verify: true
+            {{ end }}
+            {{ if .mutual_tls }}
+            cert_file: "{{ .cert_file }}"
+            key_file: "{{ .key_file }}"
+            {{ end }}
+          {{ else }}
+          tls:
+            insecure: true
+          {{ end }}
+      {{ end }}
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]
 
   logs:
     receivers: |
@@ -64,8 +294,8 @@ spec:
           parameters:
             listen_port: {{ .listen_port }}
             listen_ip: {{ .listen_ip }}
-            {{ if .enable_tls }}
-            enable_tls: {{ .enable_tls }}
+            {{ if .enable_tls_logs }}
+            enable_tls: {{ .enable_tls_logs }}
             certificate_file: "{{ .cert_file }}"
             key_file: "{{ .key_file }}"
             {{ end }}
