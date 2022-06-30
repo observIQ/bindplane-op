@@ -289,7 +289,7 @@ spec:
 
   logs:
     receivers: |
-      - plugin/esxi:
+      - plugin/vcenter:
           path: $OIQ_OTEL_COLLECTOR_HOME/plugins/vcenter_logs.yaml
           parameters:
             listen_port: {{ .listen_port }}
