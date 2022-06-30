@@ -367,7 +367,9 @@ jobs:
       - name: Install Deb Server Package
         run: 'sudo apt-get install -y -f ./bindplane_*_linux_amd64.deb'
       - name: Create BindPlane config
-        run: bash .github/workflows/scripts/create-test-server-config.sh
+        run: |
+          bash .github/workflows/scripts/create-test-server-config.sh
+          sudo systemctl restart bindplane
       - name: Run Cinc Tests (Server Package)
         run: sudo cinc-auditor exec test/inspec/package/package.rb
       - name: Remove Deb Server Package
