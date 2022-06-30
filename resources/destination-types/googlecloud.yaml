@@ -71,3 +71,4 @@ spec:
               - prefix: zk
               - prefix: server
               - prefix: solr
+              - prefix: couchdb
