@@ -266,7 +266,7 @@ kitchen:
 kitchen-clean:
 	kitchen destroy -c 10
 
-ALLDOC=$(shell find . \( -name "*.md" -o -name "*.yaml" \))
+ALLDOC=$(shell find . \( -name "*.md" -o -name "*.yaml" \) | grep -v ui/node_modules)
 
 .PHONY: misspell
 misspell:
