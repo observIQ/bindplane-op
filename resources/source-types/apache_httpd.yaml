@@ -53,7 +53,7 @@ spec:
 
     - name: enable_tls
       label: Enable TLS
-      description: Whether or not to use TLS when connecting to Elasticsearch.
+      description: Whether or not to use TLS when connecting to the Apache HTTP server.
       type: bool
       default: false
       advancedConfig: true
