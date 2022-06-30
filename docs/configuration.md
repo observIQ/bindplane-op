@@ -171,7 +171,7 @@ spec:
 
 `bindplane profile get --current` returns the settings of the current profile
 
-Note that this returns the `Resource` form of the configuraton, the pertinent variables are set in `spec`.
+Note that this returns the `Resource` form of the configuration, the pertinent variables are set in `spec`.
 
 `bindplane profile list` returns the available saved profiles.
 

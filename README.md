@@ -11,6 +11,8 @@
 
 BindPlane OP is an open source observability pipeline that gives you the ability to collect, refine, and ship metrics, logs, and traces to any destination. BindPlane OP provides the controls you need to reduce observability costs and simplify the deployment and management of telemetry agents at scale.
 
+<p align="center"><img src="docs/images/BindPlane_Architecture_Diagram.jpg?raw=true"></p>
+
 ## Features
 
   * Manage the lifecycle of telemetry agents, starting with the [observIQ OpenTelemetry Collector](https://github.com/observIQ/observiq-otel-collector)
@@ -38,7 +40,6 @@ BindPlane OP does not have any dependencies and can run on Windows, Linux, or ma
   * Suse Linux 12 and 15
   * Alma and Rocky Linux
 
-
 The BindPlane CLI (included in the BindPlane OP binary) will run on Linux, Windows, and macOS. For a detailed list of commands and installation instructions for remote clients, see our [CLI](https://docs.bindplane.observiq.com/docs/cli) documentation page.
 
 # Quick Start
@@ -50,9 +51,9 @@ The following are our recommended installation options. For more details on inst
 To install BindPlane Server, we recommend using our single-line installer. Alternatively, packages are available for download on our [releases](https://github.com/observIQ/bindplane-op/releases) page.
 
 ### Linux
-  ```bash
-  curl -s https://storage.googleapis.com/observiq-cloud/bindplane/latest/install-linux.sh | bash -s --
-  ```
+```bash
+curl -fsSlL https://github.com/observiq/bindplane-op/releases/latest/download/install-linux.sh | bash -s --
+```
 
 After the installer finishes, initialize the server using the `init` command. The specific command for your system is found in the installer output under the `Server Initialization` section. By default it is the following command for Linux:
 
@@ -65,13 +66,14 @@ sudo /usr/local/bin/bindplane init server --config /etc/bindplane/config.yaml
 To install BindPlane CLI on macOS or Linux, we recommend using the following installation commands. Alternatively, packages are available for download on our [releases](https://github.com/observIQ/bindplane-op/releases) page.
 
 ### Linux
-  ```bash
-  curl -s https://storage.googleapis.com/observiq-cloud/bindplane/latest/install-linux.sh | bash -s --
-  ```
+```bash
+curl -fsSlL https://github.com/observiq/bindplane-op/releases/latest/download/install-linux.sh | bash -s --
+```
+
 ### macOS
-  ```bash
-  curl -s https://storage.googleapis.com/observiq-cloud/bindplane/latest/install-macos.sh | bash -s --
-  ```
+```bash
+curl -fsSlL https://github.com/observiq/bindplane-op/releases/latest/download/install-macos.sh | bash -s --
+```
 
 ## Configuration
 

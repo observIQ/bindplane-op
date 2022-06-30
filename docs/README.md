@@ -95,7 +95,7 @@ spec:
 
 `bindplane profile get --current` returns the settings of the current profile
 
-Note that this returns the `Resource` form of the configuraton, the pertinent variables are set in `spec`.
+Note that this returns the `Resource` form of the configuration, the pertinent variables are set in `spec`.
 
 `bindplane profile list` returns the available saved profiles.
 
@@ -143,13 +143,6 @@ server:
   downloadsFolderPath: /var/lib/bindplane/downloads
 ```
 
-## Installation
-
-Each release contains binaries, server packages, client packages. See the [releases](https://github.com/observIQ/bindplane/releases) page.
-BindPlane does not have any dependencies, and can run on Windows, Linux, and macOS.
-
-See the [install doc](docs/install.md) for installation details.
-
 ## Developing
 
 ### Setup
@@ -166,8 +159,6 @@ Several commands are available for testing
 - `make test`: Runs `make vet` and `go test ./... -race -cover`
 - `make lint`: Runs [revive](https://revive.run/) linter
 
-#### Integration Testing
-
 ### Building
 
 BindPlane can be built with the `make build` command. The output binary will be in the `dist/` directory.
@@ -177,32 +168,13 @@ A full test release can be built with the `make release-test`. A test release wi
 - Build BindPlane for all supported platforms and architectures
 - Archive binaries using zip
 - Build Linux packages
+- Build container images
 - Generate a sha256 checksum file
 - Place all output in the `dist/` directory
 
-### Building Container Image
-
-Building with Docker:
-
-```bash
-DOCKER_BUILDKIT=1 docker build . -t bindplane:latest -f docker/Dockerfile
-```
-
-Running the container (Command not suietable for production, see [docs/install.md](docs/install.md))
-
-```bash
-docker run -p 3001:3001 bindplane:latest
-```
-
-The Makefile has some helper targets to make developing with containers easy:
-
-- `make docker-http`: Runs BindPlane in http mode and configures your local bindplane to connect to it
-- `make docker-https`: Same as `docker-http` but BindPlane is using TLS for all communication
-- `make docker-https-mtls`: Same as `docker-https` but BindPlane is enfocing authentication using mutual TLS
-
 ### Additional Commands
 
-- `make secure` will run [gosec](https://github.com/securego/gosec) to catch things such as unahndled errors, weak file permissions, bad TLS versions, etc
+- `make secure` will run [gosec](https://github.com/securego/gosec) to catch things such as unhandled errors, weak file permissions, bad TLS versions, etc
 - `make check-license` and `make add-license` for handling source file license headers
 - `make generate` will generate GraphQL files and add in license headers (use this instead of using `go generate ./...` directly)
 - `make swagger` will generate swagger documentation in the `/docs` directory.

@@ -15,13 +15,7 @@
 
 set -e
 
-# Package name is modified if --version is passed.
-# e.g: --version 0.0.36 will result in 'bindplane-0.0.36' on rhel based
-# platforms and 'bindplane=0.0.36' on debian based platforms.
 package_name="bindplane"
-
-# Set with sed by Goreleaser
-version="SED_VERSION"
 
 PREREQS="printf systemctl sed uname sudo curl"
 INDENT_WIDTH='  '
@@ -241,13 +235,41 @@ check_prereqs() {
   decrease_indent
 }
 
+# latest_version gets the tag of the latest release, without the v prefix.
+latest_version() {
+  curl -sSL -H"Accept: application/vnd.github.v3+json" https://api.github.com/repos/observiq/bindplane-op/releases/latest | \
+    grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | cut -c2-
+}
+
+# download_url returns the url for downloading a package with
+# the given version, arch, type. Package type is passed as an argument.
+download_url() {
+  package_type="$1"
+  if [ -z "$package_type" ] ; then
+    error_exit "$LINENO" "Package type not set"
+  fi
+
+  # Detect latest release if version not set
+  if [ -z "$version" ] ; then
+    version=$(latest_version)
+  fi
+
+  if [ -z "$version" ] ; then
+    error_exit "$LINENO" "Could not determine version to install"
+  fi
+
+  # Example:
+  #       https://github.com/observIQ/bindplane-op/releases/download/v0.0.47/bindplane_0.0.47_linux_amd64.deb
+  url="https://github.com/observiq/bindplane-op/releases/download/v$version/${package_name}_${version}_linux_${arch}.${package_type}"
+  printf "%s" "$url"
+}
+
 deb_install() {
     banner "Installing package ${package_name}"
     increase_indent
 
-    url="https://storage.googleapis.com/observiq-cloud/bindplane/${version}/bindplane_${version}_linux_${arch}.deb"
-    url="https://storage.googleapis.com/observiq-cloud/bindplane/${version}/bindplane_${version}_linux_${arch}.deb"
-    curl -s -o bindplane.deb "$url" 
+    url=$(download_url "deb")
+    curl -fsSlL -o bindplane.deb "$url" || error_exit "$LINENO" "Failed to download BindPlane package from ${url}"
 
     if dpkg -s bindplane &>/dev/null; then
         sudo apt-get install --only-upgrade -y -f ./bindplane.deb  || error_exit "$LINENO" "Failed to upgrade BindPlane"
@@ -263,8 +285,8 @@ dnf_install() {
     banner "Installing package ${package_name}"
     increase_indent
 
-    url="https://storage.googleapis.com/observiq-cloud/bindplane/${version}/bindplane_${version}_linux_${arch}.rpm"
-    curl -s -o bindplane.rpm "$url" 
+    url=$(download_url "rpm")
+    curl -fsSlL -o bindplane.rpm "$url" || error_exit "$LINENO" "Failed to download BindPlane package from ${url}"
 
     if rpm -q bindplane &>/dev/null; then
         sudo dnf upgrade -y bindplane.rpm || error_exit "$LINENO" "Failed to upgrade BindPlane"
@@ -280,8 +302,8 @@ yum_install() {
     banner "Installing package ${package_name}"
     increase_indent
 
-    url="https://storage.googleapis.com/observiq-cloud/bindplane/${version}/bindplane_${version}_linux_${arch}.rpm"
-    curl -s -o bindplane.rpm "$url" 
+    url=$(download_url "rpm")
+    curl -fsSlL -o bindplane.rpm "$url" || error_exit "$LINENO" "Failed to download BindPlane package from ${url}"
 
     if rpm -q bindplane &>/dev/null; then
         sudo yum upgrade -y bindplane.rpm || error_exit "$LINENO" "Failed to upgrade BindPlane"
@@ -352,11 +374,6 @@ main() {
       case "$1" in
         -v|--version)
           version=$2 ; shift 2
-          if command -v apt-get >/dev/null; then
-            package_name="${package_name}=${version}"
-          else
-            package_name="${package_name}-${version}"
-          fi
           ;;
         -h|--help)
           usage
