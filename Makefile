@@ -30,6 +30,7 @@ install-tools: install-git-hooks
 	cd $(TOOLS_MOD_DIR) && go install github.com/mgechev/revive
 	cd $(TOOLS_MOD_DIR) && go install github.com/uw-labs/lichen
 	cd $(TOOLS_MOD_DIR) && go install honnef.co/go/tools/cmd/staticcheck
+	cd $(TOOLS_MOD_DIR) && go install github.com/client9/misspell/cmd/misspell
 
 .PHONY: install-ui
 install-ui:
@@ -272,3 +273,13 @@ kitchen:
 .PHONY: kitchen-clean
 kitchen-clean:
 	kitchen destroy -c 10
+
+ALLDOC=$(shell find . \( -name "*.md" -o -name "*.yaml" \))
+
+.PHONY: misspell
+misspell:
+	misspell -error $(ALLDOC)
+
+.PHONY: misspell-fix
+misspell-fix:
+	misspell -w $(ALLDOC)
