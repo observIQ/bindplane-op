@@ -1,0 +1,154 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: SourceType
+metadata:
+  name: aerospike
+  displayName: Aerospike
+  icon: /icons/sources/aerospike.svg
+  description: Aerospike metrics scraper and log collector
+spec:
+  version: 0.0.1
+  supported_platforms:
+    - linux
+    - windows
+    - macos
+  parameters:
+    # Metrics
+    - name: enable_metrics
+      label: Enable Metrics
+      description: Enable to send metrics.
+      type: bool
+      default: true
+
+    - name: hostname
+      label: Hostname
+      description: The hostname or IP address of the Aerospike system.
+      type: string
+      default: localhost
+      required: true
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: port
+      label: Port
+      description: The TCP port of the Aerospike system.
+      type: int
+      default: 3000
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: collection_interval
+      label: Collection Interval
+      description: How often (seconds) to scrape for metrics.
+      type: int
+      default: 60
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    - name: collect_cluster_metrics
+      label: Collect Cluster Metrics
+      description: Whether discovered peer nodes should be collected.
+      type: bool
+      default: false
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    - name: aerospike_enterprise
+      label: Aerospike Enterprise Authentication
+      description: Enable Aerospike enterprise authentication.
+      type: bool
+      default: false
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    - name: username
+      label: Username
+      description: The username to use when connecting to Aerospike.
+      type: string
+      required: true
+      default: ""
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+        - name: aerospike_enterprise
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    - name: password
+      label: Password
+      description: The password to use when connecting to Aerospike.
+      type: string
+      required: true
+      default: ""
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+        - name: aerospike_enterprise
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    # Logging
+    #
+    # Aerospike uses Journald, which has a journald_directory option. Generally the journald
+    # receiver will auto detect this directory, which is why we do not expose it here.
+    - name: enable_logs
+      label: Enable Journald Logs
+      description: Enable to collect Aerospike logs from Journald.
+      type: bool
+      default: true
+
+    - name: start_at
+      label: Start At
+      description: Start reading Aerospike Journald logs from 'beginning' or 'end'.
+      type: enum
+      validValues:
+        - beginning
+        - end
+      default: end
+      advancedConfig: true
+
+  metrics:
+    receivers: |
+      {{ if .enable_metrics }}
+      - aerospike:
+          collection_interval: {{ .collection_interval }}s
+          endpoint: {{ .hostname }}:{{ .port }}
+          collect_cluster_metrics: {{ .collect_cluster_metrics }}
+          {{ if .aerospike_enterprise }}
+          username: {{ .username }}
+          password: {{ .password }}
+          {{ end }}
+      {{ end }}
+
+  logs:
+    receivers: |
+      {{ if .enable_logs }}
+      - plugin/aerospike:
+          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/aerospike_logs.yaml
+          parameters:
+            start_at: {{ .start_at }}
+      {{ end }}
+
+    processors: |
+      {{ if .enable_logs }}
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]
+      {{ end }}
