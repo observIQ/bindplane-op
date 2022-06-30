@@ -237,9 +237,8 @@ check_prereqs() {
 
 # latest_version gets the tag of the latest release, without the v prefix.
 latest_version() {
-  curl -sSL -H"Accept: application/vnd.github.v3+json" https://api.github.com/repos/observIQ/bindplane-op/releases/latest | \
-    grep "\"tag_name\"" | \
-    sed -E 's/ *"tag_name": "v([0-9]+\.[0-9]+\.[0-9+])",/\1/'
+  curl -sSL -H"Accept: application/vnd.github.v3+json" https://api.github.com/repos/observiq/bindplane-op/releases/latest | \
+    grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | cut -c2-
 }
 
 # download_url returns the url for downloading a package with
@@ -270,7 +269,7 @@ deb_install() {
     increase_indent
 
     url=$(download_url "deb")
-    curl -s -o bindplane.deb "$url" || error_exit "$LINENO" "Failed to download BindPlane package from ${url}"
+    curl -fsSlL -o bindplane.deb "$url" || error_exit "$LINENO" "Failed to download BindPlane package from ${url}"
 
     if dpkg -s bindplane &>/dev/null; then
         sudo apt-get install --only-upgrade -y -f ./bindplane.deb  || error_exit "$LINENO" "Failed to upgrade BindPlane"
@@ -287,7 +286,7 @@ dnf_install() {
     increase_indent
 
     url=$(download_url "rpm")
-    curl -s -o bindplane.rpm "$url" || error_exit "$LINENO" "Failed to download BindPlane package from ${url}"
+    curl -fsSlL -o bindplane.rpm "$url" || error_exit "$LINENO" "Failed to download BindPlane package from ${url}"
 
     if rpm -q bindplane &>/dev/null; then
         sudo dnf upgrade -y bindplane.rpm || error_exit "$LINENO" "Failed to upgrade BindPlane"
@@ -304,7 +303,7 @@ yum_install() {
     increase_indent
 
     url=$(download_url "rpm")
-    curl -s -o bindplane.rpm "$url" || error_exit "$LINENO" "Failed to download BindPlane package from ${url}"
+    curl -fsSlL -o bindplane.rpm "$url" || error_exit "$LINENO" "Failed to download BindPlane package from ${url}"
 
     if rpm -q bindplane &>/dev/null; then
         sudo yum upgrade -y bindplane.rpm || error_exit "$LINENO" "Failed to upgrade BindPlane"

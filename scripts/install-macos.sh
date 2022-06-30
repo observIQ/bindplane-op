@@ -213,9 +213,8 @@ check_prereqs() {
 
 # latest_version gets the tag of the latest release, without the v prefix.
 latest_version() {
-  curl -sSL -H"Accept: application/vnd.github.v3+json" https://api.github.com/repos/observIQ/bindplane-op/releases/latest | \
-    grep "\"tag_name\"" | \
-    sed -E 's/ *"tag_name": "v([0-9]+\.[0-9]+\.[0-9+])",/\1/'
+  curl -sSL -H"Accept: application/vnd.github.v3+json" https://api.github.com/repos/observiq/bindplane-op/releases/latest | \
+    grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | cut -c2-
 }
 
 # download_url returns the url for downloading a package with
@@ -241,7 +240,7 @@ install() {
 
     # ensure bin dir exists and has temp dir
     mkdir -p "${bin_dir}/temp"
-    curl -s -o "${bin_dir}/temp/bindplane.zip" "$url"
+    curl -fsSlL -o "${bin_dir}/temp/bindplane.zip" "$url" || error_exit "$LINENO" "Failed to download BindPlane package from ${url}"
 
     cd "${bin_dir}/temp" && unzip bindplane.zip
 
