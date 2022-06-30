@@ -32,6 +32,7 @@ func login(ctx *gin.Context, bindplane server.BindPlane) {
 	session, err := bindplane.Store().UserSessions().Get(ctx.Request, CookieName)
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, errors.New("failed to retrieve session"))
+		bindplane.Logger().Error("failed to retrieve session at login", zap.Error(err))
 		return
 	}
 
@@ -51,6 +52,7 @@ func login(ctx *gin.Context, bindplane server.BindPlane) {
 	// Save and write the session
 	if err := session.Save(ctx.Request, ctx.Writer); err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, errors.New("failed to save session"))
+		bindplane.Logger().Error("failed to save session after login", zap.Error(err))
 	}
 }
 
@@ -58,6 +60,7 @@ func logout(ctx *gin.Context, bindplane server.BindPlane) {
 	session, err := bindplane.Store().UserSessions().Get(ctx.Request, CookieName)
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, errors.New("failed to retrieve session"))
+		bindplane.Logger().Error("failed to retrieve session for logout", zap.Error(err))
 		return
 	}
 
@@ -70,11 +73,17 @@ func logout(ctx *gin.Context, bindplane server.BindPlane) {
 	// Save and write the session
 	if err := session.Save(ctx.Request, ctx.Writer); err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, errors.New("failed to save session"))
+		bindplane.Logger().Error("failed to save session after logout", zap.Error(err))
 	}
 }
 
 func verify(c *gin.Context, bindplane server.BindPlane) {
-	session, _ := bindplane.Store().UserSessions().Get(c.Request, CookieName)
+	session, err := bindplane.Store().UserSessions().Get(c.Request, CookieName)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, errors.New("failed to retrieve session"))
+		bindplane.Logger().Error("failed to save session during verify", zap.Error(err))
+		return
+	}
 
 	if session.Values["authenticated"] == true {
 		return
