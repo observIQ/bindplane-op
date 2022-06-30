@@ -258,7 +258,7 @@ spec:
 
           username: {{ .username }}
           password: {{ .password }}
-          collection_interval: {{ .collection_interval }}s
+          collection_interval: {{ .collection_interval }}m
 
           {{ if .enable_tls }}
           tls:
