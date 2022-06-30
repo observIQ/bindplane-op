@@ -42,7 +42,7 @@ require (
 	github.com/gin-gonic/contrib v0.0.0-20201101042839-6a891bf89f19
 	github.com/golang/protobuf v1.5.2
 	github.com/observiq/stanza v1.6.1
-	github.com/open-telemetry/opamp-go v0.0.0-20220531162705-3f2eab449870
+	github.com/open-telemetry/opamp-go v0.2.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.32.0
 	go.opentelemetry.io/otel v1.7.0
 	go.opentelemetry.io/otel/sdk v1.7.0

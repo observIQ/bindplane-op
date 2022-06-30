@@ -265,7 +265,7 @@ func (s *opampServer) UpdateAgent(ctx context.Context, agent *model.Agent, updat
 		InstanceUid:  agent.ID,
 		Capabilities: capabilities,
 		RemoteConfig: agentRemoteConfig(&newRawConfiguration, &agentRawConfiguration),
-		Flags:        protobufs.ServerToAgent_ReportEffectiveConfig,
+		Flags:        protobufs.ServerToAgent_ReportFullState,
 	})
 }
 
@@ -312,17 +312,8 @@ func (s *opampServer) verifyAgentConfig(ctx context.Context, conn opamp.Connecti
 	// if we didn't receive configuration, ask for it
 	// TODO(andy): we might have the hash and be able to compare that
 	if message.GetEffectiveConfig().GetConfigMap() == nil {
-		s.logger.Info("no configuration available to verify, requesting from agent", zap.String("hash", string(message.GetEffectiveConfig().GetHash())))
-		response.Flags |= protobufs.ServerToAgent_ReportEffectiveConfig
-		response.Flags |= protobufs.ServerToAgent_ReportRemoteConfigStatus
-
-		// // if we have RemoteConfigStatus, update it
-		// if message.GetRemoteConfigStatus() != nil {
-		// 	_, err := s.manager.UpsertAgent(ctx, agentID, s.upsertWithRemoteConfigStatus(conn, message))
-		// 	if err != nil {
-		// 		s.logger.Error("unable to update agent with remote config status but no effective config")
-		// 	}
-		// }
+		s.logger.Info("no configuration available to verify, requesting from agent")
+		response.Flags |= protobufs.ServerToAgent_ReportFullState
 		return nil
 	}
 

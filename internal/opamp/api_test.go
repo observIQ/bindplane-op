@@ -305,7 +305,7 @@ func TestServerOnMessage(t *testing.T) {
 			expect: &protobufs.ServerToAgent{
 				InstanceUid:  agentID,
 				Capabilities: capabilities,
-				Flags:        protobufs.ServerToAgent_ReportEffectiveConfig | protobufs.ServerToAgent_ReportRemoteConfigStatus,
+				Flags:        protobufs.ServerToAgent_ReportFullState,
 			},
 			verify: func(t *testing.T, server *opampServer, result *protobufs.ServerToAgent) {
 				require.ElementsMatch(t, []string{agentID}, server.connections.agentIDs())
