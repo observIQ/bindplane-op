@@ -373,7 +373,6 @@ jobs:
       - name: Remove Deb Server Package
         run: sudo apt-get remove -y bindplane
 
-
   # Test the container image built by Goreleaser.
   test-container-image:
     runs-on: "ubuntu-20.04"
