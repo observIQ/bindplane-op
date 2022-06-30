@@ -109,8 +109,6 @@ Usage:
   $(fg_yellow '-v, --version')
       An optional BindPlane package version. Defaults to the latest version
       present in the package repository.
-  $(fg_yellow '-c, --client')
-      Install bindplanetl only
 EOF
   )
   info "$USAGE"
@@ -243,7 +241,6 @@ install() {
 
     # ensure bin dir exists and has temp dir
     mkdir -p "${bin_dir}/temp"
-    echo "$url"
     curl -s -o "${bin_dir}/temp/bindplane.zip" "$url"
 
     cd "${bin_dir}/temp" && unzip bindplane.zip
