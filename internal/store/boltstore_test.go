@@ -39,7 +39,7 @@ func TestClear(t *testing.T) {
 	require.NoError(t, err, "error while initializing test database", err)
 	defer cleanupTestDB(t)
 
-	s := NewBoltStore(db, zap.NewNop())
+	s := NewBoltStore(db, "super-secret-key", zap.NewNop())
 	s.ApplyResources([]model.Resource{
 		macosSourceType,
 		macosSource,
@@ -67,7 +67,7 @@ func TestAddAgent(t *testing.T) {
 	require.NoError(t, err, "error while initializing test database", err)
 	defer cleanupTestDB(t)
 
-	s := NewBoltStore(db, zap.NewNop())
+	s := NewBoltStore(db, "super-secret-key", zap.NewNop())
 	a1 := &model.Agent{ID: "1", Name: "Fake Agent 1", Labels: model.Labels{Set: model.MakeLabels().Set}}
 	a2 := &model.Agent{ID: "2", Name: "Fake Agent 2", Labels: model.Labels{Set: model.MakeLabels().Set}}
 
@@ -153,7 +153,7 @@ func TestBoltStoreConfigurations(t *testing.T) {
 	db, err := initTestDB(t)
 	require.NoError(t, err, "error while initializing test database", err)
 	defer cleanupTestDB(t)
-	s := NewBoltStore(db, zap.NewNop())
+	s := NewBoltStore(db, "super-secret-key", zap.NewNop())
 
 	runConfigurationsTests(t, s)
 }
@@ -162,7 +162,7 @@ func TestBoltstoreConfiguration(t *testing.T) {
 	db, err := initTestDB(t)
 	require.NoError(t, err, "error while initializing test database", err)
 	defer cleanupTestDB(t)
-	s := NewBoltStore(db, zap.NewNop())
+	s := NewBoltStore(db, "super-secret-key", zap.NewNop())
 
 	runConfigurationTests(t, s)
 }
@@ -171,7 +171,7 @@ func TestAgents(t *testing.T) {
 	require.NoError(t, err, "error while initializing test database", err)
 	defer cleanupTestDB(t)
 
-	s := NewBoltStore(db, zap.NewNop())
+	s := NewBoltStore(db, "super-secret-key", zap.NewNop())
 	a1 := &model.Agent{ID: "1", Name: "Fake Agent 1", Labels: model.Labels{Set: model.MakeLabels().Set}}
 	a2 := &model.Agent{ID: "2", Name: "Fake Agent 2", Labels: model.Labels{Set: model.MakeLabels().Set}}
 
@@ -189,7 +189,7 @@ func TestAgent(t *testing.T) {
 	require.NoError(t, err, "error while initializing test database", err)
 	defer cleanupTestDB(t)
 
-	s := NewBoltStore(db, zap.NewNop())
+	s := NewBoltStore(db, "super-secret-key", zap.NewNop())
 	a1 := &model.Agent{ID: "1", Name: "Fake Agent 1", Labels: model.Labels{Set: model.MakeLabels().Set}}
 	a2 := &model.Agent{ID: "2", Name: "Fake Agent 2", Labels: model.Labels{Set: model.MakeLabels().Set}}
 
@@ -214,7 +214,7 @@ func TestUpsertAgent(t *testing.T) {
 	defer cleanupTestDB(t)
 
 	// Seed with one agent
-	s := NewBoltStore(db, zap.NewNop())
+	s := NewBoltStore(db, "super-secret-key", zap.NewNop())
 	a1 := &model.Agent{ID: "1", Name: "Fake Agent 1", Labels: model.Labels{Set: model.MakeLabels().Set}}
 	addAgent(s, a1)
 
@@ -246,7 +246,7 @@ func TestBoltStoreNotifyUpdates(t *testing.T) {
 	require.NoError(t, err)
 	defer cleanupTestDB(t)
 
-	store := NewBoltStore(db, zap.NewNop())
+	store := NewBoltStore(db, "super-secret-key", zap.NewNop())
 	done := make(chan bool, 1)
 
 	runNotifyUpdatesTests(t, store, done)
@@ -257,7 +257,7 @@ func TestBoltStoreDeleteChannel(t *testing.T) {
 	require.NoError(t, err)
 	defer cleanupTestDB(t)
 
-	store := NewBoltStore(db, zap.NewNop())
+	store := NewBoltStore(db, "super-secret-key", zap.NewNop())
 	done := make(chan bool, 1)
 
 	runDeleteChannelTests(t, store, done)
@@ -268,7 +268,7 @@ func TestBoltStoreAgentSubscriptionChannel(t *testing.T) {
 	require.NoError(t, err)
 	defer cleanupTestDB(t)
 
-	store := NewBoltStore(db, zap.NewNop())
+	store := NewBoltStore(db, "super-secret-key", zap.NewNop())
 	runAgentSubscriptionsTest(t, store)
 }
 
@@ -276,7 +276,7 @@ func TestBoltStoreAgentUpdatesChannel(t *testing.T) {
 	db, err := initTestDB(t)
 	require.NoError(t, err)
 	defer cleanupTestDB(t)
-	store := NewBoltStore(db, zap.NewNop())
+	store := NewBoltStore(db, "super-secret-key", zap.NewNop())
 
 	runUpdateAgentsTests(t, store)
 }
@@ -286,7 +286,7 @@ func TestBoltstoreApplyResourceReturn(t *testing.T) {
 	require.NoError(t, err)
 	defer cleanupTestDB(t)
 
-	store := NewBoltStore(db, zap.NewNop())
+	store := NewBoltStore(db, "super-secret-key", zap.NewNop())
 	runApplyResourceReturnTests(t, store)
 }
 
@@ -295,7 +295,7 @@ func TestBoltstoreDeleteResourcesReturn(t *testing.T) {
 	require.NoError(t, err)
 	defer cleanupTestDB(t)
 
-	store := NewBoltStore(db, zap.NewNop())
+	store := NewBoltStore(db, "super-secret-key", zap.NewNop())
 	runDeleteResourcesReturnTests(t, store)
 }
 
@@ -304,7 +304,7 @@ func TestBoltstoreValidateApplyResourcesTests(t *testing.T) {
 	require.NoError(t, err)
 	defer cleanupTestDB(t)
 
-	store := NewBoltStore(db, zap.NewNop())
+	store := NewBoltStore(db, "super-secret-key", zap.NewNop())
 	runValidateApplyResourcesTests(t, store)
 }
 
@@ -390,7 +390,7 @@ func TestNewBoltStore(t *testing.T) {
 			require.NotNil(t, db, "failed to initialize test bbolt, is nil")
 
 			// Test
-			output := NewBoltStore(db, nil)
+			output := NewBoltStore(db, "super-secret-key", nil)
 			require.NotNil(t, output)
 			require.IsType(t, &boltstore{}, output)
 			require.Equal(t, db, output.(*boltstore).db)
@@ -410,7 +410,7 @@ func TestBoltstoreDependentResources(t *testing.T) {
 	require.NoError(t, err)
 	defer cleanupTestDB(t)
 
-	store := NewBoltStore(db, zap.NewNop())
+	store := NewBoltStore(db, "super-secret-key", zap.NewNop())
 	runDependentResourcesTests(t, store)
 }
 
@@ -419,7 +419,7 @@ func TestBoltstoreIndividualDelete(t *testing.T) {
 	require.NoError(t, err)
 	defer cleanupTestDB(t)
 
-	store := NewBoltStore(db, zap.NewNop())
+	store := NewBoltStore(db, "super-secret-key", zap.NewNop())
 	runIndividualDeleteTests(t, store)
 }
 
@@ -428,7 +428,7 @@ func TestBoltstorePaging(t *testing.T) {
 	require.NoError(t, err)
 	defer cleanupTestDB(t)
 
-	store := NewBoltStore(db, zap.NewNop())
+	store := NewBoltStore(db, "super-secret-key", zap.NewNop())
 	runPagingTests(t, store)
 }
 
@@ -437,7 +437,7 @@ func TestBoltStoreDeleteAgents(t *testing.T) {
 	require.NoError(t, err)
 	defer cleanupTestDB(t)
 
-	store := NewBoltStore(db, zap.NewNop())
+	store := NewBoltStore(db, "super-secret-key", zap.NewNop())
 	runDeleteAgentsTests(t, store)
 }
 
@@ -446,7 +446,7 @@ func TestBoltstoreUpsertAgents(t *testing.T) {
 	require.NoError(t, err)
 	defer cleanupTestDB(t)
 
-	store := NewBoltStore(db, zap.NewNop())
+	store := NewBoltStore(db, "super-secret-key", zap.NewNop())
 	runTestUpsertAgents(t, store)
 }
 

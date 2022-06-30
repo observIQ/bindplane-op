@@ -107,6 +107,8 @@ func SetCommand(h Helper) *cobra.Command {
 						profile.Spec.Command.Output = f.Value.String()
 					case "offline":
 						profile.Spec.Server.Offline = f.Value.String() == "true"
+					case "sessions-secret":
+						profile.Spec.Server.SessionsSecret = f.Value.String()
 					}
 				}
 			}

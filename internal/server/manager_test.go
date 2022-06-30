@@ -35,7 +35,7 @@ import (
 
 var (
 	logger       = zap.NewNop()
-	testMapstore = store.NewMapStore(logger)
+	testMapstore = store.NewMapStore(logger, "super-secret-key")
 	testProtocol = &mockProtocol{}
 	testManager  = &manager{
 		store:     testMapstore,

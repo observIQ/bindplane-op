@@ -17,9 +17,11 @@ import { DetailsSection } from "./DetailsSection";
 import { ConfigurationSection } from "./ConfigurationSection";
 import { SourcesSection } from "./SourcesSection";
 import { DestinationsSection } from "./DestinationsSection";
+import { useSnackbar } from "notistack";
 
 import styles from "./configuration-page.module.scss";
-import { useSnackbar } from "notistack";
+import { withRequireLogin } from "../../../contexts/RequireLogin";
+import { withNavBar } from "../../../components/NavBar";
 
 gql`
   query GetConfiguration($name: String!) {
@@ -58,7 +60,7 @@ gql`
 
 export type ShowPageConfig = GetConfigurationQuery["configuration"];
 
-export const ViewConfiguration: React.FC = () => {
+const ConfigPageContent: React.FC = () => {
   const { name } = useParams();
 
   // Get Configuration Data
@@ -246,3 +248,7 @@ export const ViewConfiguration: React.FC = () => {
     </>
   );
 };
+
+export const ViewConfiguration = withRequireLogin(
+  withNavBar(ConfigPageContent)
+);

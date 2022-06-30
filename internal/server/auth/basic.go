@@ -15,24 +15,26 @@
 package auth
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 
 	"github.com/observiq/bindplane/internal/server"
 )
 
-// Basic TODO(doc)
-func Basic(server server.BindPlane) gin.HandlerFunc {
+// CheckBasic checks the basic authentication for a request and sets
+// authenticated to true if it satisfies the basic auth.  If basic auth is not
+// set or is incorrect it goes to the next handler.
+func CheckBasic(server server.BindPlane) gin.HandlerFunc {
 	configUsername := server.Config().Username
 	configPassword := server.Config().Password
+
 	return func(c *gin.Context) {
 		username, password, ok := c.Request.BasicAuth()
 		if !ok || username != configUsername || password != configPassword {
-			c.Writer.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			// Go to next middleware in chain, the final middleware will require authentication is set to true.
+			c.Next()
 			return
 		}
-		c.Next()
+
+		c.Set("authenticated", true)
 	}
 }
