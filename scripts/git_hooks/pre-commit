@@ -17,11 +17,7 @@ make lint
 echo "Running swagger. . ."
 make swagger
 
-<<<<<<< Updated upstream
 echo "Checking spelling. . ."
-=======
-echop "Checking spelling. . ."
->>>>>>> Stashed changes
 make misspell
 
 echo "Pre commit finished."
