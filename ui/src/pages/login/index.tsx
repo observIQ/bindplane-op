@@ -53,7 +53,7 @@ export const LoginPage: React.FC = () => {
   }
 
   return (
-    <div className={styles["login-page"]}>
+    <div className={styles["login-page"]} data-testid="login-page">
       <Stack alignItems={"center"} justifyContent={"center"}>
         <BindPlaneOPLogo width={225} height={60} className={styles.logo} />
         <Card classes={{ root: styles.card }}>
