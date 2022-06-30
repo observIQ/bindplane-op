@@ -4,7 +4,12 @@ This directory contains the UI portion for BindPlane which is a single page reac
 
 ## Development
 
-For a development environment run
+To bootstrap the repo to run in development mode - run the following commands in the project root directory.
+
+`make install-ui` - This will run an `npm install` in the ui directory.
+`make prep` - This will create a file `ui/build/index.html` needed for the server to compile.
+
+Now for a development environment you can run:
 
 ```sh
 make dev
@@ -13,9 +18,13 @@ make dev
 in the root project directory. This
 
 1. Starts the react app with hot reloading with npm start
-2. Starts the BindPlane server with `go run . serve`
+2. Starts the BindPlane server with `go run cmd/bindplane main.go serve`
 
 For development navigate to `http:localhost:3000`
+
+## GraphQL Subscriptions on Chrome
+
+Its a known issue that the websocket connections needed for live updates for agents and configurations does not work for Chrome. It is known to work on Safari and Firefox.
 
 ## Building
 
