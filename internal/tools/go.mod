@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/99designs/gqlgen v0.17.10
+	github.com/client9/misspell v0.3.4
 	github.com/google/addlicense v1.0.0
 	github.com/mgechev/revive v1.2.1
 	github.com/securego/gosec/v2 v2.12.0

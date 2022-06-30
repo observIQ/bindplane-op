@@ -14,14 +14,6 @@ jobs:
       - name: Unshallow
         run: git fetch --prune --unshallow
 
-      - name: Install Gcloud SDK
-        uses: google-github-actions/setup-gcloud@v0.6.0
-
-      - name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@v0.7.1'
-        with:
-          credentials_json: '${{ secrets.GCP_DEV_SA_KEY }}'
-
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
@@ -70,6 +62,6 @@ jobs:
           version: v1.9.0
           args: release --rm-dist --parallelism 1
         env:
-          # github token requires permission to observiq/bindplane and observiq/homebrew-bindplane
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # github token requires permission to observiq/bindplane-op and observiq/homebrew-bindplane-op
+          GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
