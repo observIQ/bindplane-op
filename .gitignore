@@ -60,6 +60,4 @@ ui/.env.production.local
 
 ui/npm-debug.log*
 
-release-stage
-
 gha-creds-*.json

@@ -236,14 +236,6 @@ build:
 clean:
 	rm -rf $(OUTDIR)
 
-# Release prep injects the current version into the install scripts.
-.PHONY: release-prep
-release-prep:
-	rm -rf release-stage
-	mkdir release-stage
-	sed "s/SED_VERSION/$$VERSION/g" scripts/install-linux.sh > release-stage/install-linux.sh
-	sed "s/SED_VERSION/$$VERSION/g" scripts/install-macos.sh > release-stage/install-macos.sh
-
 .PHONY: release-test
 release-test:
 	goreleaser release --rm-dist --skip-publish --skip-validate --snapshot
