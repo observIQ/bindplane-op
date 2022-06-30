@@ -10,6 +10,7 @@ import (
 )
 
 const (
+	// CookieName is the name of the cookie used for session authentication.
 	CookieName = "BP_OP_AUTH"
 )
 
