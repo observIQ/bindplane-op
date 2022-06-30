@@ -77,7 +77,7 @@ spec:
 
     - name: cert_file
       label: TLS Certificate File
-      description: Path to the TLS cert to use for TLS required connections.
+      description: Path to the x509 PEM certificate.
       type: string
       required: false
       default: ""
@@ -89,7 +89,7 @@ spec:
 
     - name: key_file
       label: TLS Private Key File
-      description: Path to the TLS key to use for TLS required connections.
+      description: Path to the x509 PEM private key.
       type: string
       required: false
       default: ""

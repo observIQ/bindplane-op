@@ -1,10 +1,10 @@
 apiVersion: bindplane.observiq.com/v1beta
 kind: SourceType
 metadata:
-  name: vmware_esxi
-  displayName: VMare ESXI
-  icon: /icons/sources/vmware_esxi.svg
-  description: VMware ESXI syslog
+  name: vmware_vcenter
+  displayName: VMare vCenter
+  icon: /icons/sources/vmware_vcenter.svg
+  description: VMware vCenter metrics and syslog
 spec:
   version: 0.0.1
   supported_platforms:
@@ -67,7 +67,7 @@ spec:
             {{ if .enable_tls }}
             enable_tls: {{ .enable_tls }}
             certificate_file: "{{ .cert_file }}"
-            private_key_file: "{{ .key_file }}"
+            key_file: "{{ .key_file }}"
             {{ end }}
 
     processors: |
