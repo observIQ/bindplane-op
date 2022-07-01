@@ -203,7 +203,7 @@ brews:
   tap:
     owner: observIQ
     name: homebrew-bindplane-op
-    branch: master
+    branch: main
   folder: Formula
   url_template: https://github.com/observIQ/bindplane/releases/download/{{ .Tag }}/{{ .ArtifactName }}
   commit_author:
