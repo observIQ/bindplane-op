@@ -141,7 +141,7 @@ tls:
 
 .PHONY: docker-http
 docker-http:
-	docker run -d -p 3010:3001 --name "bindplane-server-${GIT_SHA}-http" "observiq/bindplane-$(GOARCH):latest" \
+	docker run -d -p 3010:3001 --name "bindplane-server-${GIT_SHA}-http" "observiq/bindplane-$(GOARCH):${GIT_SHA}" \
 		--host 0.0.0.0 \
 		--port "3001" \
 		--server-url http://localhost:3010 \
