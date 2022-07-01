@@ -211,7 +211,7 @@ func (s *Server) stop() error {
 
 func (s *Server) createStore(config *common.Server) (store.Store, error) {
 	if config.SessionsSecret == "" {
-		return nil, errors.New("cannot create store with unset value for sessions-secret, run bindplane server init to set value")
+		return nil, errors.New("cannot create store with unset value for sessions-secret, run bindplane init server to set value")
 	}
 
 	switch config.StoreType {
