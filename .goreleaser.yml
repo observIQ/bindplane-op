@@ -54,7 +54,7 @@ nfpms:
   builds:
     - bindplanectl
   vendor: observIQ, Inc
-  homepage: https://github.com/observIQ/bindplane
+  homepage: https://docs.bindplane.observiq.com/docs
   maintainer: observIQ, Inc
   description: Next generation agent management platform
   license: Apache 2.0
@@ -69,7 +69,7 @@ nfpms:
   builds:
     - bindplane
   vendor: observIQ, Inc
-  homepage: https://github.com/observIQ/bindplane
+  homepage: https://docs.bindplane.observiq.com/docs
   maintainer: observIQ, Inc
   description: Next generation agent management platform
   license: Apache 2.0
@@ -202,16 +202,14 @@ brews:
 - name: bindplane
   tap:
     owner: observIQ
-    name: homebrew-bindplane
+    name: homebrew-bindplane-op
     branch: master
-  download_strategy: GitHubPrivateRepositoryReleaseDownloadStrategy
-  custom_require: "lib/private.rb"
   folder: Formula
   url_template: https://github.com/observIQ/bindplane/releases/download/{{ .Tag }}/{{ .ArtifactName }}
   commit_author:
     name: bindplane
     email: support@observiq.com
-  homepage: "https://github.com/observiq/bindplane"
+  homepage: "https://docs.bindplane.observiq.com/docs"
   license: "Apache 2.0"
 
 release:
