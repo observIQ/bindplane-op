@@ -17,8 +17,8 @@ package get
 import (
 	"fmt"
 
-	"github.com/observiq/bindplane/internal/cli"
-	"github.com/observiq/bindplane/internal/cli/printer"
+	"github.com/observiq/bindplane-op/internal/cli"
+	"github.com/observiq/bindplane-op/internal/cli/printer"
 	"github.com/spf13/cobra"
 )
 

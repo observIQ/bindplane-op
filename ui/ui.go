@@ -25,7 +25,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"github.com/observiq/bindplane/internal/server"
+	"github.com/observiq/bindplane-op/internal/server"
 )
 
 //go:embed build

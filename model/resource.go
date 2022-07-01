@@ -24,8 +24,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
-	"github.com/observiq/bindplane/internal/store/search"
-	"github.com/observiq/bindplane/model/validation"
+	"github.com/observiq/bindplane-op/internal/store/search"
+	"github.com/observiq/bindplane-op/model/validation"
 	"gopkg.in/yaml.v2"
 )
 

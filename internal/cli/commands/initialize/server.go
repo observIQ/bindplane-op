@@ -21,10 +21,10 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/terminal"
 	"github.com/google/uuid"
-	"github.com/observiq/bindplane/common"
-	"github.com/observiq/bindplane/internal/cli"
-	"github.com/observiq/bindplane/internal/cli/commands/profile"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/common"
+	"github.com/observiq/bindplane-op/internal/cli"
+	"github.com/observiq/bindplane-op/internal/cli/commands/profile"
+	"github.com/observiq/bindplane-op/model"
 	"github.com/spf13/cobra"
 )
 

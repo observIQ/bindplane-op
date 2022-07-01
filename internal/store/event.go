@@ -15,7 +15,7 @@
 package store
 
 import (
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/model"
 )
 
 // EventType is the type of event

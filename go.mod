@@ -1,4 +1,4 @@
-module github.com/observiq/bindplane
+module github.com/observiq/bindplane-op
 
 go 1.18
 

@@ -27,9 +27,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
-	"github.com/observiq/bindplane/common"
-	"github.com/observiq/bindplane/internal/server"
-	"github.com/observiq/bindplane/internal/store"
+	"github.com/observiq/bindplane-op/common"
+	"github.com/observiq/bindplane-op/internal/server"
+	"github.com/observiq/bindplane-op/internal/store"
 )
 
 func TestAddRoutes(t *testing.T) {

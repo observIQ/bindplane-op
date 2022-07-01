@@ -19,9 +19,9 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/observiq/bindplane/internal/store/search"
-	"github.com/observiq/bindplane/model/otel"
-	"github.com/observiq/bindplane/model/validation"
+	"github.com/observiq/bindplane-op/internal/store/search"
+	"github.com/observiq/bindplane-op/model/otel"
+	"github.com/observiq/bindplane-op/model/validation"
 	otelExt "go.opentelemetry.io/otel"
 	"gopkg.in/yaml.v3"
 )

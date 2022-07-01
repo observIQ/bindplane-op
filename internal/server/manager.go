@@ -23,10 +23,10 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 
-	"github.com/observiq/bindplane/common"
-	"github.com/observiq/bindplane/internal/eventbus"
-	"github.com/observiq/bindplane/internal/store"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/common"
+	"github.com/observiq/bindplane-op/internal/eventbus"
+	"github.com/observiq/bindplane-op/internal/store"
+	"github.com/observiq/bindplane-op/model"
 )
 
 var tracer = otel.Tracer("bindplane/manager")

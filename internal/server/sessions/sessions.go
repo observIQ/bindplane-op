@@ -19,7 +19,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/observiq/bindplane/internal/server"
+	"github.com/observiq/bindplane-op/internal/server"
 	"go.uber.org/zap"
 )
 

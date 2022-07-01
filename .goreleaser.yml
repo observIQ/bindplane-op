@@ -22,7 +22,7 @@ builds:
       goarch: arm
   binary: 'bindplane'
   ldflags:
-    - -X github.com/observiq/bindplane/internal/version.gitTag=v{{ .Version }}
+    - -X github.com/observiq/bindplane-op/internal/version.gitTag=v{{ .Version }}
 - id: bindplanectl
   main: ./cmd/bindplanectl
   env:
@@ -41,7 +41,7 @@ builds:
       goarch: arm
   binary: 'bindplanectl'
   ldflags:
-    - -X github.com/observiq/bindplane/internal/version.gitTag=v{{ .Version }}
+    - -X github.com/observiq/bindplane-op/internal/version.gitTag=v{{ .Version }}
 
 archives:
 - format: zip

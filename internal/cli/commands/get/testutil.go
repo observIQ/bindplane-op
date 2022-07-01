@@ -24,10 +24,10 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/observiq/bindplane/client"
-	"github.com/observiq/bindplane/common"
-	"github.com/observiq/bindplane/internal/cli"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/client"
+	"github.com/observiq/bindplane-op/common"
+	"github.com/observiq/bindplane-op/internal/cli"
+	"github.com/observiq/bindplane-op/model"
 )
 
 var tableOutput = "table"

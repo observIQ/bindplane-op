@@ -19,8 +19,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/observiq/bindplane/internal/cli"
-	"github.com/observiq/bindplane/internal/cli/printer"
+	"github.com/observiq/bindplane-op/internal/cli"
+	"github.com/observiq/bindplane-op/internal/cli/printer"
 )
 
 // ConfigurationsCommand returns the BindPlane get configurations cobra command

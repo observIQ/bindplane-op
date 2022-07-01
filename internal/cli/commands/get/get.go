@@ -17,7 +17,7 @@ package get
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/observiq/bindplane/internal/cli"
+	"github.com/observiq/bindplane-op/internal/cli"
 )
 
 // Command returns the BindPlane get cobra command.

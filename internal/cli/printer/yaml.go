@@ -21,7 +21,7 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/model"
 )
 
 // YamlPrinter TODO(doc)

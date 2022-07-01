@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/observiq/bindplane/common"
+	"github.com/observiq/bindplane-op/common"
 )
 
 var (

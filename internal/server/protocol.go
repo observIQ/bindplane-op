@@ -17,7 +17,7 @@ package server
 import (
 	"context"
 
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/model"
 )
 
 // AgentUpdates contains fields that can be modified on an Agent and should be sent to the agent. The model.Agent should

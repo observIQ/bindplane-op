@@ -22,7 +22,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/model"
 	"gopkg.in/yaml.v3"
 )
 

@@ -15,10 +15,10 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	model1 "github.com/observiq/bindplane/internal/graphql/model"
-	"github.com/observiq/bindplane/internal/store/search"
-	"github.com/observiq/bindplane/model"
-	"github.com/observiq/bindplane/model/otel"
+	model1 "github.com/observiq/bindplane-op/internal/graphql/model"
+	"github.com/observiq/bindplane-op/internal/store/search"
+	"github.com/observiq/bindplane-op/model"
+	"github.com/observiq/bindplane-op/model/otel"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )

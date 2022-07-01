@@ -22,8 +22,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"github.com/observiq/bindplane/internal/agent"
-	"github.com/observiq/bindplane/internal/server"
+	"github.com/observiq/bindplane-op/internal/agent"
+	"github.com/observiq/bindplane-op/internal/server"
 )
 
 // AddDownloadRoutes adds /download/* routes to the gin HTTP router

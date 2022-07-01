@@ -20,8 +20,8 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/spf13/cobra"
 
-	"github.com/observiq/bindplane/internal/cli"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/internal/cli"
+	"github.com/observiq/bindplane-op/model"
 )
 
 // Command returns the bindplane apply cobra command.

@@ -15,7 +15,7 @@
 package printer
 
 import (
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/model"
 )
 
 // Printer TODO(doc)

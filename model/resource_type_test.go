@@ -18,7 +18,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/observiq/bindplane/model/otel"
+	"github.com/observiq/bindplane-op/model/otel"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 )

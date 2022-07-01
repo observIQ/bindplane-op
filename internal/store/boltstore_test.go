@@ -30,8 +30,8 @@ import (
 	"go.etcd.io/bbolt"
 	"go.uber.org/zap"
 
-	"github.com/observiq/bindplane/internal/store/search"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/internal/store/search"
+	"github.com/observiq/bindplane-op/model"
 )
 
 func TestClear(t *testing.T) {
