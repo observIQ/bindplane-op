@@ -38,7 +38,7 @@ import (
 
 var tracer = otel.Tracer("bindplane/opamp")
 
-var compatibleVersions = []string{"v0.2.0"}
+var compatibleOpAMPVersions = []string{"v0.2.0"}
 
 const (
 	headerAuthorization = "Authorization"
@@ -75,9 +75,10 @@ const (
 )
 
 type opampServer struct {
-	manager     server.Manager
-	connections *connections
-	logger      *zap.Logger
+	manager                 server.Manager
+	connections             *connections
+	compatibleOpAMPVersions []string
+	logger                  *zap.Logger
 }
 
 var _ server.Protocol = (*opampServer)(nil)
@@ -85,9 +86,10 @@ var _ opamp.Callbacks = (*opampServer)(nil)
 
 func newServer(manager server.Manager, logger *zap.Logger) *opampServer {
 	return &opampServer{
-		manager:     manager,
-		connections: newConnections(),
-		logger:      logger,
+		manager:                 manager,
+		connections:             newConnections(),
+		compatibleOpAMPVersions: compatibleOpAMPVersions,
+		logger:                  logger,
 	}
 }
 
@@ -113,14 +115,18 @@ func (s *opampServer) OnConnecting(request *http.Request) opamp.ConnectionRespon
 
 	// check for compatibility
 	headers := parseAgentHeaders(request)
-	if headers == nil || !slices.Contains(compatibleVersions, headers.opampVersion) {
+	if headers == nil || !slices.Contains(s.compatibleOpAMPVersions, headers.opampVersion) {
 		// no version header, agent version is <= 1.2.0 or OpAMP version incompatible
-		s.logger.Error("unable to connect to incompatible agent", zap.Any("headers", request.Header), zap.String("RemoteAddr", request.RemoteAddr), zap.Strings("compatibleOpAMPVersions", compatibleVersions))
+		s.logger.Error("unable to connect to incompatible agent",
+			zap.Any("headers", request.Header),
+			zap.String("RemoteAddr", request.RemoteAddr),
+			zap.Strings("compatibleOpAMPVersions", s.compatibleOpAMPVersions),
+		)
 		return opamp.ConnectionResponse{
 			Accept:         false,
 			HTTPStatusCode: http.StatusUpgradeRequired,
 			HTTPResponseHeader: map[string]string{
-				"Upgrade": fmt.Sprintf("OpAMP/%s", compatibleVersions[0]),
+				"Upgrade": fmt.Sprintf("OpAMP/%s", s.compatibleOpAMPVersions[0]),
 			},
 		}
 	}
@@ -150,6 +156,10 @@ type agentHeaders struct {
 func parseAgentHeaders(request *http.Request) *agentHeaders {
 	authHeader := request.Header.Get(headerAuthorization)
 	secretKey := strings.Replace(authHeader, "Secret-Key ", "", 1)
+	if secretKey == authHeader {
+		// check for missing Secret-Key identifier
+		secretKey = ""
+	}
 	return &agentHeaders{
 		opampVersion: request.Header.Get(headerOpAMPVersion),
 		id:           request.Header.Get(headerAgentID),
