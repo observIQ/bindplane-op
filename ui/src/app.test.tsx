@@ -2,8 +2,8 @@ import { render, screen } from "@testing-library/react";
 import { App } from "./app";
 
 describe("App", () => {
-  it("renders the bindplane logo", () => {
+  it("unauthenticated will render login page", () => {
     render(<App />);
-    screen.getByLabelText("bindplane-logo");
+    screen.getByTestId("login-page");
   });
 });

@@ -25,6 +25,7 @@ import (
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/pubsub"
 	"github.com/google/uuid"
+	"github.com/gorilla/sessions"
 	"github.com/hashicorp/go-multierror"
 	"github.com/observiq/bindplane/common"
 	"github.com/observiq/bindplane/internal/eventbus"
@@ -46,6 +47,8 @@ type googleCloudStore struct {
 	agentIndex         search.Index
 	configurationIndex search.Index
 	logger             *zap.Logger
+
+	sessionStore sessions.Store
 }
 
 var _ Store = (*googleCloudStore)(nil)
@@ -69,6 +72,8 @@ func NewGoogleCloudStore(ctx context.Context, cfg *common.Server, logger *zap.Lo
 		agentIndex:         search.NewInMemoryIndex("agent"),
 		configurationIndex: search.NewInMemoryIndex("configuration"),
 		logger:             logger,
+
+		sessionStore: newBPCookieStore(cfg.SessionsSecret),
 	}
 
 	// start listening for events
@@ -464,6 +469,12 @@ func (s *googleCloudStore) AgentIndex() search.Index {
 // ConfigurationIndex provides access to the search Index for Configurations
 func (s *googleCloudStore) ConfigurationIndex() search.Index {
 	return s.configurationIndex
+}
+
+// TODO (auth) we need to implement this interface in google cloudstore to allow a
+// multi-node running of BindPlane
+func (s *googleCloudStore) UserSessions() sessions.Store {
+	return s.sessionStore
 }
 
 // ----------------------------------------------------------------------

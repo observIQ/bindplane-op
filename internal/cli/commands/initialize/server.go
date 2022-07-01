@@ -55,14 +55,15 @@ func ServerCommand(bindplane *cli.BindPlane, h profile.Helper) *cobra.Command {
 // survey for interactive prompts
 
 type serverInitOptions struct {
-	spec      *model.ProfileSpec
-	Host      string `survey:"host"`
-	Port      string `survey:"port"`
-	ServerURL string `survey:"server-url"`
-	RemoteURL string `survey:"remote-url"`
-	SecretKey string `survey:"secret-key"`
-	Username  string `survey:"username"`
-	Password  string
+	spec           *model.ProfileSpec
+	Host           string `survey:"host"`
+	Port           string `survey:"port"`
+	ServerURL      string `survey:"server-url"`
+	RemoteURL      string `survey:"remote-url"`
+	SecretKey      string `survey:"secret-key"`
+	SessionsSecret string `survey:"sessions-secret"`
+	Username       string `survey:"username"`
+	Password       string
 }
 
 func newServerInitOptions(spec *model.ProfileSpec) *serverInitOptions {
@@ -91,6 +92,9 @@ func newServerInitOptions(spec *model.ProfileSpec) *serverInitOptions {
 	if s.SecretKey == "" {
 		s.SecretKey = uuid.NewString()
 	}
+	if s.SessionsSecret == "" {
+		s.SessionsSecret = uuid.NewString()
+	}
 
 	return s
 }
@@ -106,6 +110,7 @@ func (s *serverInitOptions) apply(spec *model.ProfileSpec) {
 	spec.ServerURL = s.ServerURL
 	spec.Server.RemoteURL = s.RemoteURL
 	spec.Server.SecretKey = s.SecretKey
+	spec.Server.SessionsSecret = s.SessionsSecret
 }
 
 func (s *serverInitOptions) serverHostQuestions() questions {
@@ -171,6 +176,17 @@ func (s *serverInitOptions) serverQuestions() questions {
 					Default: s.SecretKey,
 				},
 				Validate: survey.Required,
+			},
+		},
+		{
+			beforeText: "Choose a secret key to be used to encode user session cookies.  Must be a uuid.",
+			Question: survey.Question{
+				Name: "sessions-secret",
+				Prompt: &survey.Input{
+					Message: "Sessions Secret",
+					Default: s.SessionsSecret,
+				},
+				Validate: validateUUID,
 			},
 		},
 		{
@@ -281,4 +297,9 @@ func (s *serverInitOptions) completePassword() error {
 	}
 	s.Password = password
 	return nil
+}
+
+func validateUUID(ans interface{}) error {
+	_, err := uuid.Parse(ans.(string))
+	return err
 }

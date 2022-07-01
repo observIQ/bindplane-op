@@ -43,6 +43,7 @@ func Serve(cmd *cobra.Command) {
 	f.String("store-type", "", "type of store to use for storing agent status and configuration resources")
 	f.String("remote-url", "", "websocket url that agents use to connect to the server")
 	f.String("secret-key", "", "secret key used by agents when connecting to the server")
+	f.String("sessions-secret", "", "secret key used to sign cookies for session authentication, must be a UUID")
 	f.String("storage-file-path", "", "full path to the desired storage file, defaults to the $HOME/.bindplane/storage")
 	f.String("downloads-folder-path", "", "full path to the downloads folder where agents are cached, defaults to $HOME/.bindplane/downloads")
 	f.String("agents-service-url", agent.DefaultAgentVersionsURL, "url of the service that provides agent release information")
