@@ -81,16 +81,22 @@ The configuration of BindPlane OP is best done through the UI which can be acces
 
 For more information on configuration, view our [Configuration](https://docs.bindplane.observiq.com/docs/configuration) documentation page.
 
-# Community
-
-BindPlane OP is an open source project. If you'd like to contribute, take a look at our [contribution guidelines](/docs/CONTRIBUTING.md). We look forward to building with you.
-
-## Code of Conduct
-
-BindPlane OP follows the [CNCF Code of Conduct](https://github.com/cncf/foundation/blob/main/code-of-conduct.md). Please report violations of the Code of Conduct to any or all maintainers.
-
 # Other questions?
 
 Join the conversation at the [BindPlane Slack](https://observiq.com/support-bindplaneop/)!
 
 You can also check out our [documentation](https://docs.bindplane.observiq.com/), send us an [email](mailto:support.observiq.com), or open an issue with your question. We'd love to hear from you!
+
+# Community
+
+## Code of Conduct
+
+BindPlane OP follows the [CNCF Code of Conduct](https://github.com/cncf/foundation/blob/main/code-of-conduct.md). Please report violations of the Code of Conduct to any or all maintainers.
+
+## Contributing
+
+See [CONTRIBUTING.md](/docs/CONTRIBUTING.md).
+
+<a href="https://github.com/observIQ/bindplane-op/graphs/contributors">
+  <img src="https://contributors-img.web.app/image?repo=observIQ/bindplane-op" />
+</a>

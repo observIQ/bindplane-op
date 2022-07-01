@@ -4,13 +4,18 @@ When contributing to this repository, please first discuss the change you wish t
 
 Please note BindPlane OP follows the [CNCF Code of Conduct](https://github.com/cncf/foundation/blob/main/code-of-conduct.md), please follow it in all your interactions with the project.
 
+## Issue
+
+Please open an issue for your contribution if one does not already exists.
+
 ## Pull Request Process
 
 1. Fork it
 2. Create your branch (`git checkout -b my-new-feature`).
 3. Commit your changes (`git commit -am 'Add some feature'`).
 4. Push to the branch (`git push origin my-new-feature`).
-5. Create new Pull Request
+5. Create new pull request
+6. Link to the issue your pull request is resolves.
 
 The pull request title should have one of the following prefixs:
 - `feat: `: Features.
