@@ -260,8 +260,7 @@ download_url() {
 
   # Example:
   #       https://github.com/observIQ/bindplane-op/releases/download/v0.0.47/bindplane_0.0.47_linux_amd64.deb
-  url="https://github.com/observiq/bindplane-op/releases/download/v$version/${package_name}_${version}_linux_${arch}.${package_type}"
-  printf "%s" "$url"
+  echo "https://github.com/observiq/bindplane-op/releases/download/v$version/${package_name}_${version}_linux_${arch}.${package_type}"
 }
 
 deb_install() {

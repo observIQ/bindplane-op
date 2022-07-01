@@ -207,7 +207,7 @@ brews:
   download_strategy: GitHubPrivateRepositoryReleaseDownloadStrategy
   custom_require: "lib/private.rb"
   folder: Formula
-  url_template: https://github.com/observIQ/bindplane/releases/download/{{ .Tag }}/{{ .ArtifactName }}
+  url_template: https://github.com/observIQ/bindplane-op/releases/download/{{ .Tag }}/{{ .ArtifactName }}
   commit_author:
     name: bindplane
     email: support@observiq.com
