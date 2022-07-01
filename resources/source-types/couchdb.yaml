@@ -1,0 +1,268 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: SourceType
+metadata:
+  name: couchdb
+  displayName: CouchDB
+  icon: /icons/sources/couchdb.svg
+  description: CoudhDB metrics and logs
+spec:
+  version: 0.0.1
+  supported_platforms:
+    - macos
+    - linux
+    - windows
+  parameters:
+    # Metrics
+    - name: enable_metrics
+      label: Enable Metrics
+      description: Enable to send metrics.
+      type: bool
+      default: true
+
+    - name: hostname
+      label: Hostname
+      description: The hostname or IP address of the CouchDB system.
+      type: string
+      default: ""
+      required: true
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: port
+      label: Port
+      description: The TCP port of the CouchDB system.
+      type: int
+      default: 5984
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    - name: username
+      label: Username
+      description: The username to use when connecting to CouchDB.
+      type: string
+      default: ""
+      required: true
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: password
+      label: Password
+      description: The password to use when connecting to CouchDB.
+      type: string
+      default: ""
+      required: true
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: collection_interval
+      label: Collection Interval
+      description: How often (seconds) to scrape for metrics.
+      type: int
+      default: 60
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    - name: enable_tls
+      label: Enable TLS
+      description: Whether or not to use TLS when connecting to CouchDB.
+      type: bool
+      default: false
+      advancedConfig: true
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: strict_tls_verify
+      label: Strict TLS Certificate Verification
+      description: Enable to require TLS certificate verification.
+      type: bool
+      default: false
+      advancedConfig: true
+      relevantIf:
+        - name: enable_tls
+          operator: equals
+          value: true
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: ca_file
+      label: TLS Certificate Authority File
+      description: Certificate authority used to validate TLS certificates. Not required if the collector's operating system already trusts the certificate authority.
+      type: string
+      required: false
+      default: ""
+      relevantIf:
+        - name: enable_tls
+          operator: equals
+          value: true
+        - name: strict_tls_verify
+          operator: equals
+          value: true
+        - name: enable_metrics
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    - name: mutual_tls
+      label: Mutual TLS Authentication
+      description: Enable to require TLS mutual authentication.
+      type: bool
+      default: false
+      relevantIf:
+        - name: strict_tls_verify
+          operator: equals
+          value: true
+        - name: enable_metrics
+          operator: equals
+          value: true
+        - name: enable_tls
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    - name: cert_file
+      label: Mutual TLS Client Certificate File
+      description: A TLS certificate used for client authentication, if mutual TLS is enabled.
+      type: string
+      required: true
+      default: ""
+      relevantIf:
+        - name: strict_tls_verify
+          operator: equals
+          value: true
+        - name: mutual_tls
+          operator: equals
+          value: true
+        - name: enable_metrics
+          operator: equals
+          value: true
+        - name: enable_tls
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    - name: key_file
+      label: Mutual TLS Client Private Key File
+      description: A TLS private key used for client authentication, if mutual TLS is enabled.
+      type: string
+      required: true
+      default: ""
+      relevantIf:
+        - name: strict_tls_verify
+          operator: equals
+          value: true
+        - name: mutual_tls
+          operator: equals
+          value: true
+        - name: enable_metrics
+          operator: equals
+          value: true
+        - name: enable_tls
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    # Logging
+    - name: enable_logs
+      label: Enable Logs
+      description: Enable to collect logs.
+      type: bool
+      default: true
+
+    - name: log_paths
+      label: Log Paths
+      description: Path to CouchDB log file(s).
+      type: strings
+      default:
+        - "/var/log/couchdb/couchdb.log"
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    - name: start_at
+      label: Start At
+      description: Start reading file from 'beginning' or 'end'.
+      type: enum
+      validValues:
+        - beginning
+        - end
+      default: end
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+      advancedConfig: true
+
+  metrics:
+    receivers: |
+      {{ if .enable_metrics }}
+      - couchdb:
+          {{ if .enable_tls }}
+          endpoint: https://{{ .hostname }}:{{ .port }}
+          {{ else }}
+          endpoint: http://{{ .hostname }}:{{ .port }}
+          {{ end }}
+
+          username: {{ .username }}
+          password: {{ .password }}
+          collection_interval: {{ .collection_interval }}s
+
+          {{ if .enable_tls }}
+          tls:
+            insecure: false
+            {{ if .strict_tls_verify }}
+            insecure_skip_verify: false
+            {{ if .ca_file }}
+            ca_file: {{ .ca_file }}
+            {{ end }}
+            {{ else }}
+            insecure_skip_verify: true
+            {{ end }}
+            {{ if .mutual_tls }}
+            cert_file: "{{ .cert_file }}"
+            key_file: "{{ .key_file }}"
+            {{ end }}
+          {{ else }}
+          tls:
+            insecure: true
+          {{ end }}
+      {{ end }}
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]
+
+  logs:
+    receivers: |
+      - plugin/couchdb:
+          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/couchdb_logs.yaml
+          parameters:
+            log_paths:
+            {{ range $fp := .log_paths }}
+            - '{{ $fp }}'
+            {{end}}
+            start_at: {{ .start_at }}
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]

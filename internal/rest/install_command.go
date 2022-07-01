@@ -160,15 +160,6 @@ func (p *installCommandParameters) installCommand() string {
 			p.args(),
 		)
 
-	case darwinAmd64:
-		fallthrough
-	case darwinArm64:
-		return fmt.Sprintf(`sh -c "$(curl -fsSlL %s)" %s%s`,
-			p.installerURL(),
-			p.installerFilename(),
-			p.args(),
-		)
-
 	default:
 		return fmt.Sprintf(`sudo sh -c "$(curl -fsSlL %s)" %s%s`,
 			p.installerURL(),
@@ -188,4 +179,4 @@ func (p *installCommandParameters) installCommand() string {
 //
 // macOS:
 //
-// sh -c "$(curl -fsSlL https://github.com/observiq/observiq-otel-collector/releases/latest/download/install_macos.sh)" install_macos.sh -e=<your-endpoint> -k=<comma-separated-labels> -s=<secret-key>
+// sudo sh -c "$(curl -fsSlL https://github.com/observiq/observiq-otel-collector/releases/latest/download/install_macos.sh)" install_macos.sh -e=<your-endpoint> -k=<comma-separated-labels> -s=<secret-key>

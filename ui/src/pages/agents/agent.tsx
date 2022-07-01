@@ -84,7 +84,11 @@ const AgentPageContent: React.FC = () => {
   async function onImportSuccess(values: RawConfigFormValues) {
     if (data?.agent != null) {
       try {
-        await labelAgents([data.agent.id], { configuration: values.name });
+        await labelAgents(
+          [data.agent.id],
+          { configuration: values.name },
+          true
+        );
       } catch (err) {
         snackbar.enqueueSnackbar("Failed to apply label to agent.", {
           variant: "error",
