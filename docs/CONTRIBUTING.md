@@ -15,7 +15,7 @@ Please open an issue for your contribution if one does not already exists.
 3. Commit your changes (`git commit -am 'Add some feature'`).
 4. Push to the branch (`git push origin my-new-feature`).
 5. Create new pull request
-6. Link to the issue your pull request is resolves.
+6. Link to the issue your pull request resolves.
 
 The pull request title should have one of the following prefixs:
 - `feat: `: Features.
