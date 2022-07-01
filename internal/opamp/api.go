@@ -29,6 +29,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
+	"golang.org/x/exp/slices"
 
 	"github.com/observiq/bindplane/internal/server"
 	"github.com/observiq/bindplane/model"
@@ -36,6 +37,17 @@ import (
 )
 
 var tracer = otel.Tracer("bindplane/opamp")
+
+var compatibleOpAMPVersions = []string{"v0.2.0"}
+
+const (
+	headerAuthorization = "Authorization"
+	headerUserAgent     = "User-Agent"
+	headerOpAMPVersion  = "OpAMP-Version"
+	headerAgentID       = "Agent-ID"
+	headerAgentVersion  = "Agent-Version"
+	headerAgentHostname = "Agent-Hostname"
+)
 
 // AddRoutes adds the routes used by opamp, currently /v1/opamp
 func AddRoutes(router gin.IRouter, bindplane server.BindPlane) error {
@@ -63,9 +75,10 @@ const (
 )
 
 type opampServer struct {
-	manager     server.Manager
-	connections *connections
-	logger      *zap.Logger
+	manager                 server.Manager
+	connections             *connections
+	compatibleOpAMPVersions []string
+	logger                  *zap.Logger
 }
 
 var _ server.Protocol = (*opampServer)(nil)
@@ -73,9 +86,10 @@ var _ opamp.Callbacks = (*opampServer)(nil)
 
 func newServer(manager server.Manager, logger *zap.Logger) *opampServer {
 	return &opampServer{
-		manager:     manager,
-		connections: newConnections(),
-		logger:      logger,
+		manager:                 manager,
+		connections:             newConnections(),
+		compatibleOpAMPVersions: compatibleOpAMPVersions,
+		logger:                  logger,
 	}
 }
 
@@ -97,30 +111,61 @@ func (s *opampServer) OnConnecting(request *http.Request) opamp.ConnectionRespon
 	ctx, span := tracer.Start(request.Context(), "opamp/connecting")
 	defer span.End()
 
-	// TODO(andy): Need authentication
-	s.logger.Info("OnConnecting", zap.Any("headers", request.Header))
+	s.logger.Info("OnConnecting", zap.Any("headers", request.Header), zap.String("RemoteAddr", request.RemoteAddr))
 
-	authHeader := request.Header.Get("Authorization")
-	secretKey := strings.Replace(authHeader, "Secret-Key ", "", 1)
-	if authHeader == secretKey {
-		// The old agent used Authorization: <secretKey> which does not follow the http spec
-		// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization
+	// check for compatibility
+	headers := parseAgentHeaders(request)
+	if headers == nil || !slices.Contains(s.compatibleOpAMPVersions, headers.opampVersion) {
+		// no version header, agent version is <= 1.2.0 or OpAMP version incompatible
+		s.logger.Error("unable to connect to incompatible agent",
+			zap.Any("headers", request.Header),
+			zap.String("RemoteAddr", request.RemoteAddr),
+			zap.Strings("compatibleOpAMPVersions", s.compatibleOpAMPVersions),
+		)
+		return opamp.ConnectionResponse{
+			Accept:         false,
+			HTTPStatusCode: http.StatusUpgradeRequired,
+			HTTPResponseHeader: map[string]string{
+				"Upgrade": fmt.Sprintf("OpAMP/%s", s.compatibleOpAMPVersions[0]),
+			},
+		}
+	}
 
-		// Ignore old agents because they use an old version of opamp
+	accept := s.manager.VerifySecretKey(ctx, headers.secretKey)
+	if !accept {
 		return opamp.ConnectionResponse{
 			Accept:         false,
 			HTTPStatusCode: http.StatusUnauthorized,
 		}
 	}
 
-	accept := s.manager.VerifySecretKey(ctx, secretKey)
-	statusCode := http.StatusOK
-	if !accept {
-		statusCode = http.StatusUnauthorized
-	}
 	return opamp.ConnectionResponse{
-		Accept:         accept,
-		HTTPStatusCode: statusCode,
+		Accept:         true,
+		HTTPStatusCode: http.StatusOK,
+	}
+}
+
+type agentHeaders struct {
+	opampVersion string
+	id           string
+	version      string
+	hostname     string
+	secretKey    string
+}
+
+func parseAgentHeaders(request *http.Request) *agentHeaders {
+	authHeader := request.Header.Get(headerAuthorization)
+	secretKey := strings.Replace(authHeader, "Secret-Key ", "", 1)
+	if secretKey == authHeader {
+		// check for missing Secret-Key identifier
+		secretKey = ""
+	}
+	return &agentHeaders{
+		opampVersion: request.Header.Get(headerOpAMPVersion),
+		id:           request.Header.Get(headerAgentID),
+		version:      request.Header.Get(headerAgentVersion),
+		hostname:     request.Header.Get(headerAgentHostname),
+		secretKey:    secretKey,
 	}
 }
 
