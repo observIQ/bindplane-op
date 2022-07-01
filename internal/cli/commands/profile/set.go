@@ -19,6 +19,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -107,6 +108,15 @@ func SetCommand(h Helper) *cobra.Command {
 						profile.Spec.Command.Output = f.Value.String()
 					case "offline":
 						profile.Spec.Server.Offline = f.Value.String() == "true"
+					case "sessions-secret":
+						// Try to enforce it as a UUID
+						_, err := uuid.Parse(f.Value.String())
+						if err != nil {
+							fmt.Println("failed to set sessions-secret, must be a UUID")
+							return
+						}
+
+						profile.Spec.Server.SessionsSecret = f.Value.String()
 					}
 				}
 			}

@@ -28,7 +28,7 @@ var (
 )
 
 func updatesTestSetup(t *testing.T) {
-	updatesTestStore = NewMapStore(zap.NewNop())
+	updatesTestStore = NewMapStore(zap.NewNop(), "super-secret-key")
 	resourceMap = map[string]model.Resource{}
 	resources := []model.Resource{
 		newTestSourceType("st1"),

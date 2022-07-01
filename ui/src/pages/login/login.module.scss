@@ -1,0 +1,25 @@
+@use '../../styles/colors';
+
+.login-page {
+  min-height: 100vh;
+
+  background: linear-gradient(
+    180deg,
+    colors.$summer-sky 0%,
+    colors.$medium-aquamarine 100%
+  );
+
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+
+  padding: 2rem;
+}
+
+.card {
+  padding: 1.5rem;
+  width: 512px;
+}
+
+.logo {
+  margin-bottom: 2rem;
+}

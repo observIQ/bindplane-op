@@ -24,37 +24,37 @@ import (
 )
 
 func TestMapstoreNotifyUpdates(t *testing.T) {
-	store := NewMapStore(zap.NewNop())
+	store := NewMapStore(zap.NewNop(), "super-secret-key")
 	done := make(chan bool, 1)
 
 	runNotifyUpdatesTests(t, store, done)
 }
 
 func TestMapstoreDeleteChannel(t *testing.T) {
-	store := NewMapStore(zap.NewNop())
+	store := NewMapStore(zap.NewNop(), "super-secret-key")
 	done := make(chan bool, 1)
 	runDeleteChannelTests(t, store, done)
 }
 
 func TestMapstoreUpdateAgentsChannel(t *testing.T) {
-	store := NewMapStore(zap.NewNop())
+	store := NewMapStore(zap.NewNop(), "super-secret-key")
 	runUpdateAgentsTests(t, store)
 }
 
 func TestMapstoreApplyResourcesReturn(t *testing.T) {
-	store := NewMapStore(zap.NewNop())
+	store := NewMapStore(zap.NewNop(), "super-secret-key")
 
 	runApplyResourceReturnTests(t, store)
 }
 
 func TestMapstoreDeleteResourcesReturn(t *testing.T) {
-	store := NewMapStore(zap.NewNop())
+	store := NewMapStore(zap.NewNop(), "super-secret-key")
 
 	runDeleteResourcesReturnTests(t, store)
 }
 
 func TestMapstoreAgentSubscriptionsChannel(t *testing.T) {
-	store := NewMapStore(zap.NewNop())
+	store := NewMapStore(zap.NewNop(), "super-secret-key")
 
 	runAgentSubscriptionsTest(t, store)
 }
@@ -103,43 +103,43 @@ func TestMapstoreResourcesEqual(t *testing.T) {
 }
 
 func TestMapstoreConfigurations(t *testing.T) {
-	store := NewMapStore(zap.NewNop())
+	store := NewMapStore(zap.NewNop(), "super-secret-key")
 
 	runConfigurationsTests(t, store)
 }
 
 func TestMapstoreConfiguration(t *testing.T) {
-	store := NewMapStore(zap.NewNop())
+	store := NewMapStore(zap.NewNop(), "super-secret-key")
 
 	runConfigurationTests(t, store)
 }
 
 func TestMapstoreValidateApplyResourcesTests(t *testing.T) {
-	store := NewMapStore(zap.NewNop())
+	store := NewMapStore(zap.NewNop(), "super-secret-key")
 	runValidateApplyResourcesTests(t, store)
 }
 
 func TestMapstoreDependentResources(t *testing.T) {
-	store := NewMapStore(zap.NewNop())
+	store := NewMapStore(zap.NewNop(), "super-secret-key")
 	runDependentResourcesTests(t, store)
 }
 
 func TestMapstoreIndividualDelete(t *testing.T) {
-	store := NewMapStore(zap.NewNop())
+	store := NewMapStore(zap.NewNop(), "super-secret-key")
 	runIndividualDeleteTests(t, store)
 }
 
 func TestMapstorePaging(t *testing.T) {
-	store := NewMapStore(zap.NewNop())
+	store := NewMapStore(zap.NewNop(), "super-secret-key")
 	runPagingTests(t, store)
 }
 
 func TestMapstoreDeleteAgents(t *testing.T) {
-	store := NewMapStore(zap.NewNop())
+	store := NewMapStore(zap.NewNop(), "super-secret-key")
 	runDeleteAgentsTests(t, store)
 }
 
 func TestMapstoreUpsertAgents(t *testing.T) {
-	store := NewMapStore(zap.NewNop())
+	store := NewMapStore(zap.NewNop(), "super-secret-key")
 	runTestUpsertAgents(t, store)
 }

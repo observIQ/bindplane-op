@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/sessions"
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
 	"golang.org/x/exp/maps"
@@ -45,12 +46,14 @@ type mapStore struct {
 	configurationIndex search.Index
 	logger             *zap.Logger
 	sync.RWMutex
+
+	sessionStore sessions.Store
 }
 
 var _ Store = (*mapStore)(nil)
 
 // NewMapStore returns an in memory Store
-func NewMapStore(logger *zap.Logger) Store {
+func NewMapStore(logger *zap.Logger, sessionsSecret string) Store {
 	return &mapStore{
 		agents:             make(map[string]*model.Agent),
 		configurations:     newResourceStore[*model.Configuration](),
@@ -62,6 +65,7 @@ func NewMapStore(logger *zap.Logger) Store {
 		agentIndex:         search.NewInMemoryIndex("agent"),
 		configurationIndex: search.NewInMemoryIndex("configuration"),
 		logger:             logger,
+		sessionStore:       newBPCookieStore(sessionsSecret),
 	}
 }
 
@@ -548,6 +552,10 @@ func (mapstore *mapStore) AgentIndex() search.Index {
 // ConfigurationIndex provides access to the search Index for Configurations
 func (mapstore *mapStore) ConfigurationIndex() search.Index {
 	return mapstore.configurationIndex
+}
+
+func (mapstore *mapStore) UserSessions() sessions.Store {
+	return mapstore.sessionStore
 }
 
 // ----------------------------------------------------------------------

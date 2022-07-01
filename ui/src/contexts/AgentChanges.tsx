@@ -12,7 +12,9 @@ export const AgentChangesContext = createContext<AgentChangesContextValue>({
 export const AgentChangesProvider: React.FC = ({ children }) => {
   const { data } = useAgentChangesSubscription();
   return (
-    <AgentChangesContext.Provider value={{ agentChanges: data?.agentChanges || [] }}>
+    <AgentChangesContext.Provider
+      value={{ agentChanges: data?.agentChanges || [] }}
+    >
       {children}
     </AgentChangesContext.Provider>
   );

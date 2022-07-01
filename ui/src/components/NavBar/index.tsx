@@ -1,34 +1,32 @@
-import {
-  AppBar,
-  Button,
-  Dialog,
-  IconButton,
-  Menu,
-  MenuItem,
-  Paper,
-  Toolbar,
-  Typography,
-} from "@mui/material";
-import React, { SyntheticEvent, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { AppBar, IconButton, Menu, MenuItem, Toolbar } from "@mui/material";
+import React, { SyntheticEvent, useEffect, useState } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   EmailIcon,
   GridIcon,
   HelpCircleIcon,
+  LogoutIcon,
   SettingsIcon,
   SlackIcon,
   SlidersIcon,
   SquareIcon,
 } from "../Icons";
 import { BindPlaneOPLogo } from "../Logos";
-
-import styles from "./nav-bar.module.scss";
 import { classes } from "../../utils/styles";
 
+import styles from "./nav-bar.module.scss";
+
 export const NavBar: React.FC = () => {
-  const [showLogoutInfo, setShowLogoutInfo] = useState<boolean>(false);
   const [settingsAnchorEl, setAnchorEl] = useState<Element | null>(null);
   const settingsOpen = Boolean(settingsAnchorEl);
+
+  const navigate = useNavigate();
+
+  // make navigate available to the global window
+  // to let us use it outside of components.
+  useEffect(() => {
+    window.navigate = navigate;
+  }, [navigate]);
 
   const handleSettingsClick = (event: SyntheticEvent) => {
     setAnchorEl(event.currentTarget);
@@ -37,6 +35,15 @@ export const NavBar: React.FC = () => {
   const handleSettingsClose = () => {
     setAnchorEl(null);
   };
+
+  async function handleLogout() {
+    await fetch("/logout", {
+      method: "PUT",
+    });
+
+    localStorage.removeItem("user");
+    navigate("/login");
+  }
 
   return (
     <>
@@ -142,37 +149,25 @@ export const NavBar: React.FC = () => {
                 "aria-labelledby": "settings-button   ",
               }}
             >
-              <MenuItem onClick={handleSettingsClose}>
-                <Button color="inherit" onClick={() => setShowLogoutInfo(true)}>
-                  Logout
-                </Button>
+              <MenuItem onClick={handleLogout}>
+                <LogoutIcon className={styles["settings-icon"]} />
+                Logout
               </MenuItem>
             </Menu>
           </div>
         </Toolbar>
       </AppBar>
-
-      <LogoutInfo
-        open={showLogoutInfo}
-        onClose={() => setShowLogoutInfo(false)}
-      />
     </>
   );
 };
 
-const LogoutInfo: React.FC<{ open: boolean; onClose: () => void }> = (
-  props
-) => {
-  return (
-    <Dialog {...props}>
-      <Paper classes={{ root: styles["logout-modal-paper"] }}>
-        <Typography variant="h5">Please close your browser.</Typography>
-        <br />
-        <Typography paragraph>
-          BindPlane is using basic authentication. To clear basic authentication
-          close the browser.
-        </Typography>
-      </Paper>
-    </Dialog>
+export function withNavBar(FC: React.FC): React.FC {
+  return () => (
+    <>
+      <NavBar />
+      <div className="content">
+        <FC />
+      </div>
+    </>
   );
-};
+}

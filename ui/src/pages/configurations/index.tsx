@@ -6,8 +6,10 @@ import { ConfigurationsTable } from "../../components/Tables/ConfigurationTable"
 import { PlusCircleIcon } from "../../components/Icons";
 
 import mixins from "../../styles/mixins.module.scss";
+import { withRequireLogin } from "../../contexts/RequireLogin";
+import { withNavBar } from "../../components/NavBar";
 
-export const ConfigurationsPage: React.FC = () => {
+const ConfigurationsPageContent: React.FC = () => {
   return (
     <CardContainer>
       <Button
@@ -24,3 +26,7 @@ export const ConfigurationsPage: React.FC = () => {
     </CardContainer>
   );
 };
+
+export const ConfigurationsPage = withRequireLogin(
+  withNavBar(ConfigurationsPageContent)
+);

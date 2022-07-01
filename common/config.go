@@ -172,6 +172,9 @@ type Server struct {
 	// DisableDownloadsCache TODO(doc)
 	DisableDownloadsCache bool `mapstructure:"disableDownloadsCache,omitempty" yaml:"disableDownloadsCache,omitempty"`
 
+	// SessionSecret is used to encode the user sessions cookies.  It should be a uuid.
+	SessionsSecret string `mapstructure:"sessionsSecret,omitempty" yaml:"sessionsSecret,omitempty"`
+
 	Common `yaml:",inline" mapstructure:",squash"`
 }
 

@@ -43,6 +43,7 @@ import (
 	"github.com/observiq/bindplane/internal/rest"
 	"github.com/observiq/bindplane/internal/server"
 	"github.com/observiq/bindplane/internal/server/auth"
+	"github.com/observiq/bindplane/internal/server/sessions"
 	"github.com/observiq/bindplane/internal/store"
 	"github.com/observiq/bindplane/internal/store/search"
 	"github.com/observiq/bindplane/ui"
@@ -111,9 +112,12 @@ func (s *Server) Start(bindplane *cli.BindPlane, h profile.Helper, forceConsoleC
 		c.Status(http.StatusOK)
 	})
 
+	sessions.AddRoutes(router, server)
+
 	v1 := router.Group("/v1")
 	v1.Use(otelgin.Middleware("bindplane"))
-	authv1 := v1.Group("/", auth.Basic(server))
+
+	authv1 := v1.Group("/", auth.Chain(server)...)
 	rest.AddRestRoutes(authv1, server)
 
 	// download routes do not require authorization
@@ -206,9 +210,13 @@ func (s *Server) stop() error {
 }
 
 func (s *Server) createStore(config *common.Server) (store.Store, error) {
+	if config.SessionsSecret == "" {
+		return nil, errors.New("cannot create store with unset value for sessions-secret, run bindplane server init to set value")
+	}
+
 	switch config.StoreType {
 	case common.StoreTypeMap:
-		return store.NewMapStore(s.logger), nil
+		return store.NewMapStore(s.logger, config.SessionsSecret), nil
 
 	case common.StoreTypeGoogleCloud:
 		s.logger.Info("Using Google Cloud Datastore and Pub/Sub")
@@ -225,7 +233,7 @@ func (s *Server) createStore(config *common.Server) (store.Store, error) {
 		}
 
 		s.logger.Info("Using BBolt Storage", zap.String("storageFilePath", storageFilePath))
-		return store.NewBoltStore(db, s.logger), nil
+		return store.NewBoltStore(db, config.SessionsSecret, s.logger), nil
 	}
 }
 

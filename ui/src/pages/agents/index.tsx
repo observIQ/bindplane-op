@@ -11,10 +11,12 @@ import { useSnackbar } from "notistack";
 import { Agent } from "../../graphql/generated";
 import { AgentStatus } from "../../types/agents";
 import { ConfirmDeleteResourceDialog } from "../../components/ConfirmDeleteResourceDialog";
+import { withRequireLogin } from "../../contexts/RequireLogin";
+import { withNavBar } from "../../components/NavBar";
 
 import mixins from "../../styles/mixins.module.scss";
 
-export const AgentsPage: React.FC = () => {
+export const AgentsPageContent: React.FC = () => {
   const [selectedAgents, setSelectedAgents] = useState<GridSelectionModel>([]);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
@@ -90,3 +92,5 @@ export const AgentsPage: React.FC = () => {
     </>
   );
 };
+
+export const AgentsPage = withRequireLogin(withNavBar(AgentsPageContent));
