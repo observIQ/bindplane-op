@@ -6,38 +6,43 @@ import { validateNameField } from "../../utils/forms/validate-name-field";
 import { useValidationContext } from "./ValidationContext";
 
 import styles from "./parameter-input.module.scss";
+import { classes as classesUtil } from '../../utils/styles';
 
 interface ParamInputProps {
+  classes?: { [name: string]: string };
   definition: ParameterDefinition;
   value?: any;
   onValueChange?: (v: any) => void;
 }
 
 export const ParameterInput: React.FC<ParamInputProps> = (props) => {
+  let classes = props.classes;
+  if (props.definition.relevantIf != null) {
+    classes = Object.assign(classes || {}, { root: classesUtil([classes?.root, styles.indent]) });
+  }
   switch (props.definition.type) {
     case ParameterType.String:
-      return <StringParamInput {...props} />;
+      return <StringParamInput classes={classes} {...props} />;
     case ParameterType.Strings:
-      return <StringsParamInput {...props} />;
+      return <StringsParamInput classes={classes} {...props} />;
     case ParameterType.Enum:
-      return <EnumParamInput {...props} />;
+      return <EnumParamInput classes={classes} {...props} />;
     case ParameterType.Bool:
-      return <BoolParamInput {...props} />;
+      return <BoolParamInput classes={classes} {...props} />;
     case ParameterType.Int:
-      return <IntParamInput {...props} />;
+      return <IntParamInput classes={classes} {...props} />;
   }
 };
 
 export const StringParamInput: React.FC<ParamInputProps> = ({
+  classes,
   definition,
   value,
   onValueChange,
 }) => {
   return (
     <TextField
-      classes={{
-        root: definition.relevantIf != null ? styles.indent : undefined,
-      }}
+      classes={classes}
       value={value}
       onChange={(e: ChangeEvent<HTMLInputElement>) =>
         isFunction(onValueChange) && onValueChange(e.target.value)
@@ -57,12 +62,14 @@ export const StringParamInput: React.FC<ParamInputProps> = ({
 };
 
 export const EnumParamInput: React.FC<ParamInputProps> = ({
+  classes,
   definition,
   value,
   onValueChange,
 }) => {
   return (
     <TextField
+      classes={classes}
       value={value}
       onChange={(e: ChangeEvent<HTMLInputElement>) =>
         isFunction(onValueChange) && onValueChange(e.target.value)
@@ -86,6 +93,7 @@ export const EnumParamInput: React.FC<ParamInputProps> = ({
 };
 
 export const StringsParamInput: React.FC<ParamInputProps> = ({
+  classes,
   definition,
   value: arrayValue,
   onValueChange,
@@ -100,6 +108,7 @@ export const StringsParamInput: React.FC<ParamInputProps> = ({
 
   return (
     <TextField
+      classes={classes}
       value={value}
       onChange={onChange}
       name={definition.name}
@@ -117,12 +126,14 @@ export const StringsParamInput: React.FC<ParamInputProps> = ({
 };
 
 export const BoolParamInput: React.FC<ParamInputProps> = ({
+  classes,
   definition,
   value,
   onValueChange,
 }) => {
   return (
     <FormControlLabel
+      classes={classes}
       control={
         <Switch
           onChange={(e) => {
@@ -138,6 +149,7 @@ export const BoolParamInput: React.FC<ParamInputProps> = ({
 };
 
 export const IntParamInput: React.FC<ParamInputProps> = ({
+  classes,
   definition,
   value,
   onValueChange,
@@ -145,6 +157,7 @@ export const IntParamInput: React.FC<ParamInputProps> = ({
   // TODO dsvanlani This should probably be a custom text input with validation
   return (
     <TextField
+      classes={classes}
       value={value}
       onChange={(e: ChangeEvent<HTMLInputElement>) =>
         isFunction(onValueChange) && onValueChange(Number(e.target.value))
@@ -170,6 +183,7 @@ interface ResourceNameInputProps extends Omit<ParamInputProps, "definition"> {
 }
 
 export const ResourceNameInput: React.FC<ResourceNameInputProps> = ({
+  classes,
   value,
   onValueChange,
   existingNames,
@@ -189,6 +203,7 @@ export const ResourceNameInput: React.FC<ResourceNameInputProps> = ({
 
   return (
     <TextField
+      classes={classes}
       onBlur={() => touch("name")}
       value={value}
       onChange={handleChange}
