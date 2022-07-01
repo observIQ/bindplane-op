@@ -15,7 +15,7 @@ BindPlane OP is an open source observability pipeline that gives you the ability
 
 ## Features
 
-  * Manage the lifecycle of telemetry agents, starting with the [observIQ OpenTelemetry Collector](https://github.com/observIQ/observiq-otel-collector)
+  * Manage the lifecycle of telemetry agents, starting with the [observIQ Collector](https://github.com/observIQ/observiq-otel-collector)
   * Build, deploy, and manage telemetry configurations for different Sources and deploy them to your agents
   * Ship metric, log, and trace data to one or many Destinations
   * Utilize flow controls to adjust the flow of your data in realtime
