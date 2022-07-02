@@ -19,6 +19,7 @@ import (
 	_ "github.com/client9/misspell"
 	_ "github.com/google/addlicense"
 	_ "github.com/mgechev/revive"
+	_ "github.com/ory/go-acc"
 	_ "github.com/securego/gosec/v2"
 	_ "github.com/securego/gosec/v2/report/sarif" // required by gosec
 	_ "github.com/securego/gosec/v2/report/text"  // required by gosec

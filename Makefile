@@ -31,6 +31,7 @@ install-tools: install-git-hooks
 	cd $(TOOLS_MOD_DIR) && go install github.com/uw-labs/lichen
 	cd $(TOOLS_MOD_DIR) && go install honnef.co/go/tools/cmd/staticcheck
 	cd $(TOOLS_MOD_DIR) && go install github.com/client9/misspell/cmd/misspell
+	cd $(TOOLS_MOD_DIR) && go install github.com/ory/go-acc
 
 .PHONY: install-ui
 install-ui:
@@ -52,11 +53,13 @@ dev:
 test: prep
 	go test ./... -race -cover
 
-.PHONY: test-cover
-test-cover:
-	@echo running tests with code coverage...
-	go test -parallel 1 ./... -race -cover -coverprofile cover.out
-	go tool cover -html=cover.out
+.PHONY: test-with-cover
+test-with-cover:
+	go-acc --output=coverage.out --ignore=protobufs ./...
+
+show-coverage: test-with-cover
+	# Show coverage as HTML in the default browser.
+	go tool cover -html=coverage.out
 
 .PHONY: bench
 bench:
