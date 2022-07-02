@@ -250,7 +250,6 @@ jobs:
         with:
           path: /home/runner/go/bin
           key: tooling-${{ runner.os }}-${{ hashFiles('./internal/tools/go.mod') }}
-      - run: go list ./...
       - name: Run Unit Tests With Coverage
         run: make test-with-cover
       - name: Upload coverage report

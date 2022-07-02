@@ -54,7 +54,7 @@ test: prep
 	go test ./... -race -cover
 
 .PHONY: test-with-cover
-test-with-cover:
+test-with-cover: prep
 	go-acc --output=coverage.out --ignore=protobufs ./...
 
 show-coverage: test-with-cover
