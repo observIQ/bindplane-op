@@ -323,6 +323,12 @@ func findResourceAndType(resourceKind Kind, resource *ResourceConfiguration, def
 			return src, nil, err
 		}
 		return src, &srcType.ResourceType, err
+	case KindProcessor:
+		prc, prcType, err := findProcessorAndType(resource, defaultName, store)
+		if prcType == nil {
+			return prc, nil, err
+		}
+		return prc, &prcType.ResourceType, err
 	case KindDestination:
 		dest, destType, err := findDestinationAndType(resource, defaultName, store)
 		if destType == nil {
