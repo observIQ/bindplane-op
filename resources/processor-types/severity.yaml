@@ -1,0 +1,59 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: ProcessorType
+metadata:
+  name: severity_filter
+  displayName: Severity Filter
+spec:
+  version: 0.0.1
+  parameters:
+    - name: level
+      label: Severity Level
+      type: enum
+      validValues:
+        - TRACE
+        - DEBUG
+        - INFO
+        - WARN
+        - ERROR
+        - FATAL
+      description: The highest log level to include. All log levels higher than this value will be filtered out.
+      required: true
+  logs:
+    # https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#field-severitynumber
+    processors: |
+      - attributes:
+          include:
+            {{ if eq .level "TRACE" }}
+            log_severity_texts:
+              - TRACE
+              - DEBUG
+              - INFO
+              - WARN
+              - ERROR
+              - FATAL
+            {{ else if eq .level "DEBUG" }}
+            log_severity_texts:
+              - DEBUG
+              - INFO
+              - WARN
+              - ERROR
+              - FATAL
+            {{ else if eq .level "INFO" }}
+            log_severity_texts:
+              - INFO
+              - WARN
+              - ERROR
+              - FATAL
+            {{ else if eq .level "WARN" }}
+            log_severity_texts:
+              - WARN
+              - ERROR
+              - FATAL
+            {{ else if eq .level "ERROR" }}
+            log_severity_texts:
+              - ERROR
+              - FATAL
+            {{ else if eq .level "FATAL" }}
+            log_severity_texts:
+              - FATAL
+            {{ end }}
