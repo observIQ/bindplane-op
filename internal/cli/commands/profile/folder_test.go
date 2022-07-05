@@ -19,8 +19,8 @@ import (
 	"path"
 	"testing"
 
-	"github.com/observiq/bindplane/common"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/common"
+	"github.com/observiq/bindplane-op/model"
 	"github.com/stretchr/testify/require"
 )
 

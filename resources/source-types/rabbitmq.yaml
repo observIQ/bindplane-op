@@ -2,9 +2,9 @@ apiVersion: bindplane.observiq.com/v1beta
 kind: SourceType
 metadata:
   name: rabbitmq
-  displayName: Rabbitmq
+  displayName: RabbitMQ
   icon: /icons/sources/rabbitmq.svg
-  description: Rabbitmq metrics and logs
+  description: RabbitMQ metrics and logs
 spec:
   version: 0.0.1
   supported_platforms:

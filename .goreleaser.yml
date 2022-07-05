@@ -22,7 +22,7 @@ builds:
       goarch: arm
   binary: 'bindplane'
   ldflags:
-    - -X github.com/observiq/bindplane/internal/version.gitTag=v{{ .Version }}
+    - -X github.com/observiq/bindplane-op/internal/version.gitTag=v{{ .Version }}
 - id: bindplanectl
   main: ./cmd/bindplanectl
   env:
@@ -41,7 +41,7 @@ builds:
       goarch: arm
   binary: 'bindplanectl'
   ldflags:
-    - -X github.com/observiq/bindplane/internal/version.gitTag=v{{ .Version }}
+    - -X github.com/observiq/bindplane-op/internal/version.gitTag=v{{ .Version }}
 
 archives:
 - format: zip
@@ -207,7 +207,7 @@ brews:
     name: homebrew-bindplane-op
     branch: main
   folder: Formula
-  url_template: https://github.com/observIQ/bindplane/releases/download/{{ .Tag }}/{{ .ArtifactName }}
+  url_template: https://github.com/observIQ/bindplane-op/releases/download/{{ .Tag }}/{{ .ArtifactName }}
   commit_author:
     name: bindplane
     email: support@observiq.com

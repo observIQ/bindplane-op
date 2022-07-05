@@ -22,8 +22,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/observiq/bindplane/internal/cli"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/internal/cli"
+	"github.com/observiq/bindplane-op/model"
 )
 
 var (

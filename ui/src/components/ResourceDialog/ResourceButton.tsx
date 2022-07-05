@@ -28,7 +28,7 @@ export const ResourceButton: React.FC<ResourceButtonProps> = ({
       onClick={onSelect}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className={isHovered ? styles.hovered : undefined}
+      className={isHovered ? styles.hovered : styles.card}
     >
       <Stack
         direction="row"

@@ -15,8 +15,8 @@
 package model
 
 import (
-	"github.com/observiq/bindplane/model/otel"
-	"github.com/observiq/bindplane/model/validation"
+	"github.com/observiq/bindplane-op/model/otel"
+	"github.com/observiq/bindplane-op/model/validation"
 )
 
 // ParameterizedSpec is the spec for a ParamaterizedResource

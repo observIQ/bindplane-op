@@ -23,7 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/validation"
 
-	modelValidation "github.com/observiq/bindplane/model/validation"
+	modelValidation "github.com/observiq/bindplane-op/model/validation"
 )
 
 const (

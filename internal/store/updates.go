@@ -16,7 +16,7 @@ package store
 
 import (
 	"github.com/hashicorp/go-multierror"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/model"
 )
 
 // Updates are sent on the channel available from Store.Updates().

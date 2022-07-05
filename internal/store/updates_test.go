@@ -17,7 +17,7 @@ package store
 import (
 	"testing"
 
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/model"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )

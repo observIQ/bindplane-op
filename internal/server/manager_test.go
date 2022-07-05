@@ -18,8 +18,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/observiq/bindplane/internal/store"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/internal/store"
+	"github.com/observiq/bindplane-op/model"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"

@@ -18,8 +18,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/observiq/bindplane/internal/server"
-	"github.com/observiq/bindplane/internal/server/sessions"
+	"github.com/observiq/bindplane-op/internal/server"
+	"github.com/observiq/bindplane-op/internal/server/sessions"
 )
 
 // CheckSession checks to see if the attached cookie session is authenticated

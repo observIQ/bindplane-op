@@ -20,7 +20,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/observiq/bindplane/common"
+	"github.com/observiq/bindplane-op/common"
 )
 
 // Helper TODO(doc)

@@ -20,7 +20,7 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/model"
 )
 
 // TablePrinter TODO(doc)

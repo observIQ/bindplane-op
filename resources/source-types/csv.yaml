@@ -1,10 +1,10 @@
 apiVersion: bindplane.observiq.com/v1beta
 kind: SourceType
 metadata:
-  name: file
-  displayName: File
-  icon: /icons/sources/file.svg
-  description: Generic log file tailing
+  name: csv
+  displayName: CSV Logs
+  icon: /icons/sources/csv.svg
+  description: Parser for logs with Comma Separated Values
 spec:
   version: 0.0.1
   supported_platforms:
@@ -12,11 +12,18 @@ spec:
     - linux
     - windows
   parameters:
+    - name: header
+      label: Header
+      description: A comma delimited list of keys assigned to each of the columns.
+      required: true
+      type: string
+      default: ""
+
     - name: file_path
       label: File Path(s)
       description: File or directory paths to tail for logs.
       type: strings
-      default: []
+      default: [""]
       required: true
 
     - name: exclude_file_path
@@ -29,27 +36,7 @@ spec:
       label: Log Type
       description: A friendly name that will be added to each log entry as an attribute.
       type: string
-      default: "file"
-
-    - name: parse_format
-      label: Parse Format
-      description: Method to use when parsing. When regex is selected, 'Regex Pattern' must be set.
-      type: enum
-      default: none
-      validValues:
-        - none
-        - json
-        - regex
-
-    - name: regex_pattern
-      label: Regex Pattern
-      description: The regex pattern used when parsing log entries.
-      type: string
-      default: ""
-      relevantIf:
-        - name: parse_format
-          operator: equals
-          value: "regex"
+      default: csv
 
     - name: start_at
       label: Start At
@@ -59,13 +46,6 @@ spec:
         - beginning
         - end
       default: end
-      advancedConfig: true
-
-    - name: multiline_line_start_pattern
-      label: Multiline Start Pattern
-      description: Regex pattern that matches beginning of a log entry, for handling multiline logs.
-      type: string
-      default: ""
       advancedConfig: true
 
     - name: encoding
@@ -84,25 +64,21 @@ spec:
 
   logs:
     receivers: |
-      - plugin:
-          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/file_logs.yaml
+      - plugin/csv:
+          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/csv_logs.yaml
           parameters:
-            file_path:
+            log_paths:
               {{ range $fp := .file_path }}
               - '{{ $fp }}'
-              {{end}}
-            exclude_file_path:
+              {{ end }}
+            exclude_log_paths:
               {{ range $fp := .exclude_file_path }}
               - '{{ $fp }}'
-              {{end}}
-            multiline_line_start_pattern: '{{ .multiline_line_start_pattern }}'
-            encoding: {{ .encoding }}
-            parse_format: {{ .parse_format }}
-            {{ if eq .parse_format "regex" }}
-            regex_pattern: '{{ .regex_pattern }}'
-            {{ end }}
+              {{ end }}
             log_type: {{ .log_type }}
             start_at: {{ .start_at }}
+            header: {{ .header }}
+            encoding: {{ .encoding }}
 
     processors: |
       - resourcedetection:

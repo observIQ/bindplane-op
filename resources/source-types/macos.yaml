@@ -125,9 +125,11 @@ spec:
           path: $OIQ_OTEL_COLLECTOR_HOME/plugins/macos_logs.yaml
           parameters:
             enable_system_log: {{ .enable_system_log }}
-            system_log_path: {{ .system_log_path }}
+            system_log_path:
+            - "{{ .system_log_path }}"
             enable_install_log: {{ .enable_install_log }}
-            install_log_path: {{ .install_log_path }}
+            install_log_path:
+            - "{{ .install_log_path }}"
             start_at: {{ .start_at }}
       {{ end }}
 

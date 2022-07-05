@@ -25,10 +25,10 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/hashicorp/go-multierror"
-	"github.com/observiq/bindplane/internal/eventbus"
-	"github.com/observiq/bindplane/internal/store/search"
-	"github.com/observiq/bindplane/model"
-	embedded "github.com/observiq/bindplane/resources"
+	"github.com/observiq/bindplane-op/internal/eventbus"
+	"github.com/observiq/bindplane-op/internal/store/search"
+	"github.com/observiq/bindplane-op/model"
+	embedded "github.com/observiq/bindplane-op/resources"
 	"go.uber.org/zap"
 )
 

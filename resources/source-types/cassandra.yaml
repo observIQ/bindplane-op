@@ -4,7 +4,7 @@ metadata:
   name: cassandra
   displayName: Cassandra
   icon: /icons/sources/cassandra.svg
-  description: Tomcat Metrics
+  description: Cassandra Metrics
 spec:
   version: 0.0.1
   supported_platforms:

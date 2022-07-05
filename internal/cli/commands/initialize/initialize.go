@@ -25,10 +25,10 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
-	"github.com/observiq/bindplane/common"
-	"github.com/observiq/bindplane/internal/cli"
-	"github.com/observiq/bindplane/internal/cli/commands/profile"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/common"
+	"github.com/observiq/bindplane-op/internal/cli"
+	"github.com/observiq/bindplane-op/internal/cli/commands/profile"
+	"github.com/observiq/bindplane-op/model"
 )
 
 // Mode defines which initialize commands should be supported
