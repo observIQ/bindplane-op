@@ -15,7 +15,7 @@ import {
   Parameter,
   Maybe,
 } from "../../graphql/generated";
-import { isFunction, sortBy } from "lodash";
+import { isFunction } from "lodash";
 
 import mixins from "../../styles/mixins.module.scss";
 
