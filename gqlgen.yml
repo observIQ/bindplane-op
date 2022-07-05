@@ -58,10 +58,10 @@ models:
       - github.com/99designs/gqlgen/graphql.Int32
   PluginInput:
     model:
-      - github.com/observiq/bindplane/model.Plugin
+      - github.com/observiq/bindplane-op/model.Plugin
   ParameterInput:
     model:
-      - github.com/observiq/bindplane/model.Parameter
+      - github.com/observiq/bindplane-op/model.Parameter
   PipelineType:
     model:
-      - github.com/observiq/bindplane/model/otel.PipelineType
+      - github.com/observiq/bindplane-op/model/otel.PipelineType
