@@ -176,7 +176,7 @@ type bindplaneClient struct {
 var _ BindPlane = (*bindplaneClient)(nil)
 
 // NewBindPlane takes a client configuration, logger and returns a new BindPlane.
-func NewBindPlane(config *common.Client, logger *zap.Logger) (BindPlane, error) {
+func NewBindPlane(config *common.Client, logger *zap.Logger) (*bindplaneClient, error) {
 	client := resty.New()
 	client.SetTimeout(time.Second * 20)
 	client.SetBasicAuth(config.Username, config.Password)
@@ -389,10 +389,6 @@ func (c *bindplaneClient) Delete(ctx context.Context, resources []*model.AnyReso
 	}
 
 	dr := &model.DeleteResponseClientSide{}
-	err = json.Unmarshal(resp.Body(), dr)
-	if err != nil {
-		return nil, err
-	}
 
 	switch resp.StatusCode() {
 	case http.StatusAccepted:
@@ -403,10 +399,14 @@ func (c *bindplaneClient) Delete(ctx context.Context, resources []*model.AnyReso
 		if dr.Errors != nil {
 			return nil, errors.New(dr.Errors[0])
 		}
-
 		return nil, errors.New("bad request")
 	case http.StatusInternalServerError:
 		return nil, fmt.Errorf("%s", dr.Errors[0])
+	}
+
+	err = json.Unmarshal(resp.Body(), dr)
+	if err != nil {
+		return nil, err
 	}
 
 	return nil, fmt.Errorf("unknown response from bindplane server")
