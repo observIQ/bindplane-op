@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/observiq/bindplane/common"
+	"github.com/observiq/bindplane-op/common"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )

@@ -26,8 +26,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/observiq/bindplane/common"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/common"
+	"github.com/observiq/bindplane-op/model"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
