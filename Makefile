@@ -55,7 +55,7 @@ test: prep
 
 .PHONY: test-with-cover
 test-with-cover: prep
-	go-acc --output=coverage.out --ignore=protobufs ./...
+	go-acc --output=coverage.out --ignore=generated --ignore=mocks ./...
 
 show-coverage: test-with-cover
 	# Show coverage as HTML in the default browser.
