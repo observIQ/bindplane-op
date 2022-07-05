@@ -4,7 +4,7 @@ metadata:
   name: csv
   displayName: CSV Logs
   icon: /icons/sources/csv.svg
-  description: CSV log parser
+  description: Parser for logs with Comma Separated Values
 spec:
   version: 0.0.1
   supported_platforms:
