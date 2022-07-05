@@ -165,7 +165,10 @@ export const ResourceDialog: React.FC<ResourceDialogProps> = ({
                 return isEmpty(resourceSearchValue)
                   ? true
                   : rt.metadata.name.includes(resourceSearchValue) ||
-                      rt.metadata.displayName?.includes(resourceSearchValue);
+                      rt.metadata.displayName?.includes(resourceSearchValue) ||
+                      rt.metadata.displayName
+                        ?.toLowerCase()
+                        .includes(resourceSearchValue);
               })
               // map the results to resource buttons
               .map((resourceType) => {
