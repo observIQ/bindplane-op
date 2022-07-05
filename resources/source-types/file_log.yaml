@@ -4,7 +4,7 @@ metadata:
   name: file
   displayName: File
   icon: /icons/sources/file.svg
-  description: Host metrics
+  description: Generic log file tailing
 spec:
   version: 0.0.1
   supported_platforms:
