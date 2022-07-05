@@ -1,5 +1,11 @@
+@use '../../styles/colors';
+
 .box {
-  height: 500px;
+  height: 510px;
   overflow-y: auto;
-  margin-top: 10px;
+  margin-top: 20px;
+  padding: 5px;
+
+  border: 1px solid colors.$gray;
+  border-radius: 4px;
 }

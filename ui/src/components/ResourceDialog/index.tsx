@@ -141,6 +141,8 @@ export const ResourceDialog: React.FC<ResourceDialogProps> = ({
           {title}
         </Typography>
         <TextField
+          placeholder="Search for a technology..."
+          size="small"
           value={resourceSearchValue}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setResourceSearch(e.target.value)
