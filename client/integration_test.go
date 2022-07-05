@@ -34,6 +34,15 @@ import (
 	"go.uber.org/zap"
 )
 
+func defaultServerEnv() map[string]string {
+	return map[string]string{
+		"BINDPLANE_CONFIG_USERNAME":        "oiq",
+		"BINDPLANE_CONFIG_PASSWORD":        "password",
+		"BINDPLANE_CONFIG_SESSIONS_SECRET": uuid.NewString(),
+		"BINDPLANE_CONFIG_LOG_OUTPUT":      "stdout",
+	}
+}
+
 func bindplaneContainer(t *testing.T, env map[string]string) (testcontainers.Container, int, error) {
 	// Detect an open port
 	listener, err := net.Listen("tcp", ":0")
@@ -76,12 +85,7 @@ func bindplaneContainer(t *testing.T, env map[string]string) (testcontainers.Con
 }
 
 func TestIntegration_http(t *testing.T) {
-	env := map[string]string{
-		"BINDPLANE_CONFIG_USERNAME":        "oiq",
-		"BINDPLANE_CONFIG_PASSWORD":        "password",
-		"BINDPLANE_CONFIG_SESSIONS_SECRET": uuid.NewString(),
-		"BINDPLANE_CONFIG_LOG_OUTPUT":      "stdout",
-	}
+	env := defaultServerEnv()
 
 	container, port, err := bindplaneContainer(t, env)
 	if err != nil {
@@ -118,14 +122,9 @@ func TestIntegration_http(t *testing.T) {
 }
 
 func TestIntegration_https(t *testing.T) {
-	env := map[string]string{
-		"BINDPLANE_CONFIG_USERNAME":        "oiq",
-		"BINDPLANE_CONFIG_PASSWORD":        "password",
-		"BINDPLANE_CONFIG_SESSIONS_SECRET": uuid.NewString(),
-		"BINDPLANE_CONFIG_LOG_OUTPUT":      "stdout",
-		"BINDPLANE_CONFIG_TLS_CERT":        "/tmp/bindplane.crt",
-		"BINDPLANE_CONFIG_TLS_KEY":         "/tmp/bindplane.key",
-	}
+	env := defaultServerEnv()
+	env["BINDPLANE_CONFIG_TLS_CERT"] = "/tmp/bindplane.crt"
+	env["BINDPLANE_CONFIG_TLS_KEY"] = "/tmp/bindplane.key"
 
 	container, port, err := bindplaneContainer(t, env)
 	if err != nil {
@@ -167,15 +166,10 @@ func TestIntegration_https(t *testing.T) {
 }
 
 func TestIntegration_https_mutualTLS(t *testing.T) {
-	env := map[string]string{
-		"BINDPLANE_CONFIG_USERNAME":        "oiq",
-		"BINDPLANE_CONFIG_PASSWORD":        "password",
-		"BINDPLANE_CONFIG_SESSIONS_SECRET": uuid.NewString(),
-		"BINDPLANE_CONFIG_LOG_OUTPUT":      "stdout",
-		"BINDPLANE_CONFIG_TLS_CERT":        "/tmp/bindplane.crt",
-		"BINDPLANE_CONFIG_TLS_KEY":         "/tmp/bindplane.key",
-		"BINDPLANE_CONFIG_TLS_CA":          "/tmp/bindplane-ca.crt",
-	}
+	env := defaultServerEnv()
+	env["BINDPLANE_CONFIG_TLS_CERT"] = "/tmp/bindplane.crt"
+	env["BINDPLANE_CONFIG_TLS_KEY"] = "/tmp/bindplane.key"
+	env["BINDPLANE_CONFIG_TLS_CA"] = "/tmp/bindplane-ca.crt"
 
 	container, port, err := bindplaneContainer(t, env)
 	if err != nil {
