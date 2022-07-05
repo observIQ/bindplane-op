@@ -141,7 +141,11 @@ tls:
 
 .PHONY: docker-http
 docker-http:
-	docker run -d -p 3010:3001 --name "bindplane-server-${GIT_SHA}-http" "observiq/bindplane-$(GOARCH):latest" \
+	docker run -d -p 3010:3001 \
+		--name "bindplane-server-${GIT_SHA}-http" \
+		-e BINDPLANE_CONFIG_SESSIONS_SECRET=403dd8ff-72a9-4401-9a66-e54b37d6e0ce \
+		-e BINDPLANE_CONFIG_LOG_OUTPUT=stdout \
+		"observiq/bindplane-$(GOARCH):${GIT_SHA}" \
 		--host 0.0.0.0 \
 		--port "3001" \
 		--server-url http://localhost:3010 \
@@ -158,6 +162,8 @@ docker-https: tls
 	docker run -d \
 		-p 3011:3001 \
 		--name "bindplane-server-${GIT_SHA}-https" \
+		-e BINDPLANE_CONFIG_SESSIONS_SECRET=403dd8ff-72a9-4401-9a66-e54b37d6e0ce \
+		-e BINDPLANE_CONFIG_LOG_OUTPUT=stdout \
 		-v "${PWD}/tls:/tls" \
 		"observiq/bindplane-$(GOARCH):latest" \
 			--tls-cert /tls/bindplane.crt --tls-key /tls/bindplane.key \
@@ -178,6 +184,8 @@ docker-https-mtls: tls
 	docker run -d \
 		-p 3012:3001 \
 		--name "bindplane-server-${GIT_SHA}-https-mtls" \
+		-e BINDPLANE_CONFIG_SESSIONS_SECRET=403dd8ff-72a9-4401-9a66-e54b37d6e0ce \
+		-e BINDPLANE_CONFIG_LOG_OUTPUT=stdout \
 		-v "${PWD}/tls:/tls" \
 		"observiq/bindplane-$(GOARCH):latest" \
 			--tls-cert /tls/bindplane.crt --tls-key /tls/bindplane.key --tls-ca /tls/bindplane-ca.crt --tls-ca /tls/test-ca.crt \
@@ -198,7 +206,7 @@ docker-all: docker-clean docker-http docker-https docker-https-mtls
 
 .PHONY: docker-clean
 docker-clean:
-	docker ps | grep bindplane-server | awk '{print $$1}' | xargs -I{} docker rm --force {}
+	docker ps -a | grep bindplane-server | awk '{print $$1}' | xargs -I{} docker rm --force {}
 
 # Call 'release-test' first.
 .PHONY: inspec-continer-image
