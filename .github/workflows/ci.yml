@@ -258,7 +258,7 @@ jobs:
           file: ./coverage.out
           fail_ci_if_error: true
           verbose: true
-          gcov_ignore: "internal/graphql/generated"
+          gcov_ignore: "internal/graphql/generated,internal/server/mocks"
 
 
   # Run Goreleaser to build binaries, packages, and container images.
