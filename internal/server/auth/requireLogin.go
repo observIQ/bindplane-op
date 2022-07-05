@@ -18,7 +18,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/observiq/bindplane/internal/server"
+	"github.com/observiq/bindplane-op/internal/server"
 )
 
 // RequireLogin should be the last middleware in the middleware chain.

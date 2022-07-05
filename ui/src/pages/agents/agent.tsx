@@ -156,6 +156,7 @@ const AgentPageContent: React.FC = () => {
         open={importOpen}
         onClose={() => setImportOpen(false)}
         PaperComponent={EmptyComponent}
+        scroll={"body"}
       >
         <DialogContent>
           <Stack justifyContent="center" alignItems="center" height="100%">

@@ -35,10 +35,10 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
-	"github.com/observiq/bindplane/common"
-	"github.com/observiq/bindplane/internal/server"
-	"github.com/observiq/bindplane/internal/store"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/common"
+	"github.com/observiq/bindplane-op/internal/server"
+	"github.com/observiq/bindplane-op/internal/store"
+	"github.com/observiq/bindplane-op/model"
 )
 
 func resetStore(t *testing.T, store store.Store) {

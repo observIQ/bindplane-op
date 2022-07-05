@@ -17,9 +17,9 @@ package server
 import (
 	"go.uber.org/zap"
 
-	"github.com/observiq/bindplane/common"
-	"github.com/observiq/bindplane/internal/agent"
-	"github.com/observiq/bindplane/internal/store"
+	"github.com/observiq/bindplane-op/common"
+	"github.com/observiq/bindplane-op/internal/agent"
+	"github.com/observiq/bindplane-op/internal/store"
 )
 
 // BindPlane TODO(doc)

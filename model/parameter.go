@@ -19,7 +19,7 @@ import (
 	"go/token"
 	"strconv"
 
-	"github.com/observiq/bindplane/model/validation"
+	"github.com/observiq/bindplane-op/model/validation"
 	"github.com/observiq/stanza/errors"
 )
 

@@ -21,11 +21,11 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/observiq/bindplane/common"
-	"github.com/observiq/bindplane/internal/server"
-	"github.com/observiq/bindplane/internal/server/mocks"
-	"github.com/observiq/bindplane/model"
-	"github.com/observiq/bindplane/model/observiq"
+	"github.com/observiq/bindplane-op/common"
+	"github.com/observiq/bindplane-op/internal/server"
+	"github.com/observiq/bindplane-op/internal/server/mocks"
+	"github.com/observiq/bindplane-op/model"
+	"github.com/observiq/bindplane-op/model/observiq"
 	"github.com/open-telemetry/opamp-go/protobufs"
 	opamp "github.com/open-telemetry/opamp-go/server/types"
 

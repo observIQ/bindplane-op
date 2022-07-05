@@ -23,8 +23,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/observiq/bindplane/internal/cli/flags"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/internal/cli/flags"
+	"github.com/observiq/bindplane-op/model"
 )
 
 // SetCommand returns the BindPlane profile set cobra command

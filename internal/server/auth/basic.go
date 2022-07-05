@@ -17,7 +17,7 @@ package auth
 import (
 	"github.com/gin-gonic/gin"
 
-	"github.com/observiq/bindplane/internal/server"
+	"github.com/observiq/bindplane-op/internal/server"
 )
 
 // CheckBasic checks the basic authentication for a request and sets

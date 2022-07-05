@@ -24,9 +24,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/observiq/bindplane/common"
-	"github.com/observiq/bindplane/internal/cli/flags"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/common"
+	"github.com/observiq/bindplane-op/internal/cli/flags"
+	"github.com/observiq/bindplane-op/model"
 )
 
 func TestSetCommand(t *testing.T) {

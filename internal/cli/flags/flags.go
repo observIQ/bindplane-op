@@ -15,7 +15,7 @@
 package flags
 
 import (
-	"github.com/observiq/bindplane/internal/agent"
+	"github.com/observiq/bindplane-op/internal/agent"
 	"github.com/spf13/cobra"
 )
 

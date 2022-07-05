@@ -25,9 +25,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/observiq/bindplane/internal/eventbus"
-	"github.com/observiq/bindplane/internal/store/search"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/internal/eventbus"
+	"github.com/observiq/bindplane-op/internal/store/search"
+	"github.com/observiq/bindplane-op/model"
 )
 
 func addAgent(s Store, agent *model.Agent) error {

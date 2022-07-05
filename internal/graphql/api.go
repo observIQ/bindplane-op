@@ -26,8 +26,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 
-	"github.com/observiq/bindplane/internal/graphql/generated"
-	"github.com/observiq/bindplane/internal/server"
+	"github.com/observiq/bindplane-op/internal/graphql/generated"
+	"github.com/observiq/bindplane-op/internal/server"
 )
 
 // AddRoutes TODO(doc)

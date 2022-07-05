@@ -17,7 +17,7 @@ package model
 import (
 	"fmt"
 
-	"github.com/observiq/bindplane/model/validation"
+	"github.com/observiq/bindplane-op/model/validation"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 )

@@ -28,10 +28,10 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/zap"
 
-	"github.com/observiq/bindplane/common"
-	"github.com/observiq/bindplane/internal/rest"
-	"github.com/observiq/bindplane/internal/version"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/common"
+	"github.com/observiq/bindplane-op/internal/rest"
+	"github.com/observiq/bindplane-op/internal/version"
+	"github.com/observiq/bindplane-op/model"
 )
 
 // AgentInstallOptions contains configuration options used for installing an agent.

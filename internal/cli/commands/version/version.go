@@ -19,8 +19,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/observiq/bindplane/internal/cli"
-	"github.com/observiq/bindplane/internal/version"
+	"github.com/observiq/bindplane-op/internal/cli"
+	"github.com/observiq/bindplane-op/internal/version"
 )
 
 // Command returns the BindPlane versions cobra command.

@@ -18,7 +18,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/observiq/bindplane/internal/store/search"
+	"github.com/observiq/bindplane-op/internal/store/search"
 )
 
 // AgentStatus TODO(doc)

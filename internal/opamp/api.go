@@ -31,9 +31,9 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
 
-	"github.com/observiq/bindplane/internal/server"
-	"github.com/observiq/bindplane/model"
-	"github.com/observiq/bindplane/model/observiq"
+	"github.com/observiq/bindplane-op/internal/server"
+	"github.com/observiq/bindplane-op/model"
+	"github.com/observiq/bindplane-op/model/observiq"
 )
 
 var tracer = otel.Tracer("bindplane/opamp")

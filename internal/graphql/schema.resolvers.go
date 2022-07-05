@@ -22,11 +22,11 @@ import (
 	"errors"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/observiq/bindplane/internal/eventbus"
-	"github.com/observiq/bindplane/internal/graphql/generated"
-	model1 "github.com/observiq/bindplane/internal/graphql/model"
-	"github.com/observiq/bindplane/internal/store"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/internal/eventbus"
+	"github.com/observiq/bindplane-op/internal/graphql/generated"
+	model1 "github.com/observiq/bindplane-op/internal/graphql/model"
+	"github.com/observiq/bindplane-op/internal/store"
+	"github.com/observiq/bindplane-op/model"
 	"go.uber.org/zap"
 )
 

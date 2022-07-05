@@ -32,11 +32,11 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/api/option"
 
-	"github.com/observiq/bindplane/common"
-	"github.com/observiq/bindplane/internal/cli"
-	"github.com/observiq/bindplane/internal/cli/commands/profile"
-	"github.com/observiq/bindplane/internal/cli/flags"
-	v "github.com/observiq/bindplane/internal/version"
+	"github.com/observiq/bindplane-op/common"
+	"github.com/observiq/bindplane-op/internal/cli"
+	"github.com/observiq/bindplane-op/internal/cli/commands/profile"
+	"github.com/observiq/bindplane-op/internal/cli/flags"
+	v "github.com/observiq/bindplane-op/internal/version"
 )
 
 // BindplaneHome returns the value of the homeArg, BINDPLANE_CONFIG_HOME,

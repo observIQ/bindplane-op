@@ -15,8 +15,8 @@
 package model
 
 import (
-	"github.com/observiq/bindplane/internal/store"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/internal/store"
+	"github.com/observiq/bindplane-op/model"
 )
 
 // ToAgentChangeArray converts store.AgentChanges to a []*AgentChange for use with graphql
