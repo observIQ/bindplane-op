@@ -120,37 +120,45 @@ export const ResourceDialog: React.FC<ResourceDialogProps> = ({
   }
 
   function renderSelectView() {
+    // Sort the list by display name.
+    // .sort mutates the array, and since resourceTypes
+    // is a prop so we need to copy it
+    const copy = resourceTypes.slice();
+    const sortedTypes = copy.sort((a, b) =>
+      a.metadata
+        .displayName!.toLowerCase()
+        .localeCompare(b.metadata.displayName!.toLowerCase())
+    );
+
     return (
       <>
         <Typography variant="h6" className={mixins["mb-5"]}>
           {title}
         </Typography>
         <Stack spacing={1}>
-          {sortBy(resourceTypes, ["metadata.displayName"]).map(
-            (resourceType) => {
-              const matchingResourcesExist = resources?.some(
-                (resource) => resource.spec.type === resourceType.metadata.name
-              );
+          {sortedTypes.map((resourceType) => {
+            const matchingResourcesExist = resources?.some(
+              (resource) => resource.spec.type === resourceType.metadata.name
+            );
 
-              // Either we send the directly to the form if there are no existing resources
-              // of that type, or we send them to the Choose View by just setting the selected.
-              function onSelect() {
-                setSelected(resourceType);
-                if (!matchingResourcesExist) {
-                  setCreateNew(true);
-                }
+            // Either we send the directly to the form if there are no existing resources
+            // of that type, or we send them to the Choose View by just setting the selected.
+            function onSelect() {
+              setSelected(resourceType);
+              if (!matchingResourcesExist) {
+                setCreateNew(true);
               }
-              return (
-                <ResourceButton
-                  key={resourceType.metadata.name}
-                  icon={resourceType.metadata.icon!}
-                  displayName={resourceType.metadata.displayName!}
-                  onSelect={onSelect}
-                  telemetryTypes={resourceType.spec.telemetryTypes}
-                />
-              );
             }
-          )}
+            return (
+              <ResourceButton
+                key={resourceType.metadata.name}
+                icon={resourceType.metadata.icon!}
+                displayName={resourceType.metadata.displayName!}
+                onSelect={onSelect}
+                telemetryTypes={resourceType.spec.telemetryTypes}
+              />
+            );
+          })}
         </Stack>
       </>
     );
