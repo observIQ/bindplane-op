@@ -163,14 +163,14 @@ func TestNewBindPlane(t *testing.T) {
 		name      string
 		client    *common.Client
 		logger    *zap.Logger
-		expect    *bindplaneClient
+		expect    *BindplaneClient
 		expectErr string
 	}{
 		{
 			name:   "default",
 			client: &common.InitConfig("").Client,
 			logger: zap.NewNop(),
-			expect: &bindplaneClient{
+			expect: &BindplaneClient{
 				config: &common.Client{
 					Common: common.Common{},
 				},
@@ -186,7 +186,7 @@ func TestNewBindPlane(t *testing.T) {
 				},
 			},
 			logger: zap.NewNop(),
-			expect: &bindplaneClient{
+			expect: &BindplaneClient{
 				config: &common.Client{
 					Common: common.Common{
 						Host:     "10.99.1.5",
@@ -210,7 +210,7 @@ func TestNewBindPlane(t *testing.T) {
 				},
 			},
 			logger: zap.NewNop(),
-			expect: &bindplaneClient{
+			expect: &BindplaneClient{
 				config: &common.Client{
 					Common: common.Common{
 						TLSConfig: common.TLSConfig{
