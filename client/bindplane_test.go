@@ -163,14 +163,14 @@ func TestNewBindPlane(t *testing.T) {
 		name      string
 		client    *common.Client
 		logger    *zap.Logger
-		expect    *BindplaneClient
+		expect    BindPlane
 		expectErr string
 	}{
 		{
 			name:   "default",
 			client: &common.InitConfig("").Client,
 			logger: zap.NewNop(),
-			expect: &BindplaneClient{
+			expect: &bindplaneClient{
 				config: &common.Client{
 					Common: common.Common{},
 				},
@@ -186,7 +186,7 @@ func TestNewBindPlane(t *testing.T) {
 				},
 			},
 			logger: zap.NewNop(),
-			expect: &BindplaneClient{
+			expect: &bindplaneClient{
 				config: &common.Client{
 					Common: common.Common{
 						Host:     "10.99.1.5",
@@ -210,7 +210,7 @@ func TestNewBindPlane(t *testing.T) {
 				},
 			},
 			logger: zap.NewNop(),
-			expect: &BindplaneClient{
+			expect: &bindplaneClient{
 				config: &common.Client{
 					Common: common.Common{
 						TLSConfig: common.TLSConfig{
@@ -279,21 +279,21 @@ func TestNewBindPlane(t *testing.T) {
 			require.NoError(t, err)
 
 			require.NotNil(t, out)
-			require.NotNil(t, out.client)
-			require.NotNil(t, out.config)
-			require.NotNil(t, out.Logger)
-			require.Equal(t, tc.expect.config, out.config)
-			require.Equal(t, time.Second*20, out.client.GetClient().Timeout)
+			require.NotNil(t, out.(*bindplaneClient).client)
+			require.NotNil(t, out.(*bindplaneClient).client)
+			require.NotNil(t, out.(*bindplaneClient).Logger)
+			require.Equal(t, tc.expect.(*bindplaneClient).config, out.(*bindplaneClient).config)
+			require.Equal(t, time.Second*20, out.(*bindplaneClient).client.GetClient().Timeout)
 
 			if tc.client.Username != "" {
-				require.Equal(t, tc.client.Username, out.client.UserInfo.Username)
+				require.Equal(t, tc.client.Username, out.(*bindplaneClient).client.UserInfo.Username)
 			}
 			if tc.client.Password != "" {
-				require.Equal(t, tc.client.Password, out.client.UserInfo.Password)
+				require.Equal(t, tc.client.Password, out.(*bindplaneClient).client.UserInfo.Password)
 			}
 
 			base := fmt.Sprintf("%s/v1", tc.client.BindPlaneURL())
-			require.Equal(t, base, out.client.BaseURL)
+			require.Equal(t, base, out.(*bindplaneClient).client.BaseURL)
 		})
 	}
 }
