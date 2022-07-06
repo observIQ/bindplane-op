@@ -37,6 +37,13 @@ import (
 	"go.uber.org/zap"
 )
 
+func containerImage() string {
+	if x := os.Getenv("BINDPLANE_TEST_IMAGE"); x != "" {
+		return x
+	}
+	return fmt.Sprintf("bindplane-%s:latest", runtime.GOARCH)
+}
+
 func defaultServerEnv() map[string]string {
 	return map[string]string{
 		"BINDPLANE_CONFIG_USERNAME":        "oiq",
@@ -64,11 +71,9 @@ func bindplaneContainer(t *testing.T, env map[string]string) (testcontainers.Con
 		"/tmp": path.Join(dir, "testdata"),
 	}
 
-	image := fmt.Sprintf("bindplane-%s:latest", runtime.GOARCH)
-
 	ctx := context.Background()
 	req := testcontainers.ContainerRequest{
-		Image:        image,
+		Image:        containerImage(),
 		Env:          env,
 		BindMounts:   mounts,
 		ExposedPorts: []string{fmt.Sprintf("%d:%d", port, 3001)},
