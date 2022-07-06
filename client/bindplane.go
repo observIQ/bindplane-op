@@ -165,16 +165,16 @@ type BindPlane interface {
 	ApplyAgentLabels(ctx context.Context, id string, labels *model.Labels, override bool) (*model.Labels, error)
 }
 
-type BindplaneClient struct {
+type bindplaneClient struct {
 	client *resty.Client
 	config *common.Client
 	*zap.Logger
 }
 
-var _ BindPlane = (*BindplaneClient)(nil)
+var _ BindPlane = (*bindplaneClient)(nil)
 
 // NewBindPlane takes a client configuration, logger and returns a new BindPlane.
-func NewBindPlane(config *common.Client, logger *zap.Logger) (*BindplaneClient, error) {
+func NewBindPlane(config *common.Client, logger *zap.Logger) (BindPlane, error) {
 	client := resty.New()
 	client.SetTimeout(time.Second * 20)
 	client.SetBasicAuth(config.Username, config.Password)
@@ -186,7 +186,7 @@ func NewBindPlane(config *common.Client, logger *zap.Logger) (*BindplaneClient, 
 	}
 	client.SetTLSClientConfig(tlsConfig)
 
-	return &BindplaneClient{
+	return &bindplaneClient{
 		client: client,
 		config: config,
 		Logger: logger.Named("bindplane-client"),
@@ -194,7 +194,7 @@ func NewBindPlane(config *common.Client, logger *zap.Logger) (*BindplaneClient, 
 }
 
 // Agents TODO(doc)
-func (c *BindplaneClient) Agents(ctx context.Context, options ...QueryOption) ([]*model.Agent, error) {
+func (c *bindplaneClient) Agents(ctx context.Context, options ...QueryOption) ([]*model.Agent, error) {
 	c.Debug("Agents called")
 
 	opts := makeQueryOptions(options)
@@ -216,7 +216,7 @@ func (c *BindplaneClient) Agents(ctx context.Context, options ...QueryOption) ([
 }
 
 // Agent TODO(doc)
-func (c *BindplaneClient) Agent(ctx context.Context, id string) (*model.Agent, error) {
+func (c *bindplaneClient) Agent(ctx context.Context, id string) (*model.Agent, error) {
 	c.Debug("Agent called")
 
 	ar := &model.AgentResponse{}
@@ -230,7 +230,7 @@ func (c *BindplaneClient) Agent(ctx context.Context, id string) (*model.Agent, e
 	return ar.Agent, c.statusError(resp, err, "unable to get agents")
 }
 
-func (c *BindplaneClient) DeleteAgents(ctx context.Context, ids []string) ([]*model.Agent, error) {
+func (c *bindplaneClient) DeleteAgents(ctx context.Context, ids []string) ([]*model.Agent, error) {
 	c.Debug("DeleteAgents called")
 
 	body := &model.DeleteAgentsPayload{
@@ -242,7 +242,7 @@ func (c *BindplaneClient) DeleteAgents(ctx context.Context, ids []string) ([]*mo
 }
 
 // Configurations TODO(doc)
-func (c *BindplaneClient) Configurations(ctx context.Context) ([]*model.Configuration, error) {
+func (c *bindplaneClient) Configurations(ctx context.Context) ([]*model.Configuration, error) {
 	c.Debug("Configurations called")
 
 	pr := &model.ConfigurationsResponse{}
@@ -253,21 +253,21 @@ func (c *BindplaneClient) Configurations(ctx context.Context) ([]*model.Configur
 // ----------------------------------------------------------------------
 
 // Configuration TODO(doc)
-func (c *BindplaneClient) Configuration(ctx context.Context, name string) (*model.Configuration, error) {
+func (c *bindplaneClient) Configuration(ctx context.Context, name string) (*model.Configuration, error) {
 	result := model.ConfigurationResponse{}
 	err := c.resource(ctx, "/configurations", name, &result)
 	return result.Configuration, err
 }
 
 // DeleteConfiguration TODO(doc)
-func (c *BindplaneClient) DeleteConfiguration(ctx context.Context, name string) error {
+func (c *bindplaneClient) DeleteConfiguration(ctx context.Context, name string) error {
 	return c.deleteResource(ctx, "/configurations", name)
 }
 
 // RawConfiguration returns the raw OpenTelemetry configuration for the configuration with the specified name. This can
 // either be the raw value of a raw configuration or the rendered value of a configuration with sources and
 // destinations.
-func (c *BindplaneClient) RawConfiguration(ctx context.Context, name string) (string, error) {
+func (c *bindplaneClient) RawConfiguration(ctx context.Context, name string) (string, error) {
 	result := model.ConfigurationResponse{}
 	err := c.resource(ctx, "/configurations", name, &result)
 	return result.Raw, err
@@ -275,80 +275,80 @@ func (c *BindplaneClient) RawConfiguration(ctx context.Context, name string) (st
 
 // ----------------------------------------------------------------------
 
-func (c *BindplaneClient) Sources(ctx context.Context) ([]*model.Source, error) {
+func (c *bindplaneClient) Sources(ctx context.Context) ([]*model.Source, error) {
 	result := model.SourcesResponse{}
 	err := c.resources(ctx, "/sources", &result)
 	return result.Sources, err
 }
 
-func (c *BindplaneClient) Source(ctx context.Context, name string) (*model.Source, error) {
+func (c *bindplaneClient) Source(ctx context.Context, name string) (*model.Source, error) {
 	result := model.SourceResponse{}
 	err := c.resource(ctx, "/sources", name, &result)
 	return result.Source, err
 }
 
-func (c *BindplaneClient) DeleteSource(ctx context.Context, name string) error {
+func (c *bindplaneClient) DeleteSource(ctx context.Context, name string) error {
 	return c.deleteResource(ctx, "/sources", name)
 }
 
 // ----------------------------------------------------------------------
 
-func (c *BindplaneClient) SourceTypes(ctx context.Context) ([]*model.SourceType, error) {
+func (c *bindplaneClient) SourceTypes(ctx context.Context) ([]*model.SourceType, error) {
 	result := model.SourceTypesResponse{}
 	err := c.resources(ctx, "/source-types", &result)
 	return result.SourceTypes, err
 }
 
-func (c *BindplaneClient) SourceType(ctx context.Context, name string) (*model.SourceType, error) {
+func (c *bindplaneClient) SourceType(ctx context.Context, name string) (*model.SourceType, error) {
 	result := model.SourceTypeResponse{}
 	err := c.resource(ctx, "/source-types", name, &result)
 	return result.SourceType, err
 }
 
-func (c *BindplaneClient) DeleteSourceType(ctx context.Context, name string) error {
+func (c *bindplaneClient) DeleteSourceType(ctx context.Context, name string) error {
 	return c.deleteResource(ctx, "/source-types", name)
 }
 
 // ----------------------------------------------------------------------
 
-func (c *BindplaneClient) Destinations(ctx context.Context) ([]*model.Destination, error) {
+func (c *bindplaneClient) Destinations(ctx context.Context) ([]*model.Destination, error) {
 	result := model.DestinationsResponse{}
 	err := c.resources(ctx, "/destinations", &result)
 	return result.Destinations, err
 }
 
-func (c *BindplaneClient) Destination(ctx context.Context, name string) (*model.Destination, error) {
+func (c *bindplaneClient) Destination(ctx context.Context, name string) (*model.Destination, error) {
 	result := model.DestinationResponse{}
 	err := c.resource(ctx, "/destinations", name, &result)
 	return result.Destination, err
 }
 
-func (c *BindplaneClient) DeleteDestination(ctx context.Context, name string) error {
+func (c *bindplaneClient) DeleteDestination(ctx context.Context, name string) error {
 	return c.deleteResource(ctx, "/destinations", name)
 }
 
 // ----------------------------------------------------------------------
 
-func (c *BindplaneClient) DestinationTypes(ctx context.Context) ([]*model.DestinationType, error) {
+func (c *bindplaneClient) DestinationTypes(ctx context.Context) ([]*model.DestinationType, error) {
 	result := model.DestinationTypesResponse{}
 	err := c.resources(ctx, "/destination-types", &result)
 	return result.DestinationTypes, err
 }
 
-func (c *BindplaneClient) DestinationType(ctx context.Context, name string) (*model.DestinationType, error) {
+func (c *bindplaneClient) DestinationType(ctx context.Context, name string) (*model.DestinationType, error) {
 	result := model.DestinationTypeResponse{}
 	err := c.resource(ctx, "/destination-types", name, &result)
 	return result.DestinationType, err
 }
 
-func (c *BindplaneClient) DeleteDestinationType(ctx context.Context, name string) error {
+func (c *bindplaneClient) DeleteDestinationType(ctx context.Context, name string) error {
 	return c.deleteResource(ctx, "/destination-types", name)
 }
 
 // ----------------------------------------------------------------------
 
 // Apply TODO(doc)
-func (c *BindplaneClient) Apply(ctx context.Context, resources []*model.AnyResource) ([]*model.AnyResourceStatus, error) {
+func (c *bindplaneClient) Apply(ctx context.Context, resources []*model.AnyResource) ([]*model.AnyResourceStatus, error) {
 	c.Debug("Apply called")
 
 	payload := model.ApplyPayload{
@@ -367,7 +367,7 @@ func (c *BindplaneClient) Apply(ctx context.Context, resources []*model.AnyResou
 }
 
 // Delete TODO(doc)
-func (c *BindplaneClient) Delete(ctx context.Context, resources []*model.AnyResource) ([]*model.AnyResourceStatus, error) {
+func (c *bindplaneClient) Delete(ctx context.Context, resources []*model.AnyResource) ([]*model.AnyResourceStatus, error) {
 	c.Debug("Batch Delete called")
 
 	payload := model.DeletePayload{
@@ -411,7 +411,7 @@ func (c *BindplaneClient) Delete(ctx context.Context, resources []*model.AnyReso
 }
 
 // Version TODO(doc)
-func (c *BindplaneClient) Version(ctx context.Context) (version.Version, error) {
+func (c *bindplaneClient) Version(ctx context.Context) (version.Version, error) {
 	c.Debug("Version called")
 
 	v := version.Version{}
@@ -420,7 +420,7 @@ func (c *BindplaneClient) Version(ctx context.Context) (version.Version, error) 
 }
 
 // AgentInstallCommand TODO(doc)
-func (c *BindplaneClient) AgentInstallCommand(ctx context.Context, options AgentInstallOptions) (string, error) {
+func (c *bindplaneClient) AgentInstallCommand(ctx context.Context, options AgentInstallOptions) (string, error) {
 	c.Debug("AgentInstallCommand called")
 
 	var command model.InstallCommandResponse
@@ -439,7 +439,7 @@ func (c *BindplaneClient) AgentInstallCommand(ctx context.Context, options Agent
 }
 
 // AgentUpdate TODO(doc)
-func (c *BindplaneClient) AgentUpdate(ctx context.Context, id string, version string) error {
+func (c *bindplaneClient) AgentUpdate(ctx context.Context, id string, version string) error {
 	endpoint := fmt.Sprintf("/agents/%s/version", id)
 	_, err := c.client.R().SetBody(model.PostAgentVersionRequest{
 		Version: version,
@@ -452,7 +452,7 @@ func logRequestError(logger *zap.Logger, err error, endpoint string) {
 }
 
 // AgentLabels gets the labels for an agent
-func (c *BindplaneClient) AgentLabels(ctx context.Context, id string) (*model.Labels, error) {
+func (c *bindplaneClient) AgentLabels(ctx context.Context, id string) (*model.Labels, error) {
 	var response model.AgentLabelsResponse
 	endpoint := fmt.Sprintf("/agents/%s/labels", id)
 
@@ -465,7 +465,7 @@ func (c *BindplaneClient) AgentLabels(ctx context.Context, id string) (*model.La
 
 // ApplyAgentLabels applies the specified labels to an agent, merging the specified labels with the existing labels
 // and returning the labels of the agent
-func (c *BindplaneClient) ApplyAgentLabels(ctx context.Context, id string, labels *model.Labels, overwrite bool) (*model.Labels, error) {
+func (c *bindplaneClient) ApplyAgentLabels(ctx context.Context, id string, labels *model.Labels, overwrite bool) (*model.Labels, error) {
 	payload := model.AgentLabelsPayload{
 		Labels: labels.AsMap(),
 	}
@@ -505,17 +505,17 @@ func (c *BindplaneClient) ApplyAgentLabels(ctx context.Context, id string, label
 // ----------------------------------------------------------------------
 
 // resources gets the resources from the REST server and stores them in the provided result.
-func (c *BindplaneClient) resources(ctx context.Context, resourcesURL string, result any) error {
+func (c *bindplaneClient) resources(ctx context.Context, resourcesURL string, result any) error {
 	return c.get(ctx, resourcesURL, result)
 }
 
 // resource gets the resource with the specified name from the REST server and stores it in the provided result.
-func (c *BindplaneClient) resource(ctx context.Context, resourcesURL string, name string, result any) error {
+func (c *bindplaneClient) resource(ctx context.Context, resourcesURL string, name string, result any) error {
 	resourceURL := fmt.Sprintf("%s/%s", resourcesURL, name)
 	return c.get(ctx, resourceURL, result)
 }
 
-func (c *BindplaneClient) get(ctx context.Context, url string, result any) error {
+func (c *bindplaneClient) get(ctx context.Context, url string, result any) error {
 	resp, err := c.client.R().
 		SetContext(ctx).
 		SetResult(result).
@@ -529,7 +529,7 @@ func (c *BindplaneClient) get(ctx context.Context, url string, result any) error
 	return c.statusError(resp, err, fmt.Sprintf("unable to get %s", url))
 }
 
-func (c *BindplaneClient) deleteResource(ctx context.Context, resourcesURL string, name string) error {
+func (c *bindplaneClient) deleteResource(ctx context.Context, resourcesURL string, name string) error {
 	deleteEndpoint := fmt.Sprintf("%s/%s", resourcesURL, name)
 	resp, err := c.client.R().Delete(deleteEndpoint)
 	if err != nil {
@@ -575,7 +575,7 @@ func (c *BindplaneClient) deleteResource(ctx context.Context, resourcesURL strin
 
 }
 
-func (c *BindplaneClient) unauthorizedError(resp *resty.Response) error {
+func (c *bindplaneClient) unauthorizedError(resp *resty.Response) error {
 	if resp.StatusCode() == http.StatusUnauthorized {
 		err := fmt.Errorf(resp.Status())
 		logRequestError(c.Logger, err, resp.Request.URL)
@@ -584,7 +584,7 @@ func (c *BindplaneClient) unauthorizedError(resp *resty.Response) error {
 	return nil
 }
 
-func (c *BindplaneClient) statusError(resp *resty.Response, err error, message string) error {
+func (c *bindplaneClient) statusError(resp *resty.Response, err error, message string) error {
 	if err != nil {
 		logRequestError(c.Logger, err, resp.Request.URL)
 		return err
