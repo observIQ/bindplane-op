@@ -17,6 +17,7 @@ package client
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"io/ioutil"
 )
@@ -40,7 +41,7 @@ func tlsClient(cert, key string, caCertFile []string) (*tls.Config, error) {
 			}
 
 			if !caPool.AppendCertsFromPEM(ca) {
-				return nil, fmt.Errorf("failed to load certificate authority: %w", err)
+				return nil, errors.New("failed to append certificate authority to root ca pool")
 			}
 		}
 
