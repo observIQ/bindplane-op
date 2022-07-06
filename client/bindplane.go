@@ -157,8 +157,6 @@ type BindPlane interface {
 	AgentInstallCommand(ctx context.Context, options AgentInstallOptions) (string, error)
 	// AgentUpdate TODO(doc)
 	AgentUpdate(ctx context.Context, id string, version string) error
-	// AgentRestart TODO(doc)
-	AgentRestart(ctx context.Context, id string) error
 
 	// AgentLabels gets the labels for an agent
 	AgentLabels(ctx context.Context, id string) (*model.Labels, error)
@@ -446,13 +444,6 @@ func (c *bindplaneClient) AgentUpdate(ctx context.Context, id string, version st
 	_, err := c.client.R().SetBody(model.PostAgentVersionRequest{
 		Version: version,
 	}).Post(endpoint)
-	return err
-}
-
-// AgentRestart TODO(doc)
-func (c *bindplaneClient) AgentRestart(ctx context.Context, id string) error {
-	endpoint := fmt.Sprintf("/agents/%s/restart", id)
-	_, err := c.client.R().Put(endpoint)
 	return err
 }
 

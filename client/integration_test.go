@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build integration
+// +build integration
+
 package client
 
 import (
@@ -84,7 +87,9 @@ func bindplaneContainer(t *testing.T, env map[string]string) (testcontainers.Con
 	return container, port, nil
 }
 
-func TestIntegration_http(t *testing.T) {
+// TestIntegrationHttp tests a simple client.Agents call
+// using http / plain text.
+func TestIntegrationHttp(t *testing.T) {
 	env := defaultServerEnv()
 
 	container, port, err := bindplaneContainer(t, env)
@@ -105,7 +110,7 @@ func TestIntegration_http(t *testing.T) {
 		Scheme: "http",
 	}
 
-	clientConfig := &common.Client{
+	defaultClientConfig := common.Client{
 		Common: common.Common{
 			Username:  "oiq",
 			Password:  "password",
@@ -113,7 +118,7 @@ func TestIntegration_http(t *testing.T) {
 		},
 	}
 
-	client, err := NewBindPlane(clientConfig, zap.NewNop())
+	client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
 	require.NoError(t, err, "failed to create client config: %v", err)
 	require.NotNil(t, client)
 
@@ -121,7 +126,9 @@ func TestIntegration_http(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestIntegration_https(t *testing.T) {
+// TestIntegrationHttps tests a simple client.Agents call
+// using https / server side tls.
+func TestIntegrationHttps(t *testing.T) {
 	env := defaultServerEnv()
 	env["BINDPLANE_CONFIG_TLS_CERT"] = "/tmp/bindplane.crt"
 	env["BINDPLANE_CONFIG_TLS_KEY"] = "/tmp/bindplane.key"
@@ -144,7 +151,7 @@ func TestIntegration_https(t *testing.T) {
 		Scheme: "https",
 	}
 
-	clientConfig := &common.Client{
+	defaultClientConfig := common.Client{
 		Common: common.Common{
 			Username:  "oiq",
 			Password:  "password",
@@ -157,7 +164,7 @@ func TestIntegration_https(t *testing.T) {
 		},
 	}
 
-	client, err := NewBindPlane(clientConfig, zap.NewNop())
+	client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
 	require.NoError(t, err, "failed to create client config: %v", err)
 	require.NotNil(t, client)
 
@@ -165,7 +172,9 @@ func TestIntegration_https(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestIntegration_https_mutualTLS(t *testing.T) {
+// TestIntegrationHttpsMutualTLS tests all client api calls using
+// client / server authentication (mutual TLS).
+func TestIntegrationHttpsMutualTLS(t *testing.T) {
 	env := defaultServerEnv()
 	env["BINDPLANE_CONFIG_TLS_CERT"] = "/tmp/bindplane.crt"
 	env["BINDPLANE_CONFIG_TLS_KEY"] = "/tmp/bindplane.key"
@@ -189,7 +198,8 @@ func TestIntegration_https_mutualTLS(t *testing.T) {
 		Scheme: "https",
 	}
 
-	clientConfig := &common.Client{
+	// Base config can be copied and modified by the test case
+	defaultClientConfig := common.Client{
 		Common: common.Common{
 			Username:  "oiq",
 			Password:  "password",
@@ -204,10 +214,6 @@ func TestIntegration_https_mutualTLS(t *testing.T) {
 		},
 	}
 
-	client, err := NewBindPlane(clientConfig, zap.NewNop())
-	require.NoError(t, err, "failed to create client config: %v", err)
-	require.NotNil(t, client)
-
 	cases := []struct {
 		name      string
 		apiCall   func() error
@@ -216,169 +222,641 @@ func TestIntegration_https_mutualTLS(t *testing.T) {
 		{
 			"Agents",
 			func() error {
-				_, err := client.Agents(context.Background())
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Agents(context.Background())
 				return err
 			},
 			"",
 		},
 		{
+			"Agents Request Error",
+			func() error {
+				c := defaultClientConfig
+				c.ServerURL = "xxx://invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Agents(context.Background())
+				return err
+			},
+			"unsupported protocol scheme",
+		},
+		{
+			"Agents Internal Server Error",
+			func() error {
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				opts := WithLimit(-1)
+				_, err = client.Agents(context.Background(), opts)
+				return err
+			},
+			"unable to get agents, got 500 Internal Server Error",
+		},
+		{
+			"Agents Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Agents(context.Background())
+				return err
+			},
+			"401 Unauthorized",
+		},
+		{
 			"Agent",
 			func() error {
-				_, err := client.Agent(context.Background(), "agent")
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Agent(context.Background(), "agent")
 				return err
 			},
 			"unable to get agents, got 404 Not Found",
 		},
 		{
+			"Agent Request Error",
+			func() error {
+				c := defaultClientConfig
+				c.ServerURL = "xxx://invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Agent(context.Background(), "")
+				return err
+			},
+			"unsupported protocol scheme",
+		},
+		{
+			"Agent Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Agent(context.Background(), "agent")
+				return err
+			},
+			"401 Unauthorized",
+		},
+		{
 			"DeleteAgents",
 			func() error {
-				_, err := client.DeleteAgents(context.Background(), []string{"agent"})
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.DeleteAgents(context.Background(), []string{"agent"})
 				return err
 			},
 			"",
+		},
+		{
+			"DeleteAgents",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.DeleteAgents(context.Background(), []string{"agent"})
+				return err
+			},
+			"401 Unauthorized",
 		},
 		{
 			"Configurations",
 			func() error {
-				_, err := client.Configurations(context.Background())
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Configurations(context.Background())
 				return err
 			},
 			"",
 		},
 		{
+			"Configurations Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Configurations(context.Background())
+				return err
+			},
+			"401 Unauthorized",
+		},
+		{
 			"Configuration",
 			func() error {
-				_, err := client.Configuration(context.Background(), "config")
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Configuration(context.Background(), "config")
 				return err
 			},
 			"unable to get /configurations/config, got 404 Not Found",
 		},
 		{
+			"Configuration Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Configuration(context.Background(), "config")
+				return err
+			},
+			"401 Unauthorized",
+		},
+		{
 			"DeleteConfiguration",
 			func() error {
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
 				return client.DeleteConfiguration(context.Background(), "config")
 			},
 			"/configurations/config not found",
 		},
 		{
+			"DeleteConfiguration Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				return client.DeleteConfiguration(context.Background(), "config")
+			},
+			"401 Unauthorized",
+		},
+		{
 			"RawConfiguration",
 			func() error {
-				_, err := client.RawConfiguration(context.Background(), "config")
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.RawConfiguration(context.Background(), "config")
 				return err
 			},
 			"unable to get /configurations/config, got 404 Not Found",
 		},
 		{
+			"RawConfiguration Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.RawConfiguration(context.Background(), "config")
+				return err
+			},
+			"401 Unauthorized",
+		},
+		{
 			"Source",
 			func() error {
-				_, err := client.Source(context.Background(), "source")
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Source(context.Background(), "source")
 				return err
 			},
 			"unable to get /sources/source, got 404 Not Found",
 		},
 		{
+			"Source Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Source(context.Background(), "source")
+				return err
+			},
+			"401 Unauthorized",
+		},
+		{
 			"Sources",
 			func() error {
-				_, err := client.Sources(context.Background())
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Sources(context.Background())
 				return err
 			},
 			"",
+		},
+		{
+			"Sources Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Sources(context.Background())
+				return err
+			},
+			"401 Unauthorized",
 		},
 		{
 			"DeleteSource",
 			func() error {
-				err := client.DeleteSource(context.Background(), "source")
-				return err
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				return client.DeleteSource(context.Background(), "source")
 			},
 			"/sources/source not found",
 		},
 		{
+			"DeleteSource Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				err = client.DeleteSource(context.Background(), "source")
+				return err
+			},
+			"401 Unauthorized",
+		},
+		{
 			"SourceTypes",
 			func() error {
-				_, err := client.SourceTypes(context.Background())
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.SourceTypes(context.Background())
 				return err
 			},
 			"",
 		},
 		{
+			"SourceTypes Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.SourceTypes(context.Background())
+				return err
+			},
+			"401 Unauthorized",
+		},
+		{
 			"SourceType",
 			func() error {
-				_, err := client.SourceType(context.Background(), "source-type")
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.SourceType(context.Background(), "source-type")
 				return err
 			},
 			"unable to get /source-types/source-type, got 404 Not Found",
 		},
 		{
+			"SourceType Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.SourceType(context.Background(), "source-type")
+				return err
+			},
+			"401 Unauthorized",
+		},
+		{
 			"DeleteSourceType",
 			func() error {
-				err := client.DeleteSourceType(context.Background(), "source-type")
-				return err
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				return client.DeleteSourceType(context.Background(), "source-type")
 			},
 			"/source-types/source-type not found",
 		},
 		{
+			"DeleteSourceType Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				err = client.DeleteSourceType(context.Background(), "source-type")
+				return err
+			},
+			"401 Unauthorized",
+		},
+		{
 			"Destinations",
 			func() error {
-				_, err := client.Destinations(context.Background())
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Destinations(context.Background())
 				return err
 			},
 			"",
 		},
 		{
+			"Destinations Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Destinations(context.Background())
+				return err
+			},
+			"401 Unauthorized",
+		},
+		{
 			"Destination",
 			func() error {
-				_, err := client.Destination(context.Background(), "dest")
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Destination(context.Background(), "dest")
 				return err
 			},
 			"unable to get /destinations/dest, got 404 Not Found",
 		},
 		{
+			"Destination Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Destination(context.Background(), "dest")
+				return err
+			},
+			"401 Unauthorized",
+		},
+		{
 			"DeleteDestination",
 			func() error {
-				err := client.DeleteDestination(context.Background(), "dest")
-				return err
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				return client.DeleteDestination(context.Background(), "dest")
 			},
 			"/destinations/dest not found",
 		},
 		{
+			"DeleteDestination Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				return client.DeleteDestination(context.Background(), "dest")
+			},
+			"401 Unauthorized",
+		},
+		{
 			"DestinationTypes",
 			func() error {
-				_, err := client.DestinationTypes(context.Background())
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.DestinationTypes(context.Background())
 				return err
 			},
 			"",
 		},
 		{
+			"DestinationTypes Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.DestinationTypes(context.Background())
+				return err
+			},
+			"401 Unauthorized",
+		},
+		{
 			"DestinationType",
 			func() error {
-				_, err := client.DestinationType(context.Background(), "dest-type")
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.DestinationType(context.Background(), "dest-type")
 				return err
 			},
 			"unable to get /destination-types/dest-type, got 404 Not Found",
 		},
 		{
+			"DestinationType Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.DestinationType(context.Background(), "dest-type")
+				return err
+			},
+			"401 Unauthorized",
+		},
+		{
 			"DeleteDestinationType",
 			func() error {
-				err := client.DeleteDestinationType(context.Background(), "dest-type")
-				return err
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				return client.DeleteDestinationType(context.Background(), "dest-type")
 			},
 			"/destination-types/dest-type not found",
 		},
 		{
+			"DeleteDestinationType Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				return client.DeleteDestinationType(context.Background(), "dest-type")
+			},
+			"401 Unauthorized",
+		},
+		{
 			"Apply",
 			func() error {
-				_, err := client.Apply(context.Background(), nil)
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Apply(context.Background(), nil)
 				return err
 			},
 			"",
 		},
 		{
+			"Apply Request Error",
+			func() error {
+				c := defaultClientConfig
+				c.ServerURL = "xxx://invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Apply(context.Background(), nil)
+				return err
+			},
+			"unsupported protocol scheme",
+		},
+		{
+			"Apply Invalid Request Payload",
+			func() error {
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				resource := model.Configuration{}
+				r := &model.AnyResource{
+					ResourceMeta: resource.ResourceMeta,
+				}
+				_, err = client.Apply(context.Background(), []*model.AnyResource{r})
+				return err
+			},
+			"unable to apply resources, got 400 Bad Request",
+		},
+		{
+			"Apply Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Apply(context.Background(), nil)
+				return err
+			},
+			"401 Unauthorized",
+		},
+		{
 			"Delete",
 			func() error {
-				_, err := client.Delete(context.Background(), nil)
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Delete(context.Background(), nil)
 				return err
 			},
 			"",
+		},
+		{
+			"Delete Request Error",
+			func() error {
+				c := defaultClientConfig
+				c.ServerURL = "invalid://invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Delete(context.Background(), nil)
+				return err
+			},
+			"unsupported protocol scheme",
+		},
+		{
+			"Delete Invalid Request Payload",
+			func() error {
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				resource := model.Configuration{}
+				r := &model.AnyResource{
+					ResourceMeta: resource.ResourceMeta,
+				}
+				_, err = client.Delete(context.Background(), []*model.AnyResource{r})
+				return err
+			},
+			"bad request",
+		},
+		{
+			"Delete Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Delete(context.Background(), nil)
+				return err
+			},
+			"401 Unauthorized",
 		},
 		{
 			"Delete_bad_request",
@@ -388,7 +866,11 @@ func TestIntegration_https_mutualTLS(t *testing.T) {
 						APIVersion: "invalid",
 					},
 				}
-				_, err := client.Delete(context.Background(), []*model.AnyResource{&r})
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Delete(context.Background(), []*model.AnyResource{&r})
 				return err
 			},
 			"bad request",
@@ -396,47 +878,100 @@ func TestIntegration_https_mutualTLS(t *testing.T) {
 		{
 			"Version",
 			func() error {
-				_, err := client.Version(context.Background())
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Version(context.Background())
 				return err
 			},
 			"",
+		},
+		{
+			"Version Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.Version(context.Background())
+				return err
+			},
+			"401 Unauthorized",
 		},
 		{
 			"AgentInstallCommand",
 			func() error {
-				_, err := client.AgentInstallCommand(context.Background(), AgentInstallOptions{})
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.AgentInstallCommand(context.Background(), AgentInstallOptions{})
 				return err
 			},
 			"",
+		},
+		{
+			"AgentInstallCommand Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.AgentInstallCommand(context.Background(), AgentInstallOptions{})
+				return err
+			},
+			"401 Unauthorized",
 		},
 		{
 			"AgentUpdate",
 			func() error {
-				err := client.AgentUpdate(context.Background(), "id", "v1.3.0")
-				return err
-			},
-			"",
-		},
-		{
-			"AgentRestart",
-			func() error {
-				err := client.AgentRestart(context.Background(), "id")
-				return err
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				return client.AgentUpdate(context.Background(), "id", "v1.3.0")
 			},
 			"",
 		},
 		{
 			"AgentLabels",
 			func() error {
-				_, err := client.AgentLabels(context.Background(), "id")
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.AgentLabels(context.Background(), "id")
 				return err
 			},
 			"unable to get agent labels, got 404 Not Found",
 		},
 		{
+			"AgentLabels Unauthorized",
+			func() error {
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.AgentLabels(context.Background(), "id")
+				return err
+			},
+			"401 Unauthorized",
+		},
+		{
 			"ApplyAgentLabels_not_found",
 			func() error {
 				l, err := model.LabelsFromMap(map[string]string{"a": "b"})
+				if err != nil {
+					return err
+				}
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
 				if err != nil {
 					return err
 				}
@@ -448,284 +983,42 @@ func TestIntegration_https_mutualTLS(t *testing.T) {
 		{
 			"ApplyAgentLabels_bad_request",
 			func() error {
-				_, err := client.ApplyAgentLabels(context.Background(), "id", &model.Labels{}, true)
+				client, err := NewBindPlane(&defaultClientConfig, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.ApplyAgentLabels(context.Background(), "id", &model.Labels{}, true)
 				return err
 			},
 			"unable to apply labels, got 400 Bad Request",
 		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := tc.apiCall()
-			if tc.expectErr != "" {
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tc.expectErr)
-				return
-			}
-			require.NoError(t, err)
-		})
-	}
-}
-
-func TestIntegration_http_invalidAuth(t *testing.T) {
-	env := map[string]string{
-		"BINDPLANE_CONFIG_USERNAME":        "oiq",
-		"BINDPLANE_CONFIG_PASSWORD":        "password",
-		"BINDPLANE_CONFIG_SESSIONS_SECRET": uuid.NewString(),
-		"BINDPLANE_CONFIG_LOG_OUTPUT":      "stdout",
-	}
-
-	container, port, err := bindplaneContainer(t, env)
-	if err != nil {
-		require.NoError(t, err, "failed to build test container")
-		return
-	}
-	defer func() {
-		require.NoError(t, container.Terminate(context.Background()))
-		time.Sleep(time.Second * 1)
-	}()
-
-	hostname, err := container.Host(context.Background())
-	require.NoError(t, err, "failed to get container hostname")
-
-	endpoint := url.URL{
-		Host:   fmt.Sprintf("%s:%d", hostname, port),
-		Scheme: "http",
-	}
-
-	clientConfig := &common.Client{
-		Common: common.Common{
-			Username:  "invalid",
-			Password:  "invalid",
-			ServerURL: endpoint.String(),
-		},
-	}
-
-	client, err := NewBindPlane(clientConfig, zap.NewNop())
-	require.NoError(t, err, "failed to create client config: %v", err)
-	require.NotNil(t, client)
-
-	cases := []struct {
-		name      string
-		apiCall   func() error
-		expectErr string
-	}{
 		{
-			"Agents",
+			"ApplyAgentLabels Unauthorized",
 			func() error {
-				_, err := client.Agents(context.Background())
+				c := defaultClientConfig
+				c.Username = "invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.ApplyAgentLabels(context.Background(), "id", &model.Labels{}, true)
 				return err
 			},
 			"401 Unauthorized",
 		},
 		{
-			"Agent",
+			"ApplyAgentLabels Request Error",
 			func() error {
-				_, err := client.Agent(context.Background(), "agent")
+				c := defaultClientConfig
+				c.ServerURL = "invalid://invalid"
+				client, err := NewBindPlane(&c, zap.NewNop())
+				if err != nil {
+					return err
+				}
+				_, err = client.ApplyAgentLabels(context.Background(), "id", &model.Labels{}, true)
 				return err
 			},
-			"401 Unauthorized",
-		},
-		{
-			"DeleteAgents",
-			func() error {
-				_, err := client.DeleteAgents(context.Background(), []string{"agent"})
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"Configurations",
-			func() error {
-				_, err := client.Configurations(context.Background())
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"Configuration",
-			func() error {
-				_, err := client.Configuration(context.Background(), "config")
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"DeleteConfiguration",
-			func() error {
-				return client.DeleteConfiguration(context.Background(), "config")
-			},
-			"401 Unauthorized",
-		},
-		{
-			"RawConfiguration",
-			func() error {
-				_, err := client.RawConfiguration(context.Background(), "config")
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"Source",
-			func() error {
-				_, err := client.Source(context.Background(), "source")
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"Sources",
-			func() error {
-				_, err := client.Sources(context.Background())
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"DeleteSource",
-			func() error {
-				err := client.DeleteSource(context.Background(), "source")
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"SourceTypes",
-			func() error {
-				_, err := client.SourceTypes(context.Background())
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"SourceType",
-			func() error {
-				_, err := client.SourceType(context.Background(), "source-type")
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"DeleteSourceType",
-			func() error {
-				err := client.DeleteSourceType(context.Background(), "source-type")
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"Destinations",
-			func() error {
-				_, err := client.Destinations(context.Background())
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"Destination",
-			func() error {
-				_, err := client.Destination(context.Background(), "dest")
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"DeleteDestination",
-			func() error {
-				err := client.DeleteDestination(context.Background(), "dest")
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"DestinationTypes",
-			func() error {
-				_, err := client.DestinationTypes(context.Background())
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"DestinationType",
-			func() error {
-				_, err := client.DestinationType(context.Background(), "dest-type")
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"DeleteDestinationType",
-			func() error {
-				err := client.DeleteDestinationType(context.Background(), "dest-type")
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"Apply",
-			func() error {
-				_, err := client.Apply(context.Background(), nil)
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"Delete",
-			func() error {
-				_, err := client.Delete(context.Background(), nil)
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"Version",
-			func() error {
-				_, err := client.Version(context.Background())
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"AgentInstallCommand",
-			func() error {
-				_, err := client.AgentInstallCommand(context.Background(), AgentInstallOptions{})
-				return err
-			},
-			"401 Unauthorized",
-		},
-		// TODO(jsairianni): These do not return an error on bad auth
-		/*{
-			"AgentUpdate",
-			func() error {
-				err := client.AgentUpdate(context.Background(), "id", "v1.3.0")
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"AgentRestart",
-			func() error {
-				err := client.AgentRestart(context.Background(), "id")
-				return err
-			},
-			"401 Unauthorized",
-		},*/
-		{
-			"AgentLabels",
-			func() error {
-				_, err := client.AgentLabels(context.Background(), "id")
-				return err
-			},
-			"401 Unauthorized",
-		},
-		{
-			"ApplyAgentLabels",
-			func() error {
-				_, err := client.ApplyAgentLabels(context.Background(), "id", &model.Labels{}, true)
-				return err
-			},
-			"401 Unauthorized",
+			"unsupported protocol scheme",
 		},
 	}
 
@@ -740,5 +1033,4 @@ func TestIntegration_http_invalidAuth(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
-
 }
