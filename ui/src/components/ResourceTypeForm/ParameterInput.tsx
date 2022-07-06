@@ -5,7 +5,7 @@ import {
   Switch,
   TextField,
 } from "@mui/material";
-import { isFunction } from "lodash";
+import { isEmpty, isFunction } from "lodash";
 import { ChangeEvent, useState } from "react";
 import { ParameterDefinition, ParameterType } from "../../graphql/generated";
 import { validateNameField } from "../../utils/forms/validate-name-field";
@@ -107,19 +107,30 @@ export const StringsInput: React.FC<ParamInputProps> = ({
   onValueChange,
 }) => {
   const [inputValue, setInputValue] = useState("");
-  const options = inputValue === "" ? [] : [inputValue];
+
+  // Make sure we "enter" the value if a user leaves the
+  // input without hitting enter
+  function handleBlur() {
+    if (!isEmpty(inputValue)) {
+      setInputValue("");
+      onValueChange && onValueChange([...value, inputValue]);
+    }
+  }
 
   return (
     <Autocomplete
+      options={[]}
+      multiple
+      disableClearable
+      freeSolo
       classes={classes}
+      // value and onChange pertain to the string[] value of the input
       value={value}
       onChange={(e, v: string[]) => onValueChange && onValueChange(v)}
-      onInputChange={(e, newValue) => setInputValue(newValue)}
+      // inputValue and onInputChange refer to the latest string value being entered
       inputValue={inputValue}
-      multiple
-      options={options}
-      id="tags-filled"
-      freeSolo
+      onInputChange={(e, newValue) => setInputValue(newValue)}
+      onBlur={handleBlur}
       renderTags={(value: readonly string[], getTagProps) =>
         value.map((option: string, index: number) => (
           <Chip
