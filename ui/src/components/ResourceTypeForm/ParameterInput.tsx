@@ -1,12 +1,18 @@
-import { FormControlLabel, Switch, TextField } from "@mui/material";
-import { isArray, isFunction } from "lodash";
-import { ChangeEvent } from "react";
+import {
+  Autocomplete,
+  Chip,
+  FormControlLabel,
+  Switch,
+  TextField,
+} from "@mui/material";
+import { isFunction } from "lodash";
+import { ChangeEvent, useState } from "react";
 import { ParameterDefinition, ParameterType } from "../../graphql/generated";
 import { validateNameField } from "../../utils/forms/validate-name-field";
 import { useValidationContext } from "./ValidationContext";
+import { classes as classesUtil } from "../../utils/styles";
 
 import styles from "./parameter-input.module.scss";
-import { classes as classesUtil } from '../../utils/styles';
 
 interface ParamInputProps {
   classes?: { [name: string]: string };
@@ -18,13 +24,15 @@ interface ParamInputProps {
 export const ParameterInput: React.FC<ParamInputProps> = (props) => {
   let classes = props.classes;
   if (props.definition.relevantIf != null) {
-    classes = Object.assign(classes || {}, { root: classesUtil([classes?.root, styles.indent]) });
+    classes = Object.assign(classes || {}, {
+      root: classesUtil([classes?.root, styles.indent]),
+    });
   }
   switch (props.definition.type) {
     case ParameterType.String:
       return <StringParamInput classes={classes} {...props} />;
     case ParameterType.Strings:
-      return <StringsParamInput classes={classes} {...props} />;
+      return <StringsInput classes={classes} {...props} />;
     case ParameterType.Enum:
       return <EnumParamInput classes={classes} {...props} />;
     case ParameterType.Bool:
@@ -92,35 +100,39 @@ export const EnumParamInput: React.FC<ParamInputProps> = ({
   );
 };
 
-export const StringsParamInput: React.FC<ParamInputProps> = ({
+export const StringsInput: React.FC<ParamInputProps> = ({
   classes,
   definition,
-  value: arrayValue,
+  value,
   onValueChange,
 }) => {
-  // TODO (dsvanlani) This will not hold up very long, but for now save the state as an
-  // array of strings split by comma.  This should eventually be a multi string input
-  const value = isArray(arrayValue) ? arrayValue.join(",") : undefined;
-  function onChange(e: ChangeEvent<HTMLInputElement>) {
-    const newValue = e.target.value.split(",");
-    isFunction(onValueChange) && onValueChange(newValue);
-  }
+  const [inputValue, setInputValue] = useState("");
+  const options = inputValue === "" ? [] : [inputValue];
 
   return (
-    <TextField
+    <Autocomplete
       classes={classes}
       value={value}
-      onChange={onChange}
-      name={definition.name}
-      fullWidth
-      size="small"
-      label={definition.label}
-      helperText={definition.description}
-      required={definition.required}
-      autoComplete="off"
-      autoCorrect="off"
-      autoCapitalize="off"
-      spellCheck="false"
+      onChange={(e, v: string[]) => onValueChange && onValueChange(v)}
+      onInputChange={(e, newValue) => setInputValue(newValue)}
+      inputValue={inputValue}
+      multiple
+      options={options}
+      id="tags-filled"
+      freeSolo
+      renderTags={(value: readonly string[], getTagProps) =>
+        value.map((option: string, index: number) => (
+          <Chip
+            variant="outlined"
+            label={option}
+            {...getTagProps({ index })}
+            classes={{ label: styles.chip }}
+          />
+        ))
+      }
+      renderInput={(params) => (
+        <TextField {...params} label={definition.label} size={"small"} />
+      )}
     />
   );
 };
