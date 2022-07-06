@@ -132,6 +132,7 @@ dockers:
   ids:
   - bindplane
   image_templates:
+  - "bindplane-amd64:latest"
   - "observiq/bindplane-amd64:latest"
   - "observiq/bindplane-amd64:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
   - "observiq/bindplane-amd64:{{ .Major }}.{{ .Minor }}"
@@ -151,6 +152,7 @@ dockers:
   ids:
   - bindplane
   image_templates:
+  - "bindplane-arm64:latest"
   - "observiq/bindplane-arm64:latest"
   - "observiq/bindplane-arm64:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
   - "observiq/bindplane-arm64:{{ .Major }}.{{ .Minor }}"
