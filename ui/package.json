@@ -4,7 +4,7 @@
   "private": true,
   "proxy": "http://localhost:3001",
   "dependencies": {
-    "@mui/lab": "^5.0.0-alpha.84",
+    "@mui/lab": "^5.0.0-alpha.89",
     "date-fns": "^2.28.0",
     "lodash": "^4.17.21",
     "notistack": "^2.0.4",
