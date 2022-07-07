@@ -83,7 +83,18 @@ BindPlane OP utilizes the [observIQ Distro for OpenTelemetry Collector](https://
 bindplanectl install agent
 ```
 
-The generated command can then be copied and run on the agent host.
+The generated command can then be copied and run on the agent host. To tailor the install command for a specific operating system, use the `--platform` flag. Valid values include:
+
+ * `linux`
+ * `linux-arm64`
+ * `windows`
+ * `macos`
+ * `macos-arm64`
+
+To see additional flags and options for the agent install, use the `--help` flag.
+```bash
+bindplanectl install agent --help
+```
 
 ## Configuration
 
