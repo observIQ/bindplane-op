@@ -67,8 +67,12 @@ type subscription[T any] struct {
 	channel chan T
 }
 
-func newSubscription[T any]() subscription[T] {
-	channel := make(chan T, subscriberChannelBufferSize)
+func newSubscription[T any](options []SubscriptionOption[T]) subscription[T] {
+	opts := makeSubscriptionOptions(options)
+	channel := opts.channel
+	if channel == nil {
+		channel = make(chan T, subscriberChannelBufferSize)
+	}
 	return subscription[T]{
 		channel: channel,
 	}
@@ -89,9 +93,9 @@ type filterSubscription[T, R any] struct {
 	filter SubscriptionFilter[T, R]
 }
 
-func newFilterSubscription[T, R any](filter SubscriptionFilter[T, R]) filterSubscription[T, R] {
+func newFilterSubscription[T, R any](filter SubscriptionFilter[T, R], options []SubscriptionOption[R]) filterSubscription[T, R] {
 	return filterSubscription[T, R]{
-		subscription: newSubscription[R](),
+		subscription: newSubscription(options),
 		filter:       filter,
 	}
 }
@@ -117,27 +121,26 @@ func NewSource[T any]() Source[T] {
 }
 
 // Subscribe subscribes to events on the bus and returns a channel to receive events and an unsubscribe function.
-func Subscribe[T any](bus Source[T]) (<-chan T, UnsubscribeFunc) {
-	return SubscribeUntilDone(nil, bus)
+func Subscribe[T any](bus Source[T], options ...SubscriptionOption[T]) (<-chan T, UnsubscribeFunc) {
+	return SubscribeUntilDone(nil, bus, options...)
 }
 
 // SubscribeUntilDone subscribes to events on the bus and returns a channel to receive events and an unsubscribe
 // function. It automatically unsubscribes when the context is done.
-func SubscribeUntilDone[T any](ctx context.Context, bus Source[T]) (<-chan T, UnsubscribeFunc) {
-	// TODO: create a subscription without a filter that implements notify
-	subscription := newSubscription[T]()
+func SubscribeUntilDone[T any](ctx context.Context, bus Source[T], options ...SubscriptionOption[T]) (<-chan T, UnsubscribeFunc) {
+	subscription := newSubscription(options)
 	unsubscribe := bus.SubscribeUntilDone(ctx, &subscription)
 	return subscription.channel, unsubscribe
 }
 
 // SubscribeWithFilter TODO
-func SubscribeWithFilter[T, R any](bus Source[T], filter SubscriptionFilter[T, R]) (<-chan R, UnsubscribeFunc) {
-	return SubscribeWithFilterUntilDone(nil, bus, filter)
+func SubscribeWithFilter[T, R any](bus Source[T], filter SubscriptionFilter[T, R], options ...SubscriptionOption[R]) (<-chan R, UnsubscribeFunc) {
+	return SubscribeWithFilterUntilDone(nil, bus, filter, options...)
 }
 
 // SubscribeWithFilterUntilDone TODO
-func SubscribeWithFilterUntilDone[T, R any](ctx context.Context, source Source[T], filter SubscriptionFilter[T, R]) (<-chan R, UnsubscribeFunc) {
-	subscription := newFilterSubscription(filter)
+func SubscribeWithFilterUntilDone[T, R any](ctx context.Context, source Source[T], filter SubscriptionFilter[T, R], options ...SubscriptionOption[R]) (<-chan R, UnsubscribeFunc) {
+	subscription := newFilterSubscription(filter, options)
 	unsubscribe := source.SubscribeUntilDone(ctx, &subscription)
 	return subscription.channel, unsubscribe
 }

@@ -89,7 +89,7 @@ func (m *manager) EnableProtocol(protocol Protocol) {
 
 // Start TODO(doc)
 func (m *manager) Start(ctx context.Context) {
-	updatesChannel, unsubscribe := eventbus.Subscribe(m.store.Updates())
+	updatesChannel, unsubscribe := eventbus.Subscribe(m.store.Updates(), eventbus.WithChannel(make(chan *store.Updates, 10_000)))
 	defer unsubscribe()
 
 	for {
