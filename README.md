@@ -89,7 +89,7 @@ The generated command can then be copied and run on the agent host. To tailor th
  * `linux-arm64`
  * `windows`
  * `macos`
- * `macos-arm64`
+ * `macos-amd64`
 
 To see additional flags and options for the agent install, use the `--help` flag.
 ```bash
