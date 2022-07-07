@@ -48,6 +48,10 @@ type boltstore struct {
 	logger             *zap.Logger
 	sync.RWMutex
 
+	// updatesInternal is an internal source used for notification. It will relay to the updates available to clients of
+	// the store.
+	updatesInternal eventbus.Source[*Updates]
+
 	sessionStorage sessions.Store
 }
 
@@ -55,9 +59,21 @@ var _ Store = (*boltstore)(nil)
 
 // NewBoltStore returns a new store boltstore struct that implements the store.Store interface.
 func NewBoltStore(db *bbolt.DB, sessionsSecret string, logger *zap.Logger) Store {
+	updates := eventbus.NewSource[*Updates]()
+	updatesInternal := eventbus.NewSource[*Updates]()
+
+	// introduce a separate relay with a large buffer to avoid blocking on changes
+	eventbus.Relay(
+		context.Background(),
+		updatesInternal,
+		updates,
+		eventbus.WithChannel(make(chan *Updates, 10_000)),
+	)
+
 	return &boltstore{
 		db:                 db,
-		updates:            eventbus.NewSource[*Updates](),
+		updates:            updates,
+		updatesInternal:    updatesInternal,
 		agentIndex:         search.NewInMemoryIndex("agent"),
 		configurationIndex: search.NewInMemoryIndex("configuration"),
 		logger:             logger,
@@ -258,7 +274,7 @@ func (s *boltstore) notify(updates *Updates) {
 		s.logger.Error("unable to add transitive updates", zap.Any("updates", updates), zap.Error(err))
 	}
 	if !updates.Empty() {
-		s.updates.Send(updates)
+		s.updatesInternal.Send(updates)
 	}
 }
 

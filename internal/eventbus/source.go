@@ -192,8 +192,8 @@ func (s *source[T]) Subscribers() int {
 // Relay will relay from source to destination. It runs a separate goroutine, consuming events from the source and
 // sending events to the destination. When the supplied context is Done, the relay is automatically unsubscribed from
 // the source and the destination will no longer receive events.
-func Relay[T any](ctx context.Context, source Source[T], destination Source[T]) {
-	channel, unsubscribe := Subscribe(source)
+func Relay[T any](ctx context.Context, source Source[T], destination Source[T], options ...SubscriptionOption[T]) {
+	channel, unsubscribe := Subscribe(source, options...)
 	go relay(ctx, channel, unsubscribe, destination)
 }
 
@@ -201,8 +201,8 @@ func Relay[T any](ctx context.Context, source Source[T], destination Source[T]) 
 // consuming events from the source, running the filter, and sending events to the destination. When the supplied
 // context is Done, the relay is automatically unsubscribed from the source and the destination will no longer receive
 // events.
-func RelayWithFilter[T, R any](ctx context.Context, source Source[T], filter SubscriptionFilter[T, R], destination Source[R]) {
-	channel, unsubscribe := SubscribeWithFilter(source, filter)
+func RelayWithFilter[T, R any](ctx context.Context, source Source[T], filter SubscriptionFilter[T, R], destination Source[R], options ...SubscriptionOption[R]) {
+	channel, unsubscribe := SubscribeWithFilter(source, filter, options...)
 	go relay(ctx, channel, unsubscribe, destination)
 }
 
