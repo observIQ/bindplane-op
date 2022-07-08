@@ -79,21 +79,23 @@ and up to 10 rotates or 30 days of age, whichever comes first. Using an external
 BindPlane supports server side TLS and mutual TLS. See [the tls examples](./configuration.md#example-configurations)
 for detailed usage.
 
-| Option       | Flag            | Environment Variable      |
-| ------------ | --------------- | ------------------------- |
-| tlsCert      | --tls-cert      | BINDPLANE_CONFIG_TLS_CERT |
-| tlsKey       | --tls-key       | BINDPLANE_CONFIG_TLS_KEY  |   
-| tlsCA        | --tls-ca        | BINDPLANE_CONFIG_TLS_CA   |
+| Option        | Flag              | Environment Variable      |
+| ------------- | ----------------- | ------------------------- |
+| tlsCert       | --tls-cert        | BINDPLANE_CONFIG_TLS_CERT |
+| tlsKey        | --tls-key         | BINDPLANE_CONFIG_TLS_KEY  |
+| tlsCA         | --tls-ca          | BINDPLANE_CONFIG_TLS_CA   |
+| tlsSkipVerify | --tls-skip-verify | BINDPLANE_CONFIG_TLS_SKIP_VERIFY |
 
 Server
-- tlsCert: Enables server side TLS
-- tlsKey: Enables server side TLS
-- tlsCa: Enables mutual TLS
+- tlsCert: Enables server side TLS.
+- tlsKey: Enables server side TLS.
+- tlsCa: Enables mutual TLS.
 
 Client
 - tlsCa: Allows client to trust the server certificate. Not required if the host operating system already trusts the server certificate.
-- tlsCert: Enables mutual TLS
-- tlsKey: Enables mutual TLS
+- tlsCert: Enables mutual TLS.
+- tlsKey: Enables mutual TLS.
+- tlsSkipVerify: Whether or not the client should verify the server certificate.
 
 **Storage Backend**
 
