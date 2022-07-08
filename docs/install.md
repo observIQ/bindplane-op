@@ -167,8 +167,7 @@ After running the collector install command, the collector will appear in the we
 
 ### Bindplane CLI
 
-If you wish to use `bindplanectl` to generate your install command (instead of using the web interface), you can run the following
-command:
+If you wish to use `bindplanectl` to generate your install command, you can run the following:
 
 ```bash
 bindplanectl install agent
