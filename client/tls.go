@@ -28,7 +28,11 @@ import (
 func tlsClient(cert, key string, caCertFile []string, skipVerify bool) (*tls.Config, error) {
 	tlsConfig := &tls.Config{
 		MinVersion:         tls.VersionTLS13,
-		InsecureSkipVerify: skipVerify,
+		InsecureSkipVerify: false,
+	}
+
+	if skipVerify {
+		tlsConfig.InsecureSkipVerify = skipVerify
 	}
 
 	// CA certificate can be used to trust private certificates
