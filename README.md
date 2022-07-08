@@ -4,6 +4,8 @@
 
 [![Continuous Integration](https://github.com/observIQ/bindplane-op/actions/workflows/ci.yml/badge.svg)](https://github.com/observIQ/bindplane-op/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Go Reference](https://pkg.go.dev/badge/github.com/observiq/bindplane-op.svg)](https://pkg.go.dev/github.com/observiq/bindplane-op)
+[![Go Report Card](https://goreportcard.com/badge/github.com/observiq/bindplane-op)](https://goreportcard.com/report/github.com/observiq/bindplane-op)
 
 </center>
 
