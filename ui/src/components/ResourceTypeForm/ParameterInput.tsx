@@ -5,7 +5,7 @@ import {
   Switch,
   TextField,
 } from "@mui/material";
-import { isEmpty, isFunction } from "lodash";
+import { isArray, isEmpty, isFunction } from "lodash";
 import { ChangeEvent, useState } from "react";
 import { ParameterDefinition, ParameterType } from "../../graphql/generated";
 import { validateNameField } from "../../utils/forms/validate-name-field";
@@ -108,6 +108,21 @@ export const StringsInput: React.FC<ParamInputProps> = ({
 }) => {
   const [inputValue, setInputValue] = useState("");
 
+  // handleChipClick edits the selected chips value.
+  function handleChipClick(ix: number) {
+    if (!isArray(value)) {
+      return;
+    }
+
+    // Edit the chips value
+    setInputValue(value[ix]);
+
+    // Remove the chip from the values because its being edited.
+    const copy = [...value];
+    copy.splice(ix, 1);
+    isFunction(onValueChange) && onValueChange(copy);
+  }
+
   // Make sure we "enter" the value if a user leaves the
   // input without hitting enter
   function handleBlur() {
@@ -134,10 +149,12 @@ export const StringsInput: React.FC<ParamInputProps> = ({
       renderTags={(value: readonly string[], getTagProps) =>
         value.map((option: string, index: number) => (
           <Chip
+            size="small"
             variant="outlined"
             label={option}
             {...getTagProps({ index })}
             classes={{ label: styles.chip }}
+            onClick={() => handleChipClick(index)}
           />
         ))
       }
