@@ -17,27 +17,121 @@ BindPlane server configuraton can be found at `/etc/bindplane/config.yaml`.
 
 BindPlane will look for flags, environment variables, and a configuration file, with precedence: flags > environment variables > configuration file.
 
-| Configuration Option    | Description                                                           | Flag                | Env Variable                        | Default                      | Type                |
-| ----------------------- | --------------------------------------------------------------------- | ------------------- | ----------------------------------- | ---------------------------- | ------------------- |
-| host                    | Address the bindplane server binds to                                 | --host              | BINDPLANE_CONFIG_HOST               | `127.0.0.1`                  | IP address          |
-| port                    | Tcp port the bindplane server listens on                              | --port              | BINDPLANE_CONFIG_PORT               | `3001`                       | Port number         |
-| serverURL               | Address of the remote bindplane server                                | --server-url        | BINDPLANE_CONFIG_SERVER_URL         | `http://127.0.0.1:3001`      | URL                 |
-| username                | Basic auth username                                                   | --username          | BINDPLANE_CONFIG_USERNAME           | `admin`                      | String              |
-| password                | Basic auth password                                                   | --password          | BINDPLANE_CONFIG_PASSWORD           | `admin`                      | String              |
-| logOutput               | Log output (`file` or `stdout`)                                       | --log-output        | BINDPLANE_CONFIG_LOG_OUTPUT         | `file`                       | String              |
-| logFilePath             | Path to the log file                                                  | --log-file-path     | BINDPLANE_CONFIG_LOG_FILE_PATH      | `~/.bindplane/bindplane.log` | File path           |
-| tlsCert                 | TLS full chain certificate file (See [TLS](./configuration.md#tls))   | --tls-cert          | BINDPLANE_CONFIG_TLS_CERT           | optional                     | File path           |
-| tlsKey                  | TLS private key file (See [TLS](./configuration.md#tls))              | --tls-key           | BINDPLANE_CONFIG_TLS_KEY            | optional                     | File path           |
-| tlsCA                   | TLS certificate authority file(S) (See [TLS](./configuration.md#tls)) | --tls-ca            | BINDPLANE_CONFIG_TLS_CA             | optional array               | array of file paths |
-| server.storeType        | Storage backend type                                                  | --store-type        | BINDPLANE_CONFIG_STORE_TYPE         | `bbolt`                      | String              |
-| server.storageFilePath  | Storage file for persistent data (bbolt only)                         | --storage-file-path | BINDPLANE_CONFIG_STORAGE_FILE_PATH  | `~/.bindplane/storage`       | File path           |
-| server.secretKey        | Shared key between server and agent for authentication                | --secret-key        | BINDPLANE_CONFIG_SECRET_KEY         | required                     | UUID V4             |
-| server.sessionsSecret   | Used to encode signed cookies for UI login                            | --sessions-secret   | BINDPLANE_CONFIG_SESSIONS_SECRET    | required                     | UUID V4             |
-| server.remoteURL        | Websocket URL used by agents connecting to BindPlane                  | --remote-url        | BINDPLANE_CONFIG_REMOTE_URL         | `ws://127.0.0.1:3001`        | URL                 |
-
 Server and client configuratins can be bootstrapped using the `init` command. See the [initialization section](./configuration.md#initialization).
 
 For detailed examples, see the [configurations seection](./configuration.md#example-configuration).
+
+**Host**
+
+IP Address the BindPlane server binds to. This can be a single address or `0.0.0.0` for all interfaces.
+
+| Option  | Flag     | Environment Variable   | Default                  |
+| ------- | -------- | ---------------------- | ------------------------ |
+| host    | --host   | BINDPLANE_CONFIG_HOST  | `127.0.0.1`              |
+
+**Port**
+
+TCP port the BindPlane server binds to. This must be an unprivileged port when running BindPlane as a non root user.
+
+| Option  | Flag     | Environment Variable   | Default                  |
+| ------- | -------- | ---------------------- | ------------------------ |
+| port    | --port   | BINDPLANE_CONFIG_PORT  | `3001`                   |
+
+**Server URL**
+
+URL used to reach the BindPlane server. This must be set in all client and server configurations
+and must be a valid URL with a protocol (http / https), hostname or ip address, and port.
+
+If the server is behind a proxy or load balancer, the proxy URL can be used.
+
+| Option    | Flag         | Environment Variable         | Default                  |
+| --------- | ------------ | ---------------------------- | ------------------------ |
+| serverURL | --server-url | BINDPLANE_CONFIG_SERVER_URL  | `http://127.0.0.1:3001`  |
+
+
+**Username and Password**
+
+The basic auth username and password used for cli and web interface authentication.
+
+| Option    | Flag         | Environment Variable         | Default                  |
+| --------- | ------------ | ---------------------------- | ------------------------ |
+| username  | --username   | BINDPLANE_CONFIG_USERNAME    | `admin`  |
+| password  | --password   | BINDPLANE_CONFIG_PASSWORD    | `admin`  |
+
+
+**Logging**
+
+Log output (`file` or `stdout`). When log output is set to `file`, a log file path can be specified.
+
+| Option       | Flag            | Environment Variable           | Default                      |
+| ------------ | --------------- | ------------------------------ | ---------------------------- |
+| logOutput    | --log-output    | BINDPLANE_CONFIG_LOG_OUTPUT    | `file`                       |
+| logFilePath  | --log-file-path | BINDPLANE_CONFIG_LOG_FILE_PATH | `~/.bindplane/bindplane.log` |
+
+Server installations will use `/var/log/bindplane/bindplane.log`, which is set
+using an environment variable in the systemd service configuration.
+
+Log files are rotated and gzip compressed, and cleaned up automatically by BindPlane. Log files have a max size of 100mb
+and up to 10 rotates or 30 days of age, whichever comes first. Using an external utilizty such as `logrotate` is not recomended.
+
+**TLS**
+
+BindPlane supports server side TLS and mutual TLS. See [the tls examples](./configuration.md#example-configurations)
+for detailed usage.
+
+| Option       | Flag            | Environment Variable      |
+| ------------ | --------------- | ------------------------- |
+| tlsCert      | --tls-cert      | BINDPLANE_CONFIG_TLS_CERT |
+| tlsKey       | --tls-key       | BINDPLANE_CONFIG_TLS_KEY  |   
+| tlsCA        | --tls-ca        | BINDPLANE_CONFIG_TLS_CA   |
+
+Server
+- tlsCert: Enables server side TLS
+- tlsKey: Enables server side TLS
+- tlsCa: Enables mutual TLS
+
+Client
+- tlsCa: Allows client to trust the server certificate. Not required if the host operating system already trusts the server certificate.
+- tlsCert: Enables mutual TLS
+- tlsKey: Enables mutual TLS
+
+**Storage Backend**
+
+BindPlane supports one storage backend, `bbolt`, but other storage backends will be available in the future.
+
+| Option                 | Flag                | Environment Variable               | Default                |
+| ---------------------- | ------------------- | ---------------------------------- | ---------------------- |
+| server.storeType       | --store-type        | BINDPLANE_CONFIG_STORE_TYPE        | `bbolt`                |
+| server.storageFilePath | --storage-file-path | BINDPLANE_CONFIG_STORAGE_FILE_PATH | `~/.bindplane/storage` |
+
+**Server Secret Key**
+
+A UUIDv4 used for collector authentication. This should be a new random UUIDv4. This
+value should be different than `server.sessionsSecret`.
+
+| Option           | Flag         | Environment Variable   |
+| ---------------- | ------------ | ---------------------- |
+| server.secretKey | --secret-key | BINDPLANE_CONFIG_SECRET_KEY  | 
+
+**Server Sessions Secret**
+
+A UUIDv4 used for encoding web UI login cookies. This should be a new random UUIDv4. This
+value should be different than `server.secretKey`.
+
+| Option                | Flag         | Environment Variable   |
+| --------------------- | ------------ | ---------------------- |
+| server.sessionsSecret | --secret-key | BINDPLANE_CONFIG_SESSIONS_SECRET  | 
+
+**Server Remote URL**
+
+URL used by collectors to reach the BindPlane server via web socket. It must be a valid 
+URL with a protocol (ws / wss), hostname or ip address, and port.
+
+If the server is behind a proxy or load balancer, the proxy URL can be used.
+
+| Option           | Flag         | Environment Variable        | Default                  |
+| ---------------- | ------------ | --------------------------- | ------------------------ |
+| server.remoteURL | --remote-url | BINDPLANE_CONFIG_REMOTE_URL | `ws://127.0.0.1:3001`    |
 
 ## Initialization
 
