@@ -31,6 +31,7 @@ type Updates struct {
 
 // NewUpdates returns a New Updates struct
 func NewUpdates() *Updates {
+	// TODO: optimize allocate as needed
 	return &Updates{
 		Agents:           NewEvents[*model.Agent](),
 		Sources:          NewEvents[*model.Source](),
@@ -204,4 +205,31 @@ func (updates *Updates) addConfigurationUpdatesFromComponents(configuration *mod
 			return
 		}
 	}
+}
+
+// ----------------------------------------------------------------------
+// merge for use with RelayWithMerge
+
+func mergeUpdates(into, single *Updates) bool {
+	// first make sure we can safely merge
+	safe := into.Agents.CanSafelyMerge(single.Agents) &&
+		into.Sources.CanSafelyMerge(single.Sources) &&
+		into.SourceTypes.CanSafelyMerge(single.SourceTypes) &&
+		into.Destinations.CanSafelyMerge(single.Destinations) &&
+		into.DestinationTypes.CanSafelyMerge(single.DestinationTypes) &&
+		into.Configurations.CanSafelyMerge(single.Configurations)
+
+	if !safe {
+		return false
+	}
+
+	// merge individual events
+	into.Agents.Merge(single.Agents)
+	into.Sources.Merge(single.Sources)
+	into.SourceTypes.Merge(single.SourceTypes)
+	into.Destinations.Merge(single.Destinations)
+	into.DestinationTypes.Merge(single.DestinationTypes)
+	into.Configurations.Merge(single.Configurations)
+
+	return true
 }

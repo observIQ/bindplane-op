@@ -435,17 +435,6 @@ func (s *opampServer) upsertWithConfiguration(conn opamp.Connection, message *pr
 			updateOpAmpAgentDetails(agent, conn, message.AgentDescription)
 		}
 
-		// update the labels from manager.yaml
-		if configuration.Manager != nil {
-			s.logger.Info("manager.yaml labels", zap.String("labels", configuration.Manager.Labels))
-			if labels, err := model.LabelsFromSelector(configuration.Manager.Labels); err == nil {
-				// preserve the bindplane/ labels
-				agent.Labels = model.LabelsFromMerge(agent.Labels.BindPlane(), labels)
-			} else {
-				s.logger.Error("unable to parse agent labels", zap.String("labels", configuration.Manager.Labels), zap.Error(err))
-			}
-		}
-
 		// connect to update ConnectedAt, etc
 		agent.Connect(agent.Version)
 

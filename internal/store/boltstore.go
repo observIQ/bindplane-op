@@ -63,10 +63,13 @@ func NewBoltStore(db *bbolt.DB, sessionsSecret string, logger *zap.Logger) Store
 	updatesInternal := eventbus.NewSource[*Updates]()
 
 	// introduce a separate relay with a large buffer to avoid blocking on changes
-	eventbus.Relay(
+	eventbus.RelayWithMerge(
 		context.Background(),
 		updatesInternal,
+		mergeUpdates,
 		updates,
+		200*time.Millisecond,
+		1000,
 		eventbus.WithChannel(make(chan *Updates, 10_000)),
 	)
 

@@ -17,6 +17,7 @@ package eventbus
 import (
 	"context"
 	"sync"
+	"time"
 )
 
 const subscriberChannelBufferSize = 10
@@ -220,4 +221,70 @@ func relay[T any](ctx context.Context, channel <-chan T, unsubscribe Unsubscribe
 			return
 		}
 	}
+}
+
+// SubscriptionMerger merges the second event into the first and returns true if the merge was successful. It should
+// return false if a merge was not possible and the two individual events will be preserved and dispatched separately.
+type SubscriptionMerger[S any, T *S] func(into, single T) bool
+
+// RelayWithMerge will relay from source to destination, merging events before sending them to the destination. This can
+// be used when there are lots of small individual events that can be more efficiently processed as a few larger events.
+func RelayWithMerge[S any, T *S](ctx context.Context, source Source[T], merge SubscriptionMerger[S, T], destination Source[T], maxLatency time.Duration, maxEventsToMerge int, options ...SubscriptionOption[T]) {
+	channel, unsubscribe := Subscribe(source, options...)
+	go func() {
+		defer unsubscribe()
+
+		maxLatencyTicker := time.NewTicker(maxLatency)
+		defer maxLatencyTicker.Stop()
+
+		var buffer []T
+		mergeAndSend := func() {
+			if len(buffer) == 0 {
+				return
+			}
+
+			// merge: insert the first element merge into it
+			prev := buffer[0]
+			merged := []T{prev}
+
+			for _, item := range buffer[1:] {
+				if !merge(prev, item) {
+					// unable to merge, append and start merging into this item
+					merged = append(merged, item)
+					prev = item
+				}
+			}
+
+			// send the merged items
+			for _, item := range merged {
+				destination.Send(item)
+			}
+
+			// reset the buffer
+			buffer = nil
+		}
+
+		// drain anything remaining when finished
+		defer mergeAndSend()
+		for {
+			select {
+			case event, ok := <-channel:
+				if !ok {
+					return
+				}
+				buffer = append(buffer, event)
+				if len(buffer) >= maxEventsToMerge {
+					mergeAndSend()
+				}
+
+			case <-maxLatencyTicker.C:
+				// periodically drain the buffer to limit latency
+				mergeAndSend()
+
+			case <-ctx.Done():
+				// send anything left in the buffer before stopping
+				return
+			}
+		}
+	}()
 }

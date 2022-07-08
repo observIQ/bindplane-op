@@ -183,3 +183,133 @@ func TestEventBusSubscribeUntilDone(t *testing.T) {
 
 	cancel()
 }
+
+// example event that merges events with the same key by adding their values.
+type mergedEvent struct {
+	key   string
+	value int
+}
+
+// reads from the channel until a nil event is seen
+func readUntilNil(source Source[*mergedEvent]) []*mergedEvent {
+	channel, unsubscribe := Subscribe(source)
+	defer unsubscribe()
+
+	results := []*mergedEvent{}
+	for {
+		select {
+		case item, ok := <-channel:
+			if !ok || item == nil {
+				return results
+			}
+			results = append(results, item)
+		}
+	}
+}
+
+func TestEventBusRelayWithMerge(t *testing.T) {
+
+	merge := func(into, single *mergedEvent) bool {
+		if single == nil {
+			return false
+		}
+		if into.key == single.key {
+			into.value += single.value
+			return true
+		}
+		return false
+	}
+
+	tests := []struct {
+		name             string
+		maxEventsToMerge int
+		events           []*mergedEvent
+		expect           []*mergedEvent
+	}{
+		{
+			name: "no merges",
+			events: []*mergedEvent{
+				{"a", 1},
+				{"b", 1},
+				{"c", 1},
+				{"d", 1},
+				{"e", 1},
+			},
+			maxEventsToMerge: 10,
+			expect: []*mergedEvent{
+				{"a", 1},
+				{"b", 1},
+				{"c", 1},
+				{"d", 1},
+				{"e", 1},
+			},
+		},
+		{
+			name: "all merges",
+			events: []*mergedEvent{
+				{"a", 1},
+				{"a", 2},
+				{"a", 3},
+				{"a", 4},
+				{"a", 5},
+			},
+			maxEventsToMerge: 10,
+			expect: []*mergedEvent{
+				{"a", 15},
+			},
+		},
+		{
+			name: "merge some",
+			events: []*mergedEvent{
+				{"a", 1},
+				{"a", 2},
+				{"b", 3},
+				{"b", 4},
+				{"a", 5},
+			},
+			maxEventsToMerge: 10,
+			expect: []*mergedEvent{
+				{"a", 3},
+				{"b", 7},
+				{"a", 5},
+			},
+		},
+		{
+			name: "limit merges with maxEventsToMerge",
+			events: []*mergedEvent{
+				{"a", 1},
+				{"a", 2},
+				{"a", 3},
+				{"a", 4},
+				{"a", 5},
+			},
+			maxEventsToMerge: 2,
+			expect: []*mergedEvent{
+				{"a", 3},
+				{"a", 7},
+				{"a", 5},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			src := NewSource[*mergedEvent]()
+			dst := NewSource[*mergedEvent]()
+
+			// start the relay with a big channel so that we can write without blocking and then read off of it
+			RelayWithMerge(ctx, src, merge, dst, 100*time.Millisecond, test.maxEventsToMerge, WithChannel(make(chan *mergedEvent, 1000)))
+
+			for _, event := range test.events {
+				src.Send(event)
+			}
+			src.Send(nil)
+
+			results := readUntilNil(dst)
+			cancel()
+
+			require.Equal(t, test.expect, results)
+		})
+	}
+}
