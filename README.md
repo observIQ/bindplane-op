@@ -75,6 +75,27 @@ curl -fsSlL https://github.com/observiq/bindplane-op/releases/latest/download/in
 curl -fsSlL https://github.com/observiq/bindplane-op/releases/latest/download/install-macos.sh | bash -s --
 ```
 
+## Agent
+
+BindPlane OP utilizes the [observIQ Distro for OpenTelemetry Collector](https://github.com/observIQ/observiq-otel-collector). To install using BindPlane CLI, run the following command on a server or client system to generate the agent install command.
+
+```bash
+bindplanectl install agent
+```
+
+The generated command can then be copied and run on the agent host. To tailor the install command for a specific operating system, use the `--platform` flag. Valid values include:
+
+ * `linux`
+ * `linux-arm64`
+ * `windows`
+ * `macos`
+ * `macos-amd64`
+
+To see additional flags and options for the agent install, use the `--help` flag.
+```bash
+bindplanectl install agent --help
+```
+
 ## Configuration
 
 The configuration of BindPlane OP is best done through the UI which can be accessed via a web browser on port 3001. The URL will be `http://<IP Address>:3001` with IP Address being the IP of the BindPlane server. To log in, use the credentials you specified when running the init command.
