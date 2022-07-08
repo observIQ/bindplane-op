@@ -4,12 +4,12 @@
   * [Initialization](#initialization)
     + [Server](#server)
     + [Client](#client)
+  * [Client Profiles](#client-profiles)
   * [Example Configurations](#example-configurations)
     + [Basic](#basic)
     + [TLS](#tls)
       - [Server Side TLS](#server-side-tls)
       - [Mutual TLS](#mutual-tls)
-  * [Client Profiles](#client-profiles)
 
 ## Options
 
@@ -165,6 +165,19 @@ can also run the `profile` command:
 bindplanectl profile --help
 ```
 
+## Client Profiles
+
+The `profile` command offers a convenient way to create and use multiple client configurations.
+
+In this example, it is assumed that the BindPlane server is running at `10.99.1.10` on port `3001`.
+
+```bash
+bindplanectl profile set remote --server-url https://10.99.1.10:3001
+bindplanectl profile use remote
+```
+
+See `bindplanectl profile help` for more profile sub commands.
+
 ## Example Configurations
 
 The following examples assume the use of [observIQ collectors](https://github.com/observIQ/observiq-otel-collector).
@@ -203,7 +216,7 @@ bindplanectl profile set basic \
 bindplanectl profile use basic
 ```
 
-The a profile will be created at `~/.bindplane/profiles/basic.yaml`:
+A profile will be created at `~/.bindplane/profiles/basic.yaml`:
 
 ```yaml
 username: myuser
@@ -276,7 +289,7 @@ bindplanectl profile set tls \
 bindplanectl profile use tls
 ```
 
-The a profile will be created at `~/.bindplane/profiles/tls.yaml`:
+A profile will be created at `~/.bindplane/profiles/tls.yaml`:
 
 ```yaml
 username: myuser
@@ -363,7 +376,7 @@ bindplanectl profile set mtls \
 bindplanectl profile use mtls
 ```
 
-The a profile will be created at `~/.bindplane/profiles/mtls.yaml`:
+A profile will be created at `~/.bindplane/profiles/mtls.yaml`:
 
 ```yaml
 username: myuser
@@ -395,16 +408,3 @@ tls_config:
 
 If the server's certificate authority is already imported into the client's operating system trust
 store, it is not required to be set in the configuration.
-
-## Client Profiles
-
-The `profile` command offers a convenient way to create and use multiple client configurations.
-
-In this example, it is assumed that the BindPlane server is running at `10.99.1.10` on port `3001`.
-
-```bash
-bindplanectl profile set remote --server-url https://10.99.1.10:3001
-bindplanectl profile use remote
-```
-
-See `bindplanectl profile help` for more profile sub commands.
