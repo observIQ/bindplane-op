@@ -29,7 +29,6 @@ RUN mkdir /data
 RUN chown bindplane:bindplane /data
 RUN chmod 0750 /data
 ENV BINDPLANE_CONFIG_HOME="/data"
-ENV BINDPLANE_CONFIG_LOG_FILE_PATH="/data/bindplane.log"
 ENV BINDPLANE_CONFIG_LOG_OUTPUT="stdout"
 
 # Bind to all interfaces and use port 3001
