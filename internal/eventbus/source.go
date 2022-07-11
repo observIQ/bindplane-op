@@ -146,7 +146,7 @@ type unboundedSubscription[T any] struct {
 	channel util.UnboundedChan[T]
 }
 
-const unboundedMinimumInterval = 10 * time.Millisecond
+const unboundedMinimumInterval = 50 * time.Millisecond
 
 func newUnboundedSubscription[T any](interval time.Duration) *unboundedSubscription[T] {
 	if interval < unboundedMinimumInterval {
