@@ -67,7 +67,7 @@
     ]
   },
   "devDependencies": {
-    "@apollo/client": "^3.6.6",
+    "@apollo/client": "^3.6.9",
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
     "@graphql-codegen/cli": "^2.6.2",
