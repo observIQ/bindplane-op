@@ -63,17 +63,7 @@ sudo /usr/local/bin/bindplane init server --config /etc/bindplane/config.yaml
 
 ## Client
 
-To install BindPlane CLI on macOS or Linux, we recommend using the following installation commands. Alternatively, packages are available for download on our [releases](https://github.com/observIQ/bindplane-op/releases) page.
-
-### Linux
-```bash
-curl -fsSlL https://github.com/observiq/bindplane-op/releases/latest/download/install-linux.sh | bash -s --
-```
-
-### macOS
-```bash
-curl -fsSlL https://github.com/observiq/bindplane-op/releases/latest/download/install-macos.sh | bash -s --
-```
+See the [installation documentation](./doc/install.md#client) for client install instructions.
 
 ## Agent
 
