@@ -230,7 +230,7 @@ type SubscriptionMerger[S any, T *S] func(into, single T) bool
 // RelayWithMerge will relay from source to destination, merging events before sending them to the destination. This can
 // be used when there are lots of small individual events that can be more efficiently processed as a few larger events.
 func RelayWithMerge[S any, T *S](ctx context.Context, source Source[T], merge SubscriptionMerger[S, T], destination Source[T], maxLatency time.Duration, maxEventsToMerge int, options ...SubscriptionOption[T]) {
-	// constrain max events to 1
+	// constrain max events to at least 1
 	if maxEventsToMerge < 1 {
 		maxEventsToMerge = 1
 	}
