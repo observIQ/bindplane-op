@@ -55,7 +55,7 @@ var _ Store = (*boltstore)(nil)
 
 // NewBoltStore returns a new store boltstore struct that implements the store.Store interface.
 func NewBoltStore(db *bbolt.DB, sessionsSecret string, logger *zap.Logger) Store {
-	return &boltstore{
+	store := &boltstore{
 		db:                 db,
 		updates:            eventbus.NewSource[*Updates](),
 		agentIndex:         search.NewInMemoryIndex("agent"),
@@ -64,6 +64,11 @@ func NewBoltStore(db *bbolt.DB, sessionsSecret string, logger *zap.Logger) Store
 
 		sessionStorage: newBPCookieStore(sessionsSecret),
 	}
+
+	// boltstore is not used for clusters, disconnect all agents
+	store.disconnectAllAgents(context.Background())
+
+	return store
 }
 
 // InitDB takes in the full path to a storage file and returns an opened bbolt database.
@@ -644,6 +649,24 @@ func (s *boltstore) ConfigurationIndex() search.Index {
 
 func (s *boltstore) UserSessions() sessions.Store {
 	return s.sessionStorage
+}
+
+// ----------------------------------------------------------------------
+
+func (s *boltstore) disconnectAllAgents(ctx context.Context) {
+	if agents, err := s.Agents(ctx); err != nil {
+		s.logger.Error("error while disconnecting all agents on startup", zap.Error(err))
+	} else {
+		s.logger.Info("disconnecting all agents on startup", zap.Int("count", len(agents)))
+		for _, agent := range agents {
+			_, err := s.UpsertAgent(ctx, agent.ID, func(a *model.Agent) {
+				a.Disconnect()
+			})
+			if err != nil {
+				s.logger.Error("error while disconnecting agent on startup", zap.Error(err))
+			}
+		}
+	}
 }
 
 /* ---------------------------- helper functions ---------------------------- */
