@@ -46,6 +46,10 @@ func (s *AnyResourceStatus) Message() string {
 	return fmt.Sprintf("%s %s %s", s.Resource.Kind, s.Resource.Name(), s.Status)
 }
 
+func (s *ResourceStatus) String() string {
+	return fmt.Sprintf("%s %s %s", s.Resource.GetKind(), s.Resource.Name(), s.Status)
+}
+
 // NewResourceStatus TODO(doc)
 func NewResourceStatus(r Resource, s UpdateStatus) *ResourceStatus {
 	return &ResourceStatus{Resource: r, Status: s}

@@ -216,7 +216,10 @@ func (s *Server) createStore(config *common.Server) (store.Store, error) {
 
 	switch config.StoreType {
 	case common.StoreTypeMap:
-		return store.NewMapStore(s.logger, config.SessionsSecret), nil
+		return store.NewMapStore(store.Options{
+			SessionsSecret:   config.SessionsSecret,
+			MaxEventsToMerge: 100,
+		}, s.logger), nil
 
 	case common.StoreTypeGoogleCloud:
 		s.logger.Info("Using Google Cloud Datastore and Pub/Sub")
@@ -233,7 +236,10 @@ func (s *Server) createStore(config *common.Server) (store.Store, error) {
 		}
 
 		s.logger.Info("Using BBolt Storage", zap.String("storageFilePath", storageFilePath))
-		return store.NewBoltStore(db, config.SessionsSecret, s.logger), nil
+		return store.NewBoltStore(context.Background(), db, store.Options{
+			SessionsSecret:   config.SessionsSecret,
+			MaxEventsToMerge: 100,
+		}, s.logger), nil
 	}
 }
 

@@ -25,10 +25,14 @@ import (
 var (
 	updatesTestStore Store
 	resourceMap      map[string]model.Resource
+	testOptions      = Options{
+		SessionsSecret:   "super-secret-key",
+		MaxEventsToMerge: 1,
+	}
 )
 
 func updatesTestSetup(t *testing.T) {
-	updatesTestStore = NewMapStore(zap.NewNop(), "super-secret-key")
+	updatesTestStore = NewMapStore(testOptions, zap.NewNop())
 	resourceMap = map[string]model.Resource{}
 	resources := []model.Resource{
 		newTestSourceType("st1"),

@@ -39,7 +39,11 @@ func TestAddRoutes(t *testing.T) {
 	defer svr.Close()
 
 	logger := zap.NewNop()
-	s := store.NewMapStore(logger, "super-secret-key")
+	s := store.NewMapStore(store.Options{
+		SessionsSecret:   "super-secret-key",
+		MaxEventsToMerge: 1,
+	}, logger)
+
 	bindplane, err := server.NewBindPlane(&common.Server{}, zap.NewNop(), s, nil)
 	require.NoError(t, err)
 
@@ -80,7 +84,10 @@ func TestHandleLogin(t *testing.T) {
 	defer svr.Close()
 
 	logger := zap.NewNop()
-	s := store.NewMapStore(logger, "super-secret-key")
+	s := store.NewMapStore(store.Options{
+		SessionsSecret:   "super-secret-key",
+		MaxEventsToMerge: 1,
+	}, logger)
 	bindplane, err := server.NewBindPlane(cfg, zap.NewNop(), s, nil)
 	require.NoError(t, err)
 
@@ -135,7 +142,10 @@ func TestLogin(t *testing.T) {
 
 	logger := zap.NewNop()
 
-	s := store.NewMapStore(logger, "super-secret-key")
+	s := store.NewMapStore(store.Options{
+		SessionsSecret:   "super-secret-key",
+		MaxEventsToMerge: 1,
+	}, logger)
 
 	bindplane, err := server.NewBindPlane(cfg, zap.NewNop(), s, nil)
 	require.NoError(t, err)
@@ -192,7 +202,10 @@ func TestLogout(t *testing.T) {
 
 	logger := zap.NewNop()
 
-	s := store.NewMapStore(logger, "super-secret-key")
+	s := store.NewMapStore(store.Options{
+		SessionsSecret:   "super-secret-key",
+		MaxEventsToMerge: 1,
+	}, logger)
 
 	bindplane, err := server.NewBindPlane(cfg, zap.NewNop(), s, nil)
 	require.NoError(t, err)
@@ -224,7 +237,10 @@ func TestVerify(t *testing.T) {
 
 	logger := zap.NewNop()
 
-	s := store.NewMapStore(logger, "super-secret-key")
+	s := store.NewMapStore(store.Options{
+		SessionsSecret:   "super-secret-key",
+		MaxEventsToMerge: 1,
+	}, logger)
 
 	bindplane, err := server.NewBindPlane(cfg, zap.NewNop(), s, nil)
 	require.NoError(t, err)
