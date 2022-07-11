@@ -957,6 +957,7 @@ func verifyAgentsRemove(t *testing.T, done chan bool, Updates <-chan *Updates, e
 		case updates, ok := <-Updates:
 			if !ok {
 				done <- false
+				return
 			}
 			agentUpdates := updates.Agents
 
@@ -981,6 +982,7 @@ func verifyAgentsRemove(t *testing.T, done chan bool, Updates <-chan *Updates, e
 
 			assert.ElementsMatch(t, expectRemoves, ids)
 			done <- true
+			return
 		}
 	}
 }
@@ -1089,17 +1091,17 @@ func runDeleteAgentsTests(t *testing.T, store Store) {
 		t.Run(test.description, func(t *testing.T) {
 			// setup
 			store.Clear()
-			channel, unsubscribe := eventbus.Subscribe(store.Updates())
-			defer unsubscribe()
-			ctx := context.Background()
-			done := make(chan bool, 0)
-
 			for _, id := range test.seedAgentIDs {
 				addAgent(store, &model.Agent{ID: id})
 			}
 
+			channel, unsubscribe := eventbus.Subscribe(store.Updates())
+			defer unsubscribe()
+
+			done := make(chan bool, 0)
 			go verifyAgentsRemove(t, done, channel, test.deleteAgentIDs)
 
+			ctx := context.Background()
 			_, err := store.DeleteAgents(ctx, test.deleteAgentIDs)
 			require.NoError(t, err)
 

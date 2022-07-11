@@ -53,7 +53,7 @@ type mapStore struct {
 var _ Store = (*mapStore)(nil)
 
 // NewMapStore returns an in memory Store
-func NewMapStore(options Options, logger *zap.Logger) Store {
+func NewMapStore(ctx context.Context, options Options, logger *zap.Logger) Store {
 	return &mapStore{
 		agents:             make(map[string]*model.Agent),
 		configurations:     newResourceStore[*model.Configuration](),
@@ -61,7 +61,7 @@ func NewMapStore(options Options, logger *zap.Logger) Store {
 		sourceTypes:        newResourceStore[*model.SourceType](),
 		destinations:       newResourceStore[*model.Destination](),
 		destinationTypes:   newResourceStore[*model.DestinationType](),
-		updates:            newStoreUpdates(context.Background(), options.MaxEventsToMerge),
+		updates:            newStoreUpdates(ctx, options.MaxEventsToMerge),
 		agentIndex:         search.NewInMemoryIndex("agent"),
 		configurationIndex: search.NewInMemoryIndex("configuration"),
 		logger:             logger,

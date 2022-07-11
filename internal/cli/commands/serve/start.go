@@ -216,7 +216,7 @@ func (s *Server) createStore(config *common.Server) (store.Store, error) {
 
 	switch config.StoreType {
 	case common.StoreTypeMap:
-		return store.NewMapStore(store.Options{
+		return store.NewMapStore(context.Background(), store.Options{
 			SessionsSecret:   config.SessionsSecret,
 			MaxEventsToMerge: 100,
 		}, s.logger), nil

@@ -38,7 +38,9 @@ func addAgent(s store.Store, agent *model.Agent) (*model.Agent, error) {
 }
 
 func TestQueryResolvers(t *testing.T) {
-	mapstore := store.NewMapStore(store.Options{
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	mapstore := store.NewMapStore(ctx, store.Options{
 		SessionsSecret:   "super-secret-key",
 		MaxEventsToMerge: 1,
 	}, zap.NewNop())
@@ -96,7 +98,9 @@ func TestQueryResolvers(t *testing.T) {
 }
 
 func TestConfigForAgent(t *testing.T) {
-	mapstore := store.NewMapStore(store.Options{
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	mapstore := store.NewMapStore(ctx, store.Options{
 		SessionsSecret:   "super-secret-key",
 		MaxEventsToMerge: 1,
 	}, zap.NewNop())

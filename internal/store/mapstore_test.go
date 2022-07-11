@@ -15,6 +15,7 @@
 package store
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -24,37 +25,49 @@ import (
 )
 
 func TestMapstoreNotifyUpdates(t *testing.T) {
-	store := NewMapStore(testOptions, zap.NewNop())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	store := NewMapStore(ctx, testOptions, zap.NewNop())
 	done := make(chan bool, 1)
 
 	runNotifyUpdatesTests(t, store, done)
 }
 
 func TestMapstoreDeleteChannel(t *testing.T) {
-	store := NewMapStore(testOptions, zap.NewNop())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	store := NewMapStore(ctx, testOptions, zap.NewNop())
 	done := make(chan bool, 1)
 	runDeleteChannelTests(t, store, done)
 }
 
 func TestMapstoreUpdateAgentsChannel(t *testing.T) {
-	store := NewMapStore(testOptions, zap.NewNop())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	store := NewMapStore(ctx, testOptions, zap.NewNop())
 	runUpdateAgentsTests(t, store)
 }
 
 func TestMapstoreApplyResourcesReturn(t *testing.T) {
-	store := NewMapStore(testOptions, zap.NewNop())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	store := NewMapStore(ctx, testOptions, zap.NewNop())
 
 	runApplyResourceReturnTests(t, store)
 }
 
 func TestMapstoreDeleteResourcesReturn(t *testing.T) {
-	store := NewMapStore(testOptions, zap.NewNop())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	store := NewMapStore(ctx, testOptions, zap.NewNop())
 
 	runDeleteResourcesReturnTests(t, store)
 }
 
 func TestMapstoreAgentSubscriptionsChannel(t *testing.T) {
-	store := NewMapStore(testOptions, zap.NewNop())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	store := NewMapStore(ctx, testOptions, zap.NewNop())
 
 	runAgentSubscriptionsTest(t, store)
 }
@@ -103,43 +116,59 @@ func TestMapstoreResourcesEqual(t *testing.T) {
 }
 
 func TestMapstoreConfigurations(t *testing.T) {
-	store := NewMapStore(testOptions, zap.NewNop())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	store := NewMapStore(ctx, testOptions, zap.NewNop())
 
 	runConfigurationsTests(t, store)
 }
 
 func TestMapstoreConfiguration(t *testing.T) {
-	store := NewMapStore(testOptions, zap.NewNop())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	store := NewMapStore(ctx, testOptions, zap.NewNop())
 
 	runConfigurationTests(t, store)
 }
 
 func TestMapstoreValidateApplyResourcesTests(t *testing.T) {
-	store := NewMapStore(testOptions, zap.NewNop())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	store := NewMapStore(ctx, testOptions, zap.NewNop())
 	runValidateApplyResourcesTests(t, store)
 }
 
 func TestMapstoreDependentResources(t *testing.T) {
-	store := NewMapStore(testOptions, zap.NewNop())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	store := NewMapStore(ctx, testOptions, zap.NewNop())
 	runDependentResourcesTests(t, store)
 }
 
 func TestMapstoreIndividualDelete(t *testing.T) {
-	store := NewMapStore(testOptions, zap.NewNop())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	store := NewMapStore(ctx, testOptions, zap.NewNop())
 	runIndividualDeleteTests(t, store)
 }
 
 func TestMapstorePaging(t *testing.T) {
-	store := NewMapStore(testOptions, zap.NewNop())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	store := NewMapStore(ctx, testOptions, zap.NewNop())
 	runPagingTests(t, store)
 }
 
 func TestMapstoreDeleteAgents(t *testing.T) {
-	store := NewMapStore(testOptions, zap.NewNop())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	store := NewMapStore(ctx, testOptions, zap.NewNop())
 	runDeleteAgentsTests(t, store)
 }
 
 func TestMapstoreUpsertAgents(t *testing.T) {
-	store := NewMapStore(testOptions, zap.NewNop())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	store := NewMapStore(ctx, testOptions, zap.NewNop())
 	runTestUpsertAgents(t, store)
 }

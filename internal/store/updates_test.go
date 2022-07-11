@@ -15,6 +15,7 @@
 package store
 
 import (
+	"context"
 	"testing"
 
 	"github.com/observiq/bindplane-op/model"
@@ -32,7 +33,9 @@ var (
 )
 
 func updatesTestSetup(t *testing.T) {
-	updatesTestStore = NewMapStore(testOptions, zap.NewNop())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	updatesTestStore = NewMapStore(ctx, testOptions, zap.NewNop())
 	resourceMap = map[string]model.Resource{}
 	resources := []model.Resource{
 		newTestSourceType("st1"),

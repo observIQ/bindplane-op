@@ -180,7 +180,9 @@ func TestREST(t *testing.T) {
 	svr := httptest.NewServer(router)
 	defer svr.Close()
 
-	store := store.NewMapStore(store.Options{
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	store := store.NewMapStore(ctx, store.Options{
 		SessionsSecret:   "super-secret-key",
 		MaxEventsToMerge: 1,
 	}, zap.NewNop())

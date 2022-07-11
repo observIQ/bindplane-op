@@ -35,7 +35,7 @@ import (
 
 var (
 	logger       = zap.NewNop()
-	testMapstore = store.NewMapStore(store.Options{
+	testMapstore = store.NewMapStore(context.Background(), store.Options{
 		SessionsSecret:   "super-secret-key",
 		MaxEventsToMerge: 1,
 	}, logger)

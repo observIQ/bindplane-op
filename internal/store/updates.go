@@ -263,7 +263,7 @@ func newStoreUpdates(ctx context.Context, maxEventsToMerge int) *storeUpdates {
 		updates,
 		200*time.Millisecond,
 		maxEventsToMerge,
-		eventbus.WithChannel(make(chan *Updates, 10_000)),
+		eventbus.WithUnboundedChannel[*Updates](100*time.Millisecond),
 	)
 
 	return &storeUpdates{

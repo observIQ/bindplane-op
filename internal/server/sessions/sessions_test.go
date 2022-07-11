@@ -15,6 +15,7 @@
 package sessions
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -39,7 +40,9 @@ func TestAddRoutes(t *testing.T) {
 	defer svr.Close()
 
 	logger := zap.NewNop()
-	s := store.NewMapStore(store.Options{
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	s := store.NewMapStore(ctx, store.Options{
 		SessionsSecret:   "super-secret-key",
 		MaxEventsToMerge: 1,
 	}, logger)
@@ -84,7 +87,9 @@ func TestHandleLogin(t *testing.T) {
 	defer svr.Close()
 
 	logger := zap.NewNop()
-	s := store.NewMapStore(store.Options{
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	s := store.NewMapStore(ctx, store.Options{
 		SessionsSecret:   "super-secret-key",
 		MaxEventsToMerge: 1,
 	}, logger)
@@ -142,7 +147,9 @@ func TestLogin(t *testing.T) {
 
 	logger := zap.NewNop()
 
-	s := store.NewMapStore(store.Options{
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	s := store.NewMapStore(ctx, store.Options{
 		SessionsSecret:   "super-secret-key",
 		MaxEventsToMerge: 1,
 	}, logger)
@@ -202,7 +209,9 @@ func TestLogout(t *testing.T) {
 
 	logger := zap.NewNop()
 
-	s := store.NewMapStore(store.Options{
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	s := store.NewMapStore(ctx, store.Options{
 		SessionsSecret:   "super-secret-key",
 		MaxEventsToMerge: 1,
 	}, logger)
@@ -237,7 +246,9 @@ func TestVerify(t *testing.T) {
 
 	logger := zap.NewNop()
 
-	s := store.NewMapStore(store.Options{
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	s := store.NewMapStore(ctx, store.Options{
 		SessionsSecret:   "super-secret-key",
 		MaxEventsToMerge: 1,
 	}, logger)
