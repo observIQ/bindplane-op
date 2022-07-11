@@ -14,8 +14,12 @@
 
 package eventbus
 
+import "time"
+
 type subscriptionOptions[T any] struct {
-	channel chan T
+	channel           chan T
+	unbounded         bool
+	unboundedInterval time.Duration
 }
 
 func makeSubscriptionOptions[T any](options []SubscriptionOption[T]) subscriptionOptions[T] {
@@ -34,5 +38,14 @@ type SubscriptionOption[T any] func(*subscriptionOptions[T])
 func WithChannel[T any](channel chan T) SubscriptionOption[T] {
 	return func(opts *subscriptionOptions[T]) {
 		opts.channel = channel
+	}
+}
+
+// WithUnboundedChannel specifies that util.UnboundedChan should be used for the channel. This will allow an unbounded
+// number of events to be received before being dispatched to subscribers.
+func WithUnboundedChannel[T any](interval time.Duration) SubscriptionOption[T] {
+	return func(opts *subscriptionOptions[T]) {
+		opts.unbounded = true
+		opts.unboundedInterval = interval
 	}
 }

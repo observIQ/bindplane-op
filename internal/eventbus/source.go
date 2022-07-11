@@ -18,6 +18,8 @@ import (
 	"context"
 	"sync"
 	"time"
+
+	"github.com/observiq/bindplane-op/internal/util"
 )
 
 const subscriberChannelBufferSize = 10
@@ -28,6 +30,9 @@ type UnsubscribeFunc func()
 // Subscriber can be notified of events of type T. Instead of using this interface directly, use one of the eventbus.Subscribe
 // functions to receive a channel of events.
 type Subscriber[T any] interface {
+	// Channel will be return to Subscribe calls to receive events
+	Channel() <-chan T
+
 	// Receive will be called when an event is available
 	Receive(event T)
 
@@ -64,17 +69,23 @@ type source[T any] struct {
 
 var _ Source[any] = (*source[any])(nil)
 
+// ----------------------------------------------------------------------
+// generic subscriptions
+
 type subscription[T any] struct {
 	channel chan T
 }
 
-func newSubscription[T any](options []SubscriptionOption[T]) subscription[T] {
+func newSubscription[T any](options []SubscriptionOption[T]) Subscriber[T] {
 	opts := makeSubscriptionOptions(options)
+	if opts.unbounded {
+		return newUnboundedSubscription[T](opts.unboundedInterval)
+	}
 	channel := opts.channel
 	if channel == nil {
 		channel = make(chan T, subscriberChannelBufferSize)
 	}
-	return subscription[T]{
+	return &subscription[T]{
 		channel: channel,
 	}
 }
@@ -83,36 +94,85 @@ func (s *subscription[T]) Receive(event T) {
 	s.channel <- event
 }
 
+func (s *subscription[T]) Channel() <-chan T {
+	return s.channel
+}
+
 func (s *subscription[T]) Close() {
 	close(s.channel)
 }
 
 var _ Subscriber[int] = (*subscription[int])(nil)
 
+// ----------------------------------------------------------------------
+// filter subscriptions
+
 type filterSubscription[T, R any] struct {
-	subscription[R]
-	filter SubscriptionFilter[T, R]
+	subscription Subscriber[R]
+	filter       SubscriptionFilter[T, R]
 }
 
-func newFilterSubscription[T, R any](filter SubscriptionFilter[T, R], options []SubscriptionOption[R]) filterSubscription[T, R] {
-	return filterSubscription[T, R]{
+func newFilterSubscription[T, R any](filter SubscriptionFilter[T, R], options []SubscriptionOption[R]) *filterSubscription[T, R] {
+	return &filterSubscription[T, R]{
 		subscription: newSubscription(options),
 		filter:       filter,
 	}
 }
 
+func (s *filterSubscription[T, R]) Channel() <-chan T {
+	panic("filterSubscription Channel() should not be called because it won't receive anything")
+}
+func (s *filterSubscription[T, R]) FilterChannel() <-chan R {
+	return s.subscription.Channel()
+}
+
 func (s *filterSubscription[T, R]) Receive(event T) {
 	filtered, accept := s.filter(event)
 	if accept {
-		s.channel <- filtered
+		s.subscription.Receive(filtered)
 	}
 }
 
 func (s *filterSubscription[T, R]) Close() {
-	close(s.channel)
+	s.subscription.Close()
 }
 
 var _ Subscriber[int] = (*filterSubscription[int, int])(nil)
+
+// ----------------------------------------------------------------------
+// unbounded
+
+type unboundedSubscription[T any] struct {
+	channel util.UnboundedChan[T]
+}
+
+const unboundedMinimumInterval = 10 * time.Millisecond
+
+func newUnboundedSubscription[T any](interval time.Duration) *unboundedSubscription[T] {
+	if interval < unboundedMinimumInterval {
+		interval = unboundedMinimumInterval
+	}
+	return &unboundedSubscription[T]{
+		channel: util.NewUnboundedChan[T](interval),
+	}
+}
+
+func (s *unboundedSubscription[T]) Receive(event T) {
+	s.channel.In() <- event
+}
+
+func (s *unboundedSubscription[T]) Channel() <-chan T {
+	return s.channel.Out()
+}
+
+func (s *unboundedSubscription[T]) Close() {
+	s.channel.Close()
+}
+
+var _ Subscriber[int] = (*unboundedSubscription[int])(nil)
+
+// ----------------------------------------------------------------------
+// package methods
 
 // NewSource returns a new Source implementation for the specified event type T
 func NewSource[T any]() Source[T] {
@@ -130,8 +190,8 @@ func Subscribe[T any](bus Source[T], options ...SubscriptionOption[T]) (<-chan T
 // function. It automatically unsubscribes when the context is done.
 func SubscribeUntilDone[T any](ctx context.Context, bus Source[T], options ...SubscriptionOption[T]) (<-chan T, UnsubscribeFunc) {
 	subscription := newSubscription(options)
-	unsubscribe := bus.SubscribeUntilDone(ctx, &subscription)
-	return subscription.channel, unsubscribe
+	unsubscribe := bus.SubscribeUntilDone(ctx, subscription)
+	return subscription.Channel(), unsubscribe
 }
 
 // SubscribeWithFilter TODO
@@ -142,8 +202,8 @@ func SubscribeWithFilter[T, R any](bus Source[T], filter SubscriptionFilter[T, R
 // SubscribeWithFilterUntilDone TODO
 func SubscribeWithFilterUntilDone[T, R any](ctx context.Context, source Source[T], filter SubscriptionFilter[T, R], options ...SubscriptionOption[R]) (<-chan R, UnsubscribeFunc) {
 	subscription := newFilterSubscription(filter, options)
-	unsubscribe := source.SubscribeUntilDone(ctx, &subscription)
-	return subscription.channel, unsubscribe
+	unsubscribe := source.SubscribeUntilDone(ctx, subscription)
+	return subscription.FilterChannel(), unsubscribe
 }
 
 // SubscribeUntilDone adds the subscriber and returns a cancel function.

@@ -16,6 +16,7 @@ package eventbus
 
 import (
 	"context"
+	"fmt"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -245,6 +246,24 @@ func TestEventBusRelayWithMerge(t *testing.T) {
 			},
 		},
 		{
+			name: "limit merges",
+			events: []*mergedEvent{
+				{"a", 1},
+				{"a", 2},
+				{"a", 3},
+				{"a", 4},
+				{"a", 5},
+			},
+			maxEventsToMerge: 0,
+			expect: []*mergedEvent{
+				{"a", 1},
+				{"a", 2},
+				{"a", 3},
+				{"a", 4},
+				{"a", 5},
+			},
+		},
+		{
 			name: "all merges",
 			events: []*mergedEvent{
 				{"a", 1},
@@ -310,6 +329,128 @@ func TestEventBusRelayWithMerge(t *testing.T) {
 			cancel()
 
 			require.Equal(t, test.expect, results)
+		})
+	}
+}
+
+func TestEventBusRelay(t *testing.T) {
+	tests := []struct {
+		name   string
+		events []int
+		expect []int
+	}{
+		{
+			name:   "relays events",
+			events: []int{1, 2, 3, 4, 5},
+			expect: []int{1, 2, 3, 4, 5},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			src := NewSource[int]()
+			dst := NewSource[int]()
+
+			Relay(ctx, src, dst)
+
+			for _, event := range test.events {
+				src.Send(event)
+			}
+
+			channel, unsubscribe := Subscribe(dst)
+			defer unsubscribe()
+
+			for i := 0; i < len(test.events); i++ {
+				val := <-channel
+				require.Equal(t, test.expect[i], val)
+			}
+		})
+	}
+}
+
+func TestEventBusRelayWithFilter(t *testing.T) {
+	tests := []struct {
+		name   string
+		events []int
+		expect []int
+	}{
+		{
+			name:   "relays and doubles events",
+			events: []int{1, 2, 3, 4, 5},
+			expect: []int{2, 4, 6, 8, 10},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			src := NewSource[int]()
+			dst := NewSource[int]()
+
+			RelayWithFilter(ctx, src, func(val int) (int, bool) { return val * 2, true }, dst)
+
+			for _, event := range test.events {
+				src.Send(event)
+			}
+
+			channel, unsubscribe := Subscribe(dst)
+			defer unsubscribe()
+
+			for i := 0; i < len(test.events); i++ {
+				val := <-channel
+				require.Equal(t, test.expect[i], val)
+			}
+		})
+	}
+}
+
+func TestEventBusRelayWithFilterUnbounded(t *testing.T) {
+	events := make([]int, 1000)
+	expect := make([]int, 1000)
+	for i := 0; i < 1000; i++ {
+		events[i] = i
+		expect[i] = i * 2
+	}
+
+	tests := []struct {
+		name   string
+		events []int
+		expect []int
+	}{
+		{
+			name:   "relays and doubles events",
+			events: events,
+			expect: expect,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			src := NewSource[int]()
+			dst := NewSource[int]()
+
+			// WithUnboundedChannel is needed to write 1000 events without reading
+			RelayWithFilter(ctx, src, func(val int) (int, bool) { return val * 2, true }, dst, WithUnboundedChannel[int](0))
+
+			for _, event := range test.events {
+				src.Send(event)
+			}
+
+			channel, unsubscribe := Subscribe(dst)
+			defer unsubscribe()
+
+			for i := 0; i < len(test.events); i++ {
+				val := <-channel
+				require.Equal(t, test.expect[i], val, fmt.Sprintf("index %d elements should be equal", i))
+			}
 		})
 	}
 }
