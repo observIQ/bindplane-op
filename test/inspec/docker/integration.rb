@@ -13,17 +13,6 @@ describe file('/bindplane') do
 end
 
 [
-    "/data/bindplane.log",
-].each do |dir|
-    describe file(dir) do
-        its('mode') { should cmp '0644' }
-        its('owner') { should eq 'bindplane' }
-        its('group') { should eq 'bindplane' }
-        its('type') { should cmp 'file' }
-    end
-end
-
-[
     "data/storage",
 ].each do |dir|
     describe file(dir) do

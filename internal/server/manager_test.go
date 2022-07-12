@@ -18,8 +18,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/observiq/bindplane/internal/store"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/internal/store"
+	"github.com/observiq/bindplane-op/model"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -35,7 +35,7 @@ import (
 
 var (
 	logger       = zap.NewNop()
-	testMapstore = store.NewMapStore(logger)
+	testMapstore = store.NewMapStore(logger, "super-secret-key")
 	testProtocol = &mockProtocol{}
 	testManager  = &manager{
 		store:     testMapstore,

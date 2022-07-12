@@ -18,9 +18,9 @@ import (
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
-	"github.com/observiq/bindplane/internal/cli"
-	"github.com/observiq/bindplane/internal/cli/commands/profile"
-	"github.com/observiq/bindplane/internal/cli/flags"
+	"github.com/observiq/bindplane-op/internal/cli"
+	"github.com/observiq/bindplane-op/internal/cli/commands/profile"
+	"github.com/observiq/bindplane-op/internal/cli/flags"
 )
 
 // Command returns the BindPlane serve cobra command

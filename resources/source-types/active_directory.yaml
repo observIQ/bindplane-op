@@ -1,0 +1,28 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: SourceType
+metadata:
+  name: microsoftactivedirectory
+  displayName: Microsoft Active Directory
+  icon: /icons/sources/microsoft_ad.svg
+  description: Microsoft Active Directory Domain Services metrics
+spec:
+  version: 0.0.1
+  supported_platforms:
+    - windows
+  parameters:
+    - name: collection_interval
+      label: Collection Interval
+      description: How often (seconds) to scrape for metrics.
+      type: int
+      default: 60
+
+  metrics:
+    receivers: |
+      - active_directory_ds:
+          collection_interval: {{ .collection_interval }}s
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]

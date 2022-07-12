@@ -1,0 +1,87 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: SourceType
+metadata:
+  name: csv
+  displayName: CSV Logs
+  icon: /icons/sources/csv.svg
+  description: Parser for logs with Comma Separated Values
+spec:
+  version: 0.0.1
+  supported_platforms:
+    - macos
+    - linux
+    - windows
+  parameters:
+    - name: header
+      label: Header
+      description: A comma delimited list of keys assigned to each of the columns.
+      required: true
+      type: string
+      default: ""
+
+    - name: file_path
+      label: File Path(s)
+      description: File or directory paths to tail for logs.
+      type: strings
+      default: [""]
+      required: true
+
+    - name: exclude_file_path
+      label: Exclude File Path(s)
+      description: File or directory paths to exclude.
+      type: strings
+      default: [""]
+
+    - name: log_type
+      label: Log Type
+      description: A friendly name that will be added to each log entry as an attribute.
+      type: string
+      default: csv
+
+    - name: start_at
+      label: Start At
+      description: Start reading file from 'beginning' or 'end'.
+      type: enum
+      validValues:
+        - beginning
+        - end
+      default: end
+      advancedConfig: true
+
+    - name: encoding
+      label: Encoding
+      description: The encoding of the file being read.
+      type: enum
+      default: utf-8
+      validValues:
+        - nop
+        - utf-8
+        - utf-16le
+        - utf-16be
+        - ascii
+        - big5
+      advancedConfig: true
+
+  logs:
+    receivers: |
+      - plugin/csv:
+          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/csv_logs.yaml
+          parameters:
+            log_paths:
+              {{ range $fp := .file_path }}
+              - '{{ $fp }}'
+              {{ end }}
+            exclude_log_paths:
+              {{ range $fp := .exclude_file_path }}
+              - '{{ $fp }}'
+              {{ end }}
+            log_type: {{ .log_type }}
+            start_at: {{ .start_at }}
+            header: {{ .header }}
+            encoding: {{ .encoding }}
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]

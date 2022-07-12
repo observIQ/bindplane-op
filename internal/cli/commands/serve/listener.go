@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/observiq/bindplane/common"
+	"github.com/observiq/bindplane-op/common"
 )
 
 func configureTLS(config *common.Server) (*tls.Config, error) {

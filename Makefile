@@ -30,6 +30,8 @@ install-tools: install-git-hooks
 	cd $(TOOLS_MOD_DIR) && go install github.com/mgechev/revive
 	cd $(TOOLS_MOD_DIR) && go install github.com/uw-labs/lichen
 	cd $(TOOLS_MOD_DIR) && go install honnef.co/go/tools/cmd/staticcheck
+	cd $(TOOLS_MOD_DIR) && go install github.com/client9/misspell/cmd/misspell
+	cd $(TOOLS_MOD_DIR) && go install github.com/ory/go-acc
 
 .PHONY: install-ui
 install-ui:
@@ -51,11 +53,13 @@ dev:
 test: prep
 	go test ./... -race -cover
 
-.PHONY: test-cover
-test-cover:
-	@echo running tests with code coverage...
-	go test -parallel 1 ./... -race -cover -coverprofile cover.out
-	go tool cover -html=cover.out
+.PHONY: test-with-cover
+test-with-cover: prep
+	BINDPLANE_TEST_IMAGE="observiq/bindplane-amd64:$(GIT_SHA)" go-acc --tags=integration --output=coverage.out --ignore=generated --ignore=mocks ./...
+
+show-coverage: test-with-cover
+	# Show coverage as HTML in the default browser.
+	go tool cover -html=coverage.out
 
 .PHONY: bench
 bench:
@@ -140,7 +144,11 @@ tls:
 
 .PHONY: docker-http
 docker-http:
-	docker run -d -p 3010:3001 --name "bindplane-server-${GIT_SHA}-http" "observiq/bindplane-$(GOARCH):latest" \
+	docker run -d -p 3010:3001 \
+		--name "bindplane-server-${GIT_SHA}-http" \
+		-e BINDPLANE_CONFIG_SESSIONS_SECRET=403dd8ff-72a9-4401-9a66-e54b37d6e0ce \
+		-e BINDPLANE_CONFIG_LOG_OUTPUT=stdout \
+		"observiq/bindplane-$(GOARCH):${GIT_SHA}" \
 		--host 0.0.0.0 \
 		--port "3001" \
 		--server-url http://localhost:3010 \
@@ -157,6 +165,8 @@ docker-https: tls
 	docker run -d \
 		-p 3011:3001 \
 		--name "bindplane-server-${GIT_SHA}-https" \
+		-e BINDPLANE_CONFIG_SESSIONS_SECRET=403dd8ff-72a9-4401-9a66-e54b37d6e0ce \
+		-e BINDPLANE_CONFIG_LOG_OUTPUT=stdout \
 		-v "${PWD}/tls:/tls" \
 		"observiq/bindplane-$(GOARCH):latest" \
 			--tls-cert /tls/bindplane.crt --tls-key /tls/bindplane.key \
@@ -177,6 +187,8 @@ docker-https-mtls: tls
 	docker run -d \
 		-p 3012:3001 \
 		--name "bindplane-server-${GIT_SHA}-https-mtls" \
+		-e BINDPLANE_CONFIG_SESSIONS_SECRET=403dd8ff-72a9-4401-9a66-e54b37d6e0ce \
+		-e BINDPLANE_CONFIG_LOG_OUTPUT=stdout \
 		-v "${PWD}/tls:/tls" \
 		"observiq/bindplane-$(GOARCH):latest" \
 			--tls-cert /tls/bindplane.crt --tls-key /tls/bindplane.key --tls-ca /tls/bindplane-ca.crt --tls-ca /tls/test-ca.crt \
@@ -197,7 +209,7 @@ docker-all: docker-clean docker-http docker-https docker-https-mtls
 
 .PHONY: docker-clean
 docker-clean:
-	docker ps | grep bindplane-server | awk '{print $$1}' | xargs -I{} docker rm --force {}
+	docker ps -a | grep bindplane-server | awk '{print $$1}' | xargs -I{} docker rm --force {}
 
 # Call 'release-test' first.
 .PHONY: inspec-continer-image
@@ -264,3 +276,14 @@ kitchen:
 .PHONY: kitchen-clean
 kitchen-clean:
 	kitchen destroy -c 10
+
+ALLDOC=$(shell find . \( -name "*.md" -o -name "*.yaml" \) | grep -v ui/node_modules)
+
+.PHONY: misspell
+misspell:
+	misspell -error $(ALLDOC)
+
+.PHONY: misspell-fix
+misspell-fix:
+	misspell -w $(ALLDOC)
+

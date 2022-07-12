@@ -127,6 +127,13 @@ type TLSConfig struct {
 	// CertificateAuthority is one or more file paths to x509 PEM encoded certificate authority chains.
 	// These certificate authorities are used for trusting incoming client mTLS connections.
 	CertificateAuthority []string `mapstructure:"tlsCa" yaml:"tlsCa,omitempty"`
+
+	// InsecureSkipVerify controls whether a client verifies the server's
+	// certificate chain and host name. If InsecureSkipVerify is true, crypto/tls
+	// accepts any certificate presented by the server and any host name in that
+	// certificate. In this mode, TLS is susceptible to machine-in-the-middle
+	// attacks. This should be used only for testing only.
+	InsecureSkipVerify bool `mapstructure:"tlsSkipVerify" yaml:"tlsSkipVerify,omitempty"`
 }
 
 const (
@@ -171,6 +178,9 @@ type Server struct {
 	DownloadsFolderPath string `mapstructure:"downloadsFolderPath,omitempty" yaml:"downloadsFolderPath,omitempty"`
 	// DisableDownloadsCache TODO(doc)
 	DisableDownloadsCache bool `mapstructure:"disableDownloadsCache,omitempty" yaml:"disableDownloadsCache,omitempty"`
+
+	// SessionSecret is used to encode the user sessions cookies.  It should be a uuid.
+	SessionsSecret string `mapstructure:"sessionsSecret,omitempty" yaml:"sessionsSecret,omitempty"`
 
 	Common `yaml:",inline" mapstructure:",squash"`
 }

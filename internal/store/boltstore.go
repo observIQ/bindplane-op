@@ -23,13 +23,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gorilla/sessions"
 	"github.com/hashicorp/go-multierror"
 	"go.etcd.io/bbolt"
 	"go.uber.org/zap"
 
-	"github.com/observiq/bindplane/internal/eventbus"
-	"github.com/observiq/bindplane/internal/store/search"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/internal/eventbus"
+	"github.com/observiq/bindplane-op/internal/store/search"
+	"github.com/observiq/bindplane-op/model"
 )
 
 // bucket names
@@ -46,18 +47,22 @@ type boltstore struct {
 	configurationIndex search.Index
 	logger             *zap.Logger
 	sync.RWMutex
+
+	sessionStorage sessions.Store
 }
 
 var _ Store = (*boltstore)(nil)
 
 // NewBoltStore returns a new store boltstore struct that implements the store.Store interface.
-func NewBoltStore(db *bbolt.DB, logger *zap.Logger) Store {
+func NewBoltStore(db *bbolt.DB, sessionsSecret string, logger *zap.Logger) Store {
 	return &boltstore{
 		db:                 db,
 		updates:            eventbus.NewSource[*Updates](),
 		agentIndex:         search.NewInMemoryIndex("agent"),
 		configurationIndex: search.NewInMemoryIndex("configuration"),
 		logger:             logger,
+
+		sessionStorage: newBPCookieStore(sessionsSecret),
 	}
 }
 
@@ -635,6 +640,10 @@ func (s *boltstore) AgentIndex() search.Index {
 // ConfigurationIndex provides access to the search Index for Configurations
 func (s *boltstore) ConfigurationIndex() search.Index {
 	return s.configurationIndex
+}
+
+func (s *boltstore) UserSessions() sessions.Store {
+	return s.sessionStorage
 }
 
 /* ---------------------------- helper functions ---------------------------- */

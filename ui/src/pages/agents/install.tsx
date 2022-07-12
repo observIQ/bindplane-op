@@ -18,6 +18,8 @@ import {
 import { InstallCommandResponse } from "../../types/rest";
 
 import mixins from "../../styles/mixins.module.scss";
+import { withRequireLogin } from "../../contexts/RequireLogin";
+import { withNavBar } from "../../components/NavBar";
 
 gql`
   query GetConfigurationNames {
@@ -58,7 +60,7 @@ const platforms: { name: string; value: Platform }[] = [
   },
 ];
 
-export const InstallPage: React.FC = () => {
+const InstallPageContent: React.FC = () => {
   const [platform, setPlatform] = useState<Platform>(Platform.LINUX_AMD64);
   const [installCommand, setCommand] = useState("");
   const [configs, setConfigs] = useState<string[]>([]);
@@ -195,3 +197,5 @@ function filterConfigurationsByPlatform(
       return configs;
   }
 }
+
+export const InstallPage = withRequireLogin(withNavBar(InstallPageContent));

@@ -27,9 +27,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/observiq/bindplane/client"
-	"github.com/observiq/bindplane/internal/cli"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/client"
+	"github.com/observiq/bindplane-op/internal/cli"
+	"github.com/observiq/bindplane-op/model"
 )
 
 func TestDeleteCommand(t *testing.T) {

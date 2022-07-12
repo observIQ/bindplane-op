@@ -28,17 +28,19 @@ export const SourceCard: React.FC<{
     variables: { name },
   });
   const icon = data?.sourceType?.metadata.icon;
+  const displayName = data?.sourceType?.metadata.displayName ?? "";
+  const fontSize = displayName.length > 16 ? 14 : undefined;
 
   return (
     <Card className={styles["resource-card"]} onClick={onClick}>
       <CardContent>
-        <Stack alignItems="center">
+        <Stack alignItems="center" textAlign={"center"}>
           <span
             className={styles.icon}
             style={{ backgroundImage: `url(${icon})` }}
           />
-          <Typography component="div" fontWeight={600}>
-            {data?.sourceType?.metadata.displayName}
+          <Typography component="div" fontWeight={600} fontSize={fontSize}>
+            {displayName}
           </Typography>
         </Stack>
       </CardContent>

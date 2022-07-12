@@ -1,7 +1,9 @@
 import { CardContainer } from "../../components/CardContainer";
+import { withNavBar } from "../../components/NavBar";
 import { ComponentsTable } from "../../components/Tables/ComponentsTable";
+import { withRequireLogin } from "../../contexts/RequireLogin";
 
-export const ComponentsPage: React.FC = () => {
+const ComponentsPageContent: React.FC = () => {
   return (
     <>
       <CardContainer>
@@ -10,3 +12,7 @@ export const ComponentsPage: React.FC = () => {
     </>
   );
 };
+
+export const ComponentsPage = withRequireLogin(
+  withNavBar(ComponentsPageContent)
+);

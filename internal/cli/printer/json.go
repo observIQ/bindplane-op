@@ -20,7 +20,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/model"
 )
 
 // JSONPrinter logs json to an io.Writer

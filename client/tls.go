@@ -17,6 +17,7 @@ package client
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"io/ioutil"
 )
@@ -24,9 +25,14 @@ import (
 // tlsClient takes file paths for a certificate, private key, and certificate authority.
 // Returns a *tls.Config. All parameters are optional. If mutual TLS is desired, all parameters
 // must be passed.
-func tlsClient(cert, key string, caCertFile []string) (*tls.Config, error) {
+func tlsClient(cert, key string, caCertFile []string, skipVerify bool) (*tls.Config, error) {
 	tlsConfig := &tls.Config{
-		MinVersion: tls.VersionTLS13,
+		MinVersion:         tls.VersionTLS13,
+		InsecureSkipVerify: false,
+	}
+
+	if skipVerify {
+		tlsConfig.InsecureSkipVerify = skipVerify
 	}
 
 	// CA certificate can be used to trust private certificates
@@ -40,7 +46,7 @@ func tlsClient(cert, key string, caCertFile []string) (*tls.Config, error) {
 			}
 
 			if !caPool.AppendCertsFromPEM(ca) {
-				return nil, fmt.Errorf("failed to load certificate authority: %w", err)
+				return nil, errors.New("failed to append certificate authority to root ca pool")
 			}
 		}
 

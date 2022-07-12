@@ -23,11 +23,11 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
-	"github.com/observiq/bindplane/common"
-	model1 "github.com/observiq/bindplane/internal/graphql/model"
-	"github.com/observiq/bindplane/internal/server"
-	"github.com/observiq/bindplane/internal/store"
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/common"
+	model1 "github.com/observiq/bindplane-op/internal/graphql/model"
+	"github.com/observiq/bindplane-op/internal/server"
+	"github.com/observiq/bindplane-op/internal/store"
+	"github.com/observiq/bindplane-op/model"
 )
 
 func addAgent(s store.Store, agent *model.Agent) (*model.Agent, error) {
@@ -38,7 +38,7 @@ func addAgent(s store.Store, agent *model.Agent) (*model.Agent, error) {
 }
 
 func TestQueryResolvers(t *testing.T) {
-	mapstore := store.NewMapStore(zap.NewNop())
+	mapstore := store.NewMapStore(zap.NewNop(), "super-secret-key")
 	bindplane, err := server.NewBindPlane(&common.Server{}, zaptest.NewLogger(t), mapstore, nil)
 	require.NoError(t, err)
 
@@ -92,7 +92,7 @@ func TestQueryResolvers(t *testing.T) {
 }
 
 func TestConfigForAgent(t *testing.T) {
-	mapstore := store.NewMapStore(zap.NewNop())
+	mapstore := store.NewMapStore(zap.NewNop(), "super-secret-key")
 	bindplane, err := server.NewBindPlane(&common.Server{}, zaptest.NewLogger(t), mapstore, nil)
 	require.NoError(t, err)
 

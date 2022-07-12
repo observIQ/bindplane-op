@@ -5,12 +5,12 @@ package mocks
 import (
 	context "context"
 
-	model "github.com/observiq/bindplane/model"
+	model "github.com/observiq/bindplane-op/model"
 	mock "github.com/stretchr/testify/mock"
 
-	server "github.com/observiq/bindplane/internal/server"
+	server "github.com/observiq/bindplane-op/internal/server"
 
-	store "github.com/observiq/bindplane/internal/store"
+	store "github.com/observiq/bindplane-op/internal/store"
 
 	testing "testing"
 )

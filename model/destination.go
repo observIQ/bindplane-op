@@ -17,8 +17,8 @@ package model
 import (
 	"fmt"
 
-	"github.com/observiq/bindplane/model/otel"
-	"github.com/observiq/bindplane/model/validation"
+	"github.com/observiq/bindplane-op/model/otel"
+	"github.com/observiq/bindplane-op/model/validation"
 )
 
 // Destination will generate an exporter and be at the end of a pipeline

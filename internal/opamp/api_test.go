@@ -21,10 +21,11 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/observiq/bindplane/internal/server"
-	"github.com/observiq/bindplane/internal/server/mocks"
-	"github.com/observiq/bindplane/model"
-	"github.com/observiq/bindplane/model/observiq"
+	"github.com/observiq/bindplane-op/common"
+	"github.com/observiq/bindplane-op/internal/server"
+	"github.com/observiq/bindplane-op/internal/server/mocks"
+	"github.com/observiq/bindplane-op/model"
+	"github.com/observiq/bindplane-op/model/observiq"
 	"github.com/open-telemetry/opamp-go/protobufs"
 	opamp "github.com/open-telemetry/opamp-go/server/types"
 
@@ -276,8 +277,11 @@ func TestServerOnConnecting(t *testing.T) {
 			manager.On("VerifySecretKey", mock.Anything, badKey).Return(false)
 			manager.On("VerifySecretKey", mock.Anything, noKey).Return(false)
 			server := testServer(manager)
+			server.compatibleOpAMPVersions = []string{"v0.2.0"}
 			request := &http.Request{
-				Header: http.Header{},
+				Header: http.Header{
+					"Opamp-Version": []string{"v0.2.0"},
+				},
 			}
 			if test.authorization != "" {
 				request.Header["Authorization"] = []string{test.authorization}
@@ -305,7 +309,7 @@ func TestServerOnMessage(t *testing.T) {
 			expect: &protobufs.ServerToAgent{
 				InstanceUid:  agentID,
 				Capabilities: capabilities,
-				Flags:        protobufs.ServerToAgent_ReportEffectiveConfig | protobufs.ServerToAgent_ReportRemoteConfigStatus,
+				Flags:        protobufs.ServerToAgent_ReportFullState,
 			},
 			verify: func(t *testing.T, server *opampServer, result *protobufs.ServerToAgent) {
 				require.ElementsMatch(t, []string{agentID}, server.connections.agentIDs())
@@ -432,6 +436,113 @@ func TestUpdateAgentStatus(t *testing.T) {
 			server.updateAgentStatus(agent, test.remoteStatus)
 			require.Equal(t, test.expectStatus, agent.Status)
 			require.Equal(t, test.expectErrorMessage, agent.ErrorMessage)
+		})
+	}
+}
+
+func TestOnConnectingOpAMPCompatibility(t *testing.T) {
+	tests := []struct {
+		name    string
+		request http.Request
+		expect  opamp.ConnectionResponse
+	}{
+		{
+			name: "no version",
+			request: http.Request{
+				Header: http.Header{
+					"Authorization":         []string{"Secret-Key a0f1db77-818a-4f1a-81a3-7b6a9613ef41"},
+					"Connection":            []string{"Upgrade"},
+					"Sec-Websocket-Key":     []string{"xx=="},
+					"Sec-Websocket-Version": []string{"13"},
+					"Upgrade":               []string{"websocket"},
+					"User-Agent":            []string{"observiq-otel-collector/v1.2.0"}},
+			},
+			expect: opamp.ConnectionResponse{
+				Accept:         false,
+				HTTPStatusCode: http.StatusUpgradeRequired,
+				HTTPResponseHeader: map[string]string{
+					"Upgrade": "OpAMP/v0.2.0",
+				},
+			},
+		},
+		{
+			name: "ok version",
+			request: http.Request{
+				Header: http.Header{
+					"Agent-Hostname":        []string{"arm.localdomain"},
+					"Agent-Id":              []string{"4ec02b0f-3cb7-498d-9172-bfaa28718ee8"},
+					"Agent-Version":         []string{"v1.2.0"},
+					"Authorization":         []string{"Secret-Key a0f1db77-818a-4f1a-81a3-7b6a9613ef41"},
+					"Connection":            []string{"Upgrade"},
+					"Opamp-Version":         []string{"v0.2.0"},
+					"Sec-Websocket-Key":     []string{"xx=="},
+					"Sec-Websocket-Version": []string{"13"},
+					"Upgrade":               []string{"websocket"},
+					"User-Agent":            []string{"observiq-otel-collector/v1.2.0"},
+				},
+			},
+			expect: opamp.ConnectionResponse{
+				Accept:         true,
+				HTTPStatusCode: http.StatusOK,
+			},
+		},
+		{
+			name: "ok version, bad secret key",
+			request: http.Request{
+				Header: http.Header{
+					"Agent-Hostname":        []string{"arm.localdomain"},
+					"Agent-Id":              []string{"4ec02b0f-3cb7-498d-9172-bfaa28718ee8"},
+					"Agent-Version":         []string{"v1.2.0"},
+					"Authorization":         []string{"Secret-Key 6afd5cf2-2c3f-44f7-a2f6-6fc310ad69b8"},
+					"Connection":            []string{"Upgrade"},
+					"Opamp-Version":         []string{"v0.2.0"},
+					"Sec-Websocket-Key":     []string{"xx=="},
+					"Sec-Websocket-Version": []string{"13"},
+					"Upgrade":               []string{"websocket"},
+					"User-Agent":            []string{"observiq-otel-collector/v1.2.0"},
+				},
+			},
+			expect: opamp.ConnectionResponse{
+				Accept:         false,
+				HTTPStatusCode: http.StatusUnauthorized,
+			},
+		},
+		{
+			name: "future version",
+			request: http.Request{
+				Header: http.Header{
+					"Agent-Hostname":        []string{"arm.localdomain"},
+					"Agent-Id":              []string{"4ec02b0f-3cb7-498d-9172-bfaa28718ee8"},
+					"Agent-Version":         []string{"v1.2.0"},
+					"Authorization":         []string{"Secret-Key a0f1db77-818a-4f1a-81a3-7b6a9613ef41"},
+					"Connection":            []string{"Upgrade"},
+					"Opamp-Version":         []string{"v0.3.0"},
+					"Sec-Websocket-Key":     []string{"xx=="},
+					"Sec-Websocket-Version": []string{"13"},
+					"Upgrade":               []string{"websocket"},
+					"User-Agent":            []string{"observiq-otel-collector/v1.2.0"},
+				},
+			},
+			expect: opamp.ConnectionResponse{
+				Accept:         false,
+				HTTPStatusCode: http.StatusUpgradeRequired,
+				HTTPResponseHeader: map[string]string{
+					"Upgrade": "OpAMP/v0.2.0",
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		testManager, err := server.NewManager(&common.Server{SecretKey: "a0f1db77-818a-4f1a-81a3-7b6a9613ef41"}, nil, zap.NewNop())
+		require.NoError(t, err)
+		testServer := newServer(testManager, zap.NewNop())
+		testServer.compatibleOpAMPVersions = []string{"v0.2.0"}
+		t.Run(test.name, func(t *testing.T) {
+			response := testServer.OnConnecting(&test.request)
+			require.Equal(t, test.expect.Accept, response.Accept)
+			require.Equal(t, test.expect.HTTPStatusCode, response.HTTPStatusCode)
+			require.Equal(t, test.expect.HTTPResponseHeader, response.HTTPResponseHeader)
 		})
 	}
 }

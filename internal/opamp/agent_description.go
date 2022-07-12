@@ -17,7 +17,7 @@ package opamp
 import (
 	"github.com/open-telemetry/opamp-go/protobufs"
 
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/model"
 )
 
 type agentDescription struct {

@@ -23,9 +23,9 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/observiq/bindplane/client"
-	"github.com/observiq/bindplane/common"
-	"github.com/observiq/bindplane/internal/cli/printer"
+	"github.com/observiq/bindplane-op/client"
+	"github.com/observiq/bindplane-op/common"
+	"github.com/observiq/bindplane-op/internal/cli/printer"
 )
 
 // BindPlane is an instance of the BindPlane command line client

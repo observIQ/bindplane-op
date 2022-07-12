@@ -20,8 +20,8 @@ import (
 	"io"
 	"text/template"
 
-	"github.com/observiq/bindplane/model/otel"
-	"github.com/observiq/bindplane/model/validation"
+	"github.com/observiq/bindplane-op/model/otel"
+	"github.com/observiq/bindplane-op/model/validation"
 	"gopkg.in/yaml.v3"
 )
 

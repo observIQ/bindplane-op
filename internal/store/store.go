@@ -19,14 +19,16 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"net/http"
 	"sort"
 	"time"
 
+	"github.com/gorilla/sessions"
 	"github.com/hashicorp/go-multierror"
-	"github.com/observiq/bindplane/internal/eventbus"
-	"github.com/observiq/bindplane/internal/store/search"
-	"github.com/observiq/bindplane/model"
-	embedded "github.com/observiq/bindplane/resources"
+	"github.com/observiq/bindplane-op/internal/eventbus"
+	"github.com/observiq/bindplane-op/internal/store/search"
+	"github.com/observiq/bindplane-op/model"
+	embedded "github.com/observiq/bindplane-op/resources"
 	"go.uber.org/zap"
 )
 
@@ -85,6 +87,9 @@ type Store interface {
 
 	// ConfigurationIndex provides access to the search Index for Configurations
 	ConfigurationIndex() search.Index
+
+	// UserSessions must implement the gorilla sessions.Store interface
+	UserSessions() sessions.Store
 }
 
 // AgentUpdater is given the current Agent model (possibly empty except for ID) and should update the Agent directly. We
@@ -330,6 +335,13 @@ func applySortOffsetAndLimit[T any](list []T, opts queryOptions, fieldAccessor f
 		list = list[:limit]
 	}
 	return list
+}
+
+func newBPCookieStore(secret string) *sessions.CookieStore {
+	store := sessions.NewCookieStore([]byte(secret))
+	store.Options.MaxAge = 60 * 60 // 1 hour
+	store.Options.SameSite = http.SameSiteStrictMode
+	return store
 }
 
 type fieldAccessor[T any] func(field string, item T) string

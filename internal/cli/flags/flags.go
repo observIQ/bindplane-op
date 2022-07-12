@@ -15,7 +15,7 @@
 package flags
 
 import (
-	"github.com/observiq/bindplane/internal/agent"
+	"github.com/observiq/bindplane-op/internal/agent"
 	"github.com/spf13/cobra"
 )
 
@@ -32,6 +32,7 @@ func Global(cmd *cobra.Command) {
 	pf.String("tls-cert", "", "TLS certificate file")
 	pf.String("tls-key", "", "TLS private key file")
 	pf.StringSlice("tls-ca", make([]string, 0), "TLS certificate authority file(s) for mutual TLS authentication")
+	pf.Bool("tls-skip-verify", false, "Whether to verify the server's certificate chain and host name when making client requests")
 	pf.String("log-file-path", "", "full path of the BindPlane log file, defaults to $HOME/.bindplane/bindplane.log")
 	pf.String("log-output", "", "output of the log. One of: file|stdout")
 }
@@ -43,6 +44,7 @@ func Serve(cmd *cobra.Command) {
 	f.String("store-type", "", "type of store to use for storing agent status and configuration resources")
 	f.String("remote-url", "", "websocket url that agents use to connect to the server")
 	f.String("secret-key", "", "secret key used by agents when connecting to the server")
+	f.String("sessions-secret", "", "secret key used to sign cookies for session authentication, must be a UUID")
 	f.String("storage-file-path", "", "full path to the desired storage file, defaults to the $HOME/.bindplane/storage")
 	f.String("downloads-folder-path", "", "full path to the downloads folder where agents are cached, defaults to $HOME/.bindplane/downloads")
 	f.String("agents-service-url", agent.DefaultAgentVersionsURL, "url of the service that provides agent release information")

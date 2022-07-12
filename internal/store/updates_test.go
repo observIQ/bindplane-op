@@ -17,7 +17,7 @@ package store
 import (
 	"testing"
 
-	"github.com/observiq/bindplane/model"
+	"github.com/observiq/bindplane-op/model"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
@@ -28,7 +28,7 @@ var (
 )
 
 func updatesTestSetup(t *testing.T) {
-	updatesTestStore = NewMapStore(zap.NewNop())
+	updatesTestStore = NewMapStore(zap.NewNop(), "super-secret-key")
 	resourceMap = map[string]model.Resource{}
 	resources := []model.Resource{
 		newTestSourceType("st1"),

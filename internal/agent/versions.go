@@ -17,7 +17,7 @@ package agent
 import (
 	"time"
 
-	"github.com/observiq/bindplane/internal/util"
+	"github.com/observiq/bindplane-op/internal/util"
 	"go.uber.org/zap"
 )
 

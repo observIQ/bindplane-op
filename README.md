@@ -15,7 +15,7 @@ BindPlane OP is an open source observability pipeline that gives you the ability
 
 ## Features
 
-  * Manage the lifecycle of telemetry agents, starting with the [observIQ OpenTelemetry Collector](https://github.com/observIQ/observiq-otel-collector)
+  * Manage the lifecycle of telemetry agents, starting with the [observIQ Collector](https://github.com/observIQ/observiq-otel-collector)
   * Build, deploy, and manage telemetry configurations for different Sources and deploy them to your agents
   * Ship metric, log, and trace data to one or many Destinations
   * Utilize flow controls to adjust the flow of your data in realtime
@@ -63,16 +63,27 @@ sudo /usr/local/bin/bindplane init server --config /etc/bindplane/config.yaml
 
 ## Client
 
-To install BindPlane CLI on macOS or Linux, we recommend using the following installation commands. Alternatively, packages are available for download on our [releases](https://github.com/observIQ/bindplane-op/releases) page.
+See the [installation documentation](./doc/install.md#client) for client install instructions.
 
-### Linux
+## Agent
+
+BindPlane OP utilizes the [observIQ Distro for OpenTelemetry Collector](https://github.com/observIQ/observiq-otel-collector). To install using BindPlane CLI, run the following command on a server or client system to generate the agent install command.
+
 ```bash
-curl -fsSlL https://github.com/observiq/bindplane-op/releases/latest/download/install-linux.sh | bash -s --
+bindplanectl install agent
 ```
 
-### macOS
+The generated command can then be copied and run on the agent host. To tailor the install command for a specific operating system, use the `--platform` flag. Valid values include:
+
+ * `linux`
+ * `linux-arm64`
+ * `windows`
+ * `macos`
+ * `macos-amd64`
+
+To see additional flags and options for the agent install, use the `--help` flag.
 ```bash
-curl -fsSlL https://github.com/observiq/bindplane-op/releases/latest/download/install-macos.sh | bash -s --
+bindplanectl install agent --help
 ```
 
 ## Configuration
@@ -81,16 +92,22 @@ The configuration of BindPlane OP is best done through the UI which can be acces
 
 For more information on configuration, view our [Configuration](https://docs.bindplane.observiq.com/docs/configuration) documentation page.
 
-# Community
-
-BindPlane OP is an open source project. If you'd like to contribute, take a look at our [contribution guidelines](/docs/CONTRIBUTING.md). We look forward to building with you.
-
-## Code of Conduct
-
-BindPlane OP follows the [CNCF Code of Conduct](https://github.com/cncf/foundation/blob/main/code-of-conduct.md). Please report violations of the Code of Conduct to any or all maintainers.
-
 # Other questions?
 
 Join the conversation at the [BindPlane Slack](https://observiq.com/support-bindplaneop/)!
 
 You can also check out our [documentation](https://docs.bindplane.observiq.com/), send us an [email](mailto:support.observiq.com), or open an issue with your question. We'd love to hear from you!
+
+# Community
+
+## Code of Conduct
+
+BindPlane OP follows the [CNCF Code of Conduct](https://github.com/cncf/foundation/blob/main/code-of-conduct.md). Please report violations of the Code of Conduct to any or all maintainers.
+
+## Contributing
+
+See [CONTRIBUTING.md](/docs/CONTRIBUTING.md).
+
+<a href="https://github.com/observIQ/bindplane-op/graphs/contributors">
+  <img src="https://contributors-img.web.app/image?repo=observIQ/bindplane-op" />
+</a>

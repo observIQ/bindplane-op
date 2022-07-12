@@ -19,6 +19,9 @@ import { RawConfigWizard } from "../configurations/wizards/RawConfigWizard";
 import { useSnackbar } from "notistack";
 import { labelAgents } from "../../utils/rest/label-agents";
 import { RawConfigFormValues } from "../../types/forms";
+import { withRequireLogin } from "../../contexts/RequireLogin";
+import { withNavBar } from "../../components/NavBar";
+import { AgentChangesProvider } from "../../contexts/AgentChanges";
 
 import mixins from "../../styles/mixins.module.scss";
 
@@ -63,7 +66,7 @@ gql`
   }
 `;
 
-export const AgentPage: React.FC = () => {
+const AgentPageContent: React.FC = () => {
   const { id } = useParams();
   const snackbar = useSnackbar();
   const [importOpen, setImportOpen] = useState(false);
@@ -81,7 +84,11 @@ export const AgentPage: React.FC = () => {
   async function onImportSuccess(values: RawConfigFormValues) {
     if (data?.agent != null) {
       try {
-        await labelAgents([data.agent.id], { configuration: values.name });
+        await labelAgents(
+          [data.agent.id],
+          { configuration: values.name },
+          true
+        );
       } catch (err) {
         snackbar.enqueueSnackbar("Failed to apply label to agent.", {
           variant: "error",
@@ -149,6 +156,7 @@ export const AgentPage: React.FC = () => {
         open={importOpen}
         onClose={() => setImportOpen(false)}
         PaperComponent={EmptyComponent}
+        scroll={"body"}
       >
         <DialogContent>
           <Stack justifyContent="center" alignItems="center" height="100%">
@@ -180,3 +188,11 @@ function configPlatformFromAgentPlatform(platform: string | null | undefined) {
   if (platform === "darwin") return "macos";
   return platform;
 }
+
+export const AgentPage = withRequireLogin(
+  withNavBar(() => (
+    <AgentChangesProvider>
+      <AgentPageContent />
+    </AgentChangesProvider>
+  ))
+);
