@@ -24,14 +24,29 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type testAddr struct {
+	address string
+}
+
+var _ net.Addr = (*testAddr)(nil)
+
+func (a *testAddr) Network() string {
+	return "tcp"
+}
+
+func (a *testAddr) String() string {
+	return a.address
+}
+
 type testConnection struct {
 	agentID string
+	addr    testAddr
 }
 
 var _ opamp.Connection = (*testConnection)(nil)
 
 func (c *testConnection) RemoteAddr() net.Addr {
-	return nil
+	return &c.addr
 }
 
 func (c *testConnection) Send(ctx context.Context, message *protobufs.ServerToAgent) error {

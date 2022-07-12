@@ -15,7 +15,11 @@
 package opamp
 
 import (
+	"context"
+
 	"github.com/open-telemetry/opamp-go/protobufs"
+	opamp "github.com/open-telemetry/opamp-go/server/types"
+	"go.uber.org/zap"
 
 	"github.com/observiq/bindplane-op/model"
 )
@@ -78,4 +82,49 @@ func (desc *agentDescription) labels() model.Labels {
 		return model.LabelsFromMerge(agentLabels, bindplaneLabels)
 	}
 	return bindplaneLabels
+}
+
+// ----------------------------------------------------------------------
+// AgentDescription
+
+type agentDescriptionSyncer struct{}
+
+var _ messageSyncer[*protobufs.AgentDescription] = (*agentDescriptionSyncer)(nil)
+
+func (s *agentDescriptionSyncer) message(msg *protobufs.AgentToServer) (result *protobufs.AgentDescription, exists bool) {
+	result = msg.GetAgentDescription()
+	return result, result != nil
+}
+
+func (s *agentDescriptionSyncer) agentCapabilitiesFlag() protobufs.AgentCapabilities {
+	// TODO(andy): this flag is ok to check and should be true for all agents, but there should probably be a
+	// ReportsAgentDescription capability flag.
+	return protobufs.AgentCapabilities_ReportsStatus
+}
+
+func (s *agentDescriptionSyncer) update(ctx context.Context, logger *zap.Logger, state *agentState, conn opamp.Connection, agent *model.Agent, value *protobufs.AgentDescription) error {
+	state.Status.AgentDescription = value
+	updateOpAmpAgentDetails(agent, conn, value)
+	return nil
+}
+
+func updateOpAmpAgentDetails(agent *model.Agent, conn opamp.Connection, desc *protobufs.AgentDescription) {
+	ad := parseAgentDescription(desc)
+	if ad.AgentID != "" {
+		agent.ID = ad.AgentID
+	}
+	agent.Type = ad.AgentType
+	agent.Architecture = ad.Architecture
+	agent.Name = ad.AgentName
+	agent.HostName = ad.Hostname
+	agent.Platform = ad.Platform
+	agent.OperatingSystem = ad.OperatingSystem
+	agent.Labels = ad.labels()
+	agent.Version = ad.Version
+	agent.MacAddress = ad.MacAddress
+	if addr := conn.RemoteAddr(); addr != nil {
+		agent.RemoteAddress = addr.String()
+	} else {
+		agent.RemoteAddress = ""
+	}
 }

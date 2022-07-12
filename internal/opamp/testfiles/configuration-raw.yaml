@@ -1,0 +1,24 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: Configuration
+metadata:
+  name: api-test
+spec:
+  contentType: text/yaml
+  raw: >
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+          http:
+    exporters:
+      otlp:
+        endpoint: otelcol:4317
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlp]
+  selector:
+    matchLabels:
+      configuration: api-test
