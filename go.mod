@@ -12,7 +12,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
-	github.com/stretchr/testify v1.7.5
+	github.com/stretchr/testify v1.8.0
 	github.com/vektah/gqlparser/v2 v2.4.6
 	go.uber.org/zap v1.21.0
 	k8s.io/apimachinery v0.24.2
@@ -27,7 +27,7 @@ require (
 	github.com/json-iterator/go v1.1.12
 	github.com/spf13/pflag v1.0.5
 	github.com/swaggo/files v0.0.0-20220610200504-28940afbdbfe
-	github.com/swaggo/gin-swagger v1.5.0
+	github.com/swaggo/gin-swagger v1.5.1
 	github.com/swaggo/swag v1.8.3
 	go.etcd.io/bbolt v1.3.6
 	gopkg.in/yaml.v2 v2.4.0
