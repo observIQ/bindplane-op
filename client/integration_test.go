@@ -81,7 +81,7 @@ func bindplaneContainer(t *testing.T, env map[string]string) (testcontainers.Con
 	req := testcontainers.ContainerRequest{
 		Image:        image,
 		Env:          env,
-		BindMounts:   mounts,
+		Mounts:       mounts,
 		ExposedPorts: []string{fmt.Sprintf("%d:%d", port, 3001)},
 		WaitingFor:   wait.ForListeningPort("3001"),
 	}
