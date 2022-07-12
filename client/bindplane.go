@@ -180,7 +180,7 @@ func NewBindPlane(config *common.Client, logger *zap.Logger) (BindPlane, error) 
 	client.SetBasicAuth(config.Username, config.Password)
 	client.SetBaseURL(fmt.Sprintf("%s/v1", config.BindPlaneURL()))
 
-	tlsConfig, err := tlsClient(config.Certificate, config.PrivateKey, config.CertificateAuthority)
+	tlsConfig, err := tlsClient(config.Certificate, config.PrivateKey, config.CertificateAuthority, config.InsecureSkipVerify)
 	if err != nil {
 		return nil, fmt.Errorf("failed to configure TLS client: %w", err)
 	}
