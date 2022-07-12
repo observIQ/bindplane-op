@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"os"
 	"path"
+
+	"github.com/observiq/bindplane-op/internal/trace"
 )
 
 const (
@@ -107,8 +109,15 @@ type Common struct {
 	// It is read-only and available via BindPlaneHomePath()
 	bindplaneHomePath string
 
-	// GoogleCloudTracing enables and configures tracing to Google Cloud
-	GoogleCloudTracing *GoogleCloudTracing `mapstructure:"tracing,omitempty" yaml:"tracing,omitempty"`
+	// TraceType enables tracing
+	TraceType string `mapstructure:"traceType,omitempty" yaml:"traceType,omitempty"`
+
+	// GoogleCloudTracing is used to send traces to Google Cloud when TraceType is set to "google".
+	GoogleCloudTracing trace.GoogleCloudTracing `mapstructure:"googleTracing,omitempty" yaml:"googleTracing,omitempty"`
+
+	// OpenTelemetryTracing is used to send traces to an Open Telemetry OTLP receiver when
+	// TraceType is set to "otlp".
+	OpenTelemetryTracing trace.OpenTelemetryTracing `mapstructure:"otlpTracing,omitempty" yaml:"otlpTracing,omitempty"`
 }
 
 // TLSConfig contains configuration for connecting over TLS and mTLS.
@@ -195,13 +204,6 @@ type GoogleCloudPubSub struct {
 	// Subscription is the name of the subscription that this node should use. In production this will be generated but it
 	// is useful to specify in development.
 	Subscription string `mapstructure:"subscription,omitempty" yaml:"subscription,omitempty"`
-}
-
-// GoogleCloudTracing is configuration for tracing to Google Cloud Monitoring
-type GoogleCloudTracing struct {
-	Enabled         bool   `mapstructure:"enabled" yaml:"enabled"`
-	ProjectID       string `mapstructure:"projectID,omitempty" yaml:"projectID,omitempty"`
-	CredentialsFile string `mapstructure:"credentialsFile,omitempty" yaml:"credentialsFile,omitempty"`
 }
 
 // Client TODO(doc)

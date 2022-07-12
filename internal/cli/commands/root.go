@@ -21,22 +21,20 @@ import (
 	"runtime"
 	"time"
 
-	texporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
-	"go.uber.org/zap"
-	"google.golang.org/api/option"
 
 	"github.com/observiq/bindplane-op/common"
 	"github.com/observiq/bindplane-op/internal/cli"
 	"github.com/observiq/bindplane-op/internal/cli/commands/profile"
 	"github.com/observiq/bindplane-op/internal/cli/flags"
+	bptrace "github.com/observiq/bindplane-op/internal/trace"
 	v "github.com/observiq/bindplane-op/internal/version"
+	oteltrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
 // BindplaneHome returns the value of the homeArg, BINDPLANE_CONFIG_HOME,
@@ -75,7 +73,11 @@ func Command(bindplane *cli.BindPlane, name string) *cobra.Command {
 				return fmt.Errorf("error while trying to unmarshal configuration, %w", err)
 			}
 
-			initTracing(bindplane)
+			err = initTracing(bindplane)
+			if err != nil {
+				bindplane.Logger().Sugar().Warnf("continuing without tracing: %v", err)
+			}
+
 			return nil
 		},
 	}
@@ -165,50 +167,62 @@ func initViper(conf *common.Config) error {
 	return viper.Unmarshal(conf)
 }
 
-func initTracing(bindplane *cli.BindPlane) {
+func initTracing(bindplane *cli.BindPlane) error {
 	config := bindplane.Config
-	tracing := config.Server.GoogleCloudTracing
-	if tracing == nil || !tracing.Enabled {
-		return
-	}
-	bindplane.Logger().Info("Enabling tracing to Google Cloud")
+	traceType := config.Server.TraceType
 
+	if traceType == "" {
+		bindplane.Logger().Info("skipping trace setup, trace type is not set")
+		return nil
+	}
+
+	// Resource Attributes
 	hostname, _ := os.Hostname()
-	exporter, err := texporter.New(
-		texporter.WithProjectID(tracing.ProjectID),
-		texporter.WithTraceClientOptions([]option.ClientOption{
-			option.WithCredentialsFile(tracing.CredentialsFile),
-		}),
+	resources := resource.NewWithAttributes(
+		semconv.SchemaURL,
+		semconv.ServiceNameKey.String("bindplane"),
+		semconv.ServiceVersionKey.String(v.NewVersion().String()),
+		semconv.HostArchKey.String(runtime.GOARCH),
+		semconv.HostNameKey.String(hostname),
 	)
-	if err != nil {
-		bindplane.Logger().Error("Failed to create trace exporter, tracing disabled", zap.Error(err))
-		return
+
+	var provider *oteltrace.TracerProvider
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+
+	switch x := config.Server.TraceType; x {
+	case "google":
+		conf := config.Server.GoogleCloudTracing
+		tp, err := bptrace.NewGoogleCloudExporter(ctx, conf, resources)
+		if err != nil {
+			cancel()
+			return fmt.Errorf("failed to init Google Cloud tracing: %v", err)
+		}
+		provider = tp
+
+	case "otlp":
+		conf := config.Server.OpenTelemetryTracing
+		tp, err := bptrace.NewOTLPExporter(ctx, conf, resources)
+		if err != nil {
+			cancel()
+			return fmt.Errorf("failed to init OTLP tracing: %v", err)
+		}
+		provider = tp
+
+	default:
+		bindplane.Logger().Sugar().Warnf("unexpected trace type '%s': supported trace types are 'google' and 'otlp': tracing disabled", x)
+		cancel()
+		return nil
 	}
 
-	tp := trace.NewTracerProvider(
-		// batch traces before sending
-		trace.WithBatcher(exporter),
-		trace.WithResource(resource.NewWithAttributes(
-			semconv.SchemaURL,
-			semconv.ServiceNameKey.String("bindplane"),
-			semconv.ServiceVersionKey.String(v.NewVersion().String()),
-			semconv.HostArchKey.String(runtime.GOARCH),
-			semconv.HostNameKey.String(hostname),
-		)),
-	)
+	otel.SetTracerProvider(provider)
 
 	// cleanly shutdown and flush telemetry when the application exits.
 	bindplane.AddShutdownHook(func() {
-		bindplane.Logger().Info("flushing traces to Google Cloud before shutdown")
-
-		// do not make the application hang when it is shutdown.
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		if err := tp.Shutdown(ctx); err != nil {
-			bindplane.Logger().Error("error during shutdown of the otel trace provider", zap.Error(err))
-		}
+		bindplane.Logger().Info("flushing traces before shutdown")
+		cancel()
 	})
 
-	// set the TracerProvider as the global so that we can use it as needed
-	otel.SetTracerProvider(tp)
+	bindplane.Logger().Info("tracing configured")
+	return nil
 }
