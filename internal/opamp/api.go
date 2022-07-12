@@ -393,7 +393,7 @@ func (s *opampServer) updateAgentConfig(ctx context.Context, agent *model.Agent,
 
 	// change the agent status to Configuring, but ignore any failure as this status is considered nice to have and not
 	// required to update the agent
-	s.manager.UpsertAgent(ctx, agent.ID, func(current *model.Agent) { current.Status = model.Configuring })
+	_, _ = s.manager.UpsertAgent(ctx, agent.ID, func(current *model.Agent) { current.Status = model.Configuring })
 
 	s.logger.Info("agent running with outdated config", zap.Any("cur", agentConfiguration.Collector), zap.Any("new", serverConfiguration.Collector))
 	response.RemoteConfig = remoteConfig
