@@ -24,7 +24,6 @@ import (
 	"net/url"
 	"os"
 	"path"
-	"runtime"
 	"testing"
 	"time"
 
@@ -37,11 +36,13 @@ import (
 	"go.uber.org/zap"
 )
 
-func containerImage() string {
-	if x := os.Getenv("BINDPLANE_TEST_IMAGE"); x != "" {
-		return x
+func containerImage() (string, error) {
+	env := "BINDPLANE_TEST_IMAGE"
+	x := os.Getenv(env)
+	if x == "" {
+		return "", fmt.Errorf("%s not set in the environment", env)
 	}
-	return fmt.Sprintf("bindplane-%s:latest", runtime.GOARCH)
+	return x, nil
 }
 
 func defaultServerEnv() map[string]string {
@@ -71,9 +72,14 @@ func bindplaneContainer(t *testing.T, env map[string]string) (testcontainers.Con
 		"/tmp": path.Join(dir, "testdata"),
 	}
 
+	image, err := containerImage()
+	if err != nil {
+		return nil, 0, fmt.Errorf("cannot create integration test container: %v", err)
+	}
+
 	ctx := context.Background()
 	req := testcontainers.ContainerRequest{
-		Image:        containerImage(),
+		Image:        image,
 		Env:          env,
 		BindMounts:   mounts,
 		ExposedPorts: []string{fmt.Sprintf("%d:%d", port, 3001)},

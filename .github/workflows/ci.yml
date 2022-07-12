@@ -341,8 +341,6 @@ jobs:
           filter: reference=observiq/bindplane-amd64:${{ env.GITHUB_SHA_SHORT }}
       - name: Run Unit Tests With Coverage
         run: make test-with-cover
-        env:
-          BINDPLANE_TEST_IMAGE: observiq/bindplane-amd64:${{ env.GITHUB_SHA_SHORT }}
       - name: Upload coverage report
         uses: codecov/codecov-action@v3
         with:
