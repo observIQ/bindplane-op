@@ -2,7 +2,7 @@ apiVersion: bindplane.observiq.com/v1beta
 kind: SourceType
 metadata:
   name: csv
-  displayName: CSV Logs
+  displayName: CSV
   icon: /icons/sources/csv.svg
   description: Parser for logs with Comma Separated Values
 spec:
