@@ -68,9 +68,14 @@ func bindplaneContainer(t *testing.T, env map[string]string) (testcontainers.Con
 		return nil, 0, err
 	}
 
-	mounts := map[string]string{
-		"/tmp": path.Join(dir, "testdata"),
+	var target testcontainers.ContainerMountTarget = "/tmp"
+	mount := testcontainers.ContainerMount{
+		Source: testcontainers.GenericBindMountSource{
+			path.Join(dir, "testdata"),
+		},
+		Target: target,
 	}
+	mounts := testcontainers.ContainerMounts{mount}
 
 	image, err := containerImage()
 	if err != nil {
