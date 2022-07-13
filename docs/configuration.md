@@ -1,218 +1,412 @@
 # Configuration
 
-## Profiles
+  * [Options](#options)
+  * [Initialization](#initialization)
+    + [Server](#server)
+    + [Client](#client)
+  * [Client Profiles](#client-profiles)
+  * [Example Configurations](#example-configurations)
+    + [Basic](#basic)
+    + [TLS](#tls)
+      - [Server Side TLS](#server-side-tls)
+      - [Mutual TLS](#mutual-tls)
 
-BindPlane can save application configuration as a profile, with the `bindplane profile` command.
+## Options
 
-For configurable variables, BindPlane will look for flags, environment variables, and a configuration file, with precedence: flags > environment variables > configuration file.
+BindPlane server configuraton can be found at `/etc/bindplane/config.yaml`.
 
-### Global configuration
+BindPlane will look for flags, environment variables, and a configuration file, with precedence: flags > environment variables > configuration file.
 
-| Name        | Description                                                                              | Flag            | Env Variable              | Default            |
-| ----------- | ---------------------------------------------------------------------------------------- | --------------- | ------------------------- | ------------------ |
-| Port        | The port on which the BindPlane server runs                                                   | --port          | BINDPLANE_CONFIG_PORT          | `3001`             |
-| Host        | The host on which the BindPlane server runs                                                   | --host          | BINDPLANE_CONFIG_HOST          | `localhost`        |
-| Server URL  | The address of the remote BindPlane server, if not set will be inferred as `http://host:port` | --server-url    | BINDPLANE_CONFIG_SERVER_URL    |                    |
-| Username    | Basic auth username                                                                      | --username      | BINDPLANE_CONFIG_USERNAME      | `admin`            |
-| Password    | Basic auth password                                                                      | --password      | BINDPLANE_CONFIG_PASSWORD      | `admin`            |
-| TLSConfig   | See "TLS configuration" section                                                          |                 |                           |                    |
-| LogFilePath | The full path to the log file                                                            | --log-file-path | BINDPLANE_CONFIG_LOG_FILE_PATH | `~/.bindplane/bindplane.log` |
+Server and client configuratins can be bootstrapped using the `init` command. See the [initialization section](./configuration.md#initialization).
+
+For detailed examples, see the [configurations seection](./configuration.md#example-configuration).
+
+**Host**
+
+IP Address the BindPlane server binds to. This can be a single address or `0.0.0.0` for all interfaces.
+
+| Option  | Flag     | Environment Variable   | Default                  |
+| ------- | -------- | ---------------------- | ------------------------ |
+| host    | --host   | BINDPLANE_CONFIG_HOST  | `127.0.0.1`              |
+
+**Port**
+
+TCP port the BindPlane server binds to. This must be an unprivileged port when running BindPlane as a non root user.
+
+| Option  | Flag     | Environment Variable   | Default                  |
+| ------- | -------- | ---------------------- | ------------------------ |
+| port    | --port   | BINDPLANE_CONFIG_PORT  | `3001`                   |
+
+**Server URL**
+
+URL used to reach the BindPlane server. This must be set in all client and server configurations
+and must be a valid URL with a protocol (http / https), hostname or ip address, and port.
+
+If the server is behind a proxy or load balancer, the proxy URL can be used.
+
+| Option    | Flag         | Environment Variable         | Default                  |
+| --------- | ------------ | ---------------------------- | ------------------------ |
+| serverURL | --server-url | BINDPLANE_CONFIG_SERVER_URL  | `http://127.0.0.1:3001`  |
 
 
-### Server configuration
+**Username and Password**
 
-| Name                    | Description                                                                                                          | Flag                      | Env Variable                        | Default           |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------- | ----------------------------------- | ----------------- |
-| Storage File Path       | Full path to the desired storage file for persistent data                                                            | --storage-file-path       | BINDPLANE_CONFIG_STORAGE_FILE_PATH       | `~/.bindplane/storage` |
-| Secret Key              | Shared key (UUID) between server and agent for authentication                                                        | --secret-key              | BINDPLANE_CONFIG_SECRET_KEY              |                   |
-| Remote URL              | Websocket URL used by agents connecting to BindPlane, if not set will be inferred as `ws://host:port`                     | --remote-url              | BINDPLANE_CONFIG_REMOTE_URL              |                   |
-| Offline                 | BindPlane will not attempt to connect to external systems. REST and Websocket are still available for clients and agents  | --offline                 | BINDPLANE_CONFIG_OFFLINE                 | `false`           |
-| Agents Service URL      | The URL used to download agent releases                                                                              | --agents-service-url      | BINDPLANE_CONFIG_AGENTS_SERVICE_URL      | `https://agents.app.observiq.com` |
-| Downloads Folder        | Directory used to cache agent downloads                                                                              | --downloads-folder-path   | BINDPLANE_CONFIG_DOWNLOADS_FOLDER_PATH   | `~/.bindplane/downloads`               |
-| Disable Downloads Cache | BindPlane will not attempt to cache agent downloads                                                                       | --disable-downloads-cache | BINDPLANE_CONFIG_DISABLE_DOWNLOADS_CACHE | `false`                           |
+The basic auth username and password used for cli and web interface authentication.
 
-### TLS configuration
+| Option    | Flag         | Environment Variable         | Default                  |
+| --------- | ------------ | ---------------------------- | ------------------------ |
+| username  | --username   | BINDPLANE_CONFIG_USERNAME    | `admin`  |
+| password  | --password   | BINDPLANE_CONFIG_PASSWORD    | `admin`  |
 
-BindPlane supports TLS for communication between client, server, and agent. When a certificate authority is set, mTLS is enabled. All certificate
-and private keys are expected to be x509 PEM encoded. TLS is disabled by default.
 
-| Name                      | Description                                                              | Flag       | Env Variable         | Default   |
-| ------------------------- | ------------------------------------------------------------------------ | ---------- | -------------------- | --------- |
-| TLS Certificate           | The TLS Certificate (x509 PEM) to use for client and server interaction  | --tls-cert | BINDPLANE_CONFIG_TLS_CERT |           |
-| TLS Private Key           | The TLS Private Key (x509 PEM) to use for client and server interfaction | --tls-key  | BINDPLANE_CONFIG_TLS_KEY  |           |
-| TLS Certificate Authority | The TLS certificate authority (x509 PEM), when set, **mTLS is enabled**  | --tls-ca   | BINDPLANE_CONFIG_TLS_CA   |           |
+**Logging**
 
-#### Server Side TLS Example
+Log output (`file` or `stdout`). When log output is set to `file`, a log file path can be specified.
 
-In this example, the server has a certificate and private key. The client connects
-to the server's rest endpoint using TLS. The agent connects to the server's web socket
-endpoint using TLS. It is assumed that the client and agent systems trust the server's
-certificate.
+| Option       | Flag            | Environment Variable           | Default                      |
+| ------------ | --------------- | ------------------------------ | ---------------------------- |
+| logOutput    | --log-output    | BINDPLANE_CONFIG_LOG_OUTPUT    | `file`                       |
+| logFilePath  | --log-file-path | BINDPLANE_CONFIG_LOG_FILE_PATH | `~/.bindplane/bindplane.log` |
 
-Server Configuration
-```
-apiVersion: bindplane.observiq.com/v1beta
-kind: Profile
-metadata:
-  name: https
-spec:
-  tlsCert: tls/bindplane.crt
-  tlsKey: tls/bindplane.key
-  serverURL: https://localhost:3001
-  server:
-    remoteURL: wss://localhost:3001
-```
+Server installations will use `/var/log/bindplane/bindplane.log`, which is set
+using an environment variable in the systemd service configuration.
 
-Client Configuration
-```
-apiVersion: bindplane.observiq.com/v1beta
-kind: Profile
-metadata:
-  name: https
-spec:
-  serverURL: https://localhost:3001
-```
+Log files are rotated and gzip compressed, and cleaned up automatically by BindPlane. Log files have a max size of 100mb
+and up to 10 rotates or 30 days of age, whichever comes first. Using an external utilizty such as `logrotate` is not recomended.
 
-Agent Configuration
-```
-endpoint: wss://localhost:3001
-```
+**TLS**
 
-#### Server Side mTLS Example
+BindPlane supports server side TLS and mutual TLS. See [the tls examples](./configuration.md#example-configurations)
+for detailed usage.
 
-In this example, the configuration is the same as Server Side TLS, however, mTLS
-is enabled by setting at least one certificate authority. The client and agent
-present a certificate to the server for authentication.
+| Option       | Flag            | Environment Variable      |
+| ------------ | --------------- | ------------------------- |
+| tlsCert      | --tls-cert      | BINDPLANE_CONFIG_TLS_CERT |
+| tlsKey       | --tls-key       | BINDPLANE_CONFIG_TLS_KEY  |
+| tlsCA        | --tls-ca        | BINDPLANE_CONFIG_TLS_CA   |
+| tlsSkipVerify | --tls-skip-verify | BINDPLANE_CONFIG_TLS_SKIP_VERIFY |
 
-Multiple certificate authorities can be configured, allowing clients and agents
-signed by different authorities to authenticate to BindPlane.
+Server
+- tlsCert: Enables server side TLS
+- tlsKey: Enables server side TLS
+- tlsCa: Enables mutual TLS
 
-Server Configuration
-```
-apiVersion: bindplane.observiq.com/v1beta
-kind: Profile
-metadata:
-  name: https-mtls
-spec:
-  tlsCert: tls/bindplane.crt
-  tlsKey: tls/bindplane.key
-  tlsCa:
-  - tls/bindplane-ca.crt
-  serverURL: https://localhost:3001
-  server:
-    remoteURL: wss://localhost:3001
-```
+Client
+- tlsCa: Allows client to trust the server certificate. Not required if the host operating system already trusts the server certificate.
+- tlsCert: Enables mutual TLS
+- tlsKey: Enables mutual TLS
+- tlsSkipVerify: Skip server certificate verification
 
-Client Configuration
-```
-apiVersion: bindplane.observiq.com/v1beta
-kind: Profile
-metadata:
-  name: https-mtls
-spec:
-  tlsCert: tls/bindplane-client.crt
-  tlsKey: tls/bindplane-client.key
-  tlsCa:
-  - tls/bindplane-ca.crt
-  serverURL: https://localhost:3001
-```
+**Storage Backend**
 
-Agent Configuration
-```
-endpoint: wss://localhost:3001
-cacert: /opt/tls/bindplane-ca.crt
-tlscert: /opt/tls/bindplane-agent.crt
-tlskey: /opt/tls/bindplane-agent.key
-```
+BindPlane supports one storage backend, `bbolt`, but other storage backends will be available in the future.
 
-### Command configuration
+| Option                 | Flag                | Environment Variable               | Default                |
+| ---------------------- | ------------------- | ---------------------------------- | ---------------------- |
+| server.storeType       | --store-type        | BINDPLANE_CONFIG_STORE_TYPE        | `bbolt`                |
+| server.storageFilePath | --storage-file-path | BINDPLANE_CONFIG_STORAGE_FILE_PATH | `~/.bindplane/storage` |
 
-| Name   | Description                                                            | Flag         | Env Variable       | Default |
-| ------ | ---------------------------------------------------------------------- | ------------ | ------------------ | ------- |
-| Output | specify either json, yaml, or table formatting for command line output | --output, -o | BINDPLANE_CONFIG_OUTPUT | table   |
+**Server Secret Key**
 
-### Custom Configuration File
+A UUIDv4 used for collector authentication. This should be a new random UUIDv4. This
+value should be different than `server.sessionsSecret`.
 
-You can pass in a full path to a configuration file with the --config flag. BindPlane expects the global variables to be unnested like so:
+| Option           | Flag         | Environment Variable   |
+| ---------------- | ------------ | ---------------------- |
+| server.secretKey | --secret-key | BINDPLANE_CONFIG_SECRET_KEY  | 
 
-`sample-config.yaml`
+**Server Sessions Secret**
 
-```sh
-host: localhost
-port: "5000"
-server:
-  remoteURL: ws://localhost:3001
-```
+A UUIDv4 used for encoding web UI login cookies. This should be a new random UUIDv4. This
+value should be different than `server.secretKey`.
 
-```sh
-bindplane [commands] --config sample-config.yaml
-```
+| Option                | Flag         | Environment Variable   |
+| --------------------- | ------------ | ---------------------- |
+| server.sessionsSecret | --secret-key | BINDPLANE_CONFIG_SESSIONS_SECRET  | 
 
-### BindPlane App configuration with Profile command.
+**Server Remote URL**
 
-You can set values on a saved configuration with the `bindplane profile set` command. For example if you wanted to save a profile that uses a server hosted at `https://remote-address.com` you could save that under the `local` profile with this command:
+URL used by collectors to reach the BindPlane server via web socket. It must be a valid 
+URL with a protocol (ws / wss), hostname or ip address, and port.
 
-```sh
-bindplane profile set local --serverUrl https://remote-address.com
+If the server is behind a proxy or load balancer, the proxy URL can be used.
+
+| Option           | Flag         | Environment Variable        | Default                  |
+| ---------------- | ------------ | --------------------------- | ------------------------ |
+| server.remoteURL | --remote-url | BINDPLANE_CONFIG_REMOTE_URL | `ws://127.0.0.1:3001`    |
+
+## Initialization
+
+The `init` command is useful for bootstrapping a server or client.
+
+### Server
+
+After installing BindPlane server, simply run the following command and follow the prompts.
+
+```bash
+sudo bindplane init server \
+  --config /etc/bindplane/config.yaml
 ```
 
-`bindplane profile get <name>` command returns the profile yaml
+One finished, the server must be restarted.
 
-```sh
-bindplane profile get local
+### Client
 
-apiVersion: bindplane.observiq.com/v1beta
-kind: Profile
-metadata:
-  name: local
-spec:
-  serverUrl: https://remote-address.com
+Client initalization will create a new profile if one is not
+already set. If an existing profile is in use, init will update
+that profile. You can learn more about profiles in the [client profiles](./configuration.md#client-profiles) sectio.
+
+```bash
+bindplanectl init client
 ```
 
-`bindplane profile get --current` returns the settings of the current profile
+Once finished, the client configuration will exist in `~/.bindplane/profiles`. You
+can also run the `profile` command:
 
-Note that this returns the `Resource` form of the configuration, the pertinent variables are set in `spec`.
-
-`bindplane profile list` returns the available saved profiles.
-
-`bindplane profile delete <name>` will remove a saved profile.
-
-`bindplane profile use <name>` will set the default context to use on startup.
-
-`bindplane profile current` will return the name of the currently used profile
-
----
-
-### BindPlane Home
-
-BindPlane home defaults to the running user's home directory. For example, the `observiq` user's bindplane directory would be
-found in `/home/observiq/.bindplane`.
-
-```
-/home/observiq/.bindplane
-├── bindplane-2022-03-04T21-07-26.022.log.gz
-├── bindplane.log
-├── profiles
-│   ├── current
-│   ├── docker-https-mtls.yaml
-│   ├── docker-https.yaml
-│   ├── docker-http.yaml
-│   ├── local.yaml
-│   └── poc.yaml
-└── storage
+```bash
+bindplanectl profile --help
 ```
 
-You can set `BINDPLANE_CONFIG_HOME` to override this behavior. For example, the server package will install
-with `BINDPLANE_CONFIG_HOME=/var/lib/bindplane` in addition to setting the log, storage, and download paths.
+## Client Profiles
 
-Systemd Service and Config snippet:
+The `profile` command offers a convenient way to create and use multiple client configurations.
+
+In this example, it is assumed that the BindPlane server is running at `10.99.1.10` on port `3001`.
+
+```bash
+bindplanectl profile set remote --server-url https://10.99.1.10:3001
+bindplanectl profile use remote
 ```
-Environment="BINDPLANE_CONFIG_HOME=/var/lib/bindplane"
-```
-```
-logFilePath: /var/log/bindplane/bindplane.log
-bindplaneHome: /var/lib/bindplane
+
+See `bindplanectl profile help` for more profile sub commands.
+
+## Example Configurations
+
+The following examples assume the use of [observIQ collectors](https://github.com/observIQ/observiq-otel-collector).
+
+### Basic
+
+This configuration assumes that the BindPlane server is running on
+IP address `192.168.1.10`.
+
+**Server Configuration**
+
+```yaml
+host: 192.168.1.10
+port: 3001
+username: myuser
+password: mypassword
+logfilePath: /var/log/bindplane/bindplane.log
+serverURL: http://192.168.1.10:3001
 server:
   storageFilePath: /var/lib/bindplane/storage/bindplane.db
-  downloadsFolderPath: /var/lib/bindplane/downloads
+  secretKey: e124852a-49db-4318-99a8-76bd4aa80ba5
+  sessionsSecret: 99112c19-9d87-4460-958c-a9affa874e21
+  remoteURL: ws://192.168.1.10:3001
 ```
+
+**Client Profile**
+
+Create a profile named `basic`:
+
+```bash
+bindplanectl profile set basic \
+  --username myuser \
+  --password mypassword \
+  --server-url http://192.168.1.10:3001
+
+bindplanectl profile use basic
+```
+
+A profile will be created at `~/.bindplane/profiles/basic.yaml`:
+
+```yaml
+username: myuser
+password: mypassword
+serverURL: http://192.168.1.10:3001
+```
+
+**Collector Manager Configuration**
+
+```yaml
+endpoint: http://192.168.1.10:3001/v1/opamp
+secret_key: e124852a-49db-4318-99a8-76bd4aa80ba5
+agent_id: ad3caa0c-ac90-4f8d-8691-2f43d9addc71
+```
+
+### TLS
+
+BindPlane OP has support for server side TLS and mutual TLS.
+
+What is a server? A server is the process running from the `bindplane serve` command.
+
+What is a client?
+- bindplane cli
+- OpAMP collectors
+- Web browsers
+
+Keep in mind that all certificate files must be readable by the user running the bindplane, client,
+and collector processes.
+
+#### Server Side TLS
+
+**Server Configuration**
+
+Server side TLS is configured by setting `tlsCert` and `tlsKey` on the server. 
+
+```yaml
+host: 0.0.0.0
+port: 3001
+username: myuser
+password: mypassword
+logfilePath: /var/log/bindplane/bindplane.log
+serverURL: https://bindplane-op.mydomain.net:3001
+server:
+  storeType: bbolt
+  storageFilePath: /var/lib/bindplane/storage/bindplane.db
+  secretKey: e124852a-49db-4318-99a8-76bd4aa80ba5
+  sessionsSecret: 99112c19-9d87-4460-958c-a9affa874e21
+  remoteURL: wss://bindplane-op.mydomain.net:3001
+tlsCert: /etc/bindplane/tls/bindplane.crt
+tlsKey: /etc/bindplane/tls/bindplane.key
+```
+
+Note that serverURL and remoteURL have a tls protocol set (`https` / `wss`).
+
+**Client Profile**
+
+All clients must trust the certificate authority that signed the server's 
+certificate. This can be accomplished by setting `tlsCa` on the client or 
+by importing the certificate authority into your operating system's trust store.
+
+Create a profile named `tls`:
+
+```bash
+bindplanectl profile set tls \
+  --username myuser \
+  --password mypassword \
+  --server-url http://192.168.1.10:3001 \
+  --tls-ca /etc/bindplane/tls/my-corp-ca.crt
+
+bindplanectl profile use tls
+```
+
+A profile will be created at `~/.bindplane/profiles/tls.yaml`:
+
+```yaml
+username: myuser
+password: mypassword
+serverURL: https://bindplane-op.mydomain.net:3001
+tlsCa:
+  - /etc/bindplane/tls/my-corp-ca.crt
+```
+
+If the server's certificate authority is already imported into the client's operating system trust
+store, it is not required to be set in the configuration.
+
+Browsers will show a TLS warning unless the certificate authority is trusted by
+your operating system.
+
+**Collector Manager Configuration**
+
+```yaml
+endpoint: https://bindplane-op.mydomain.net:3001/v1/opamp
+secret_key: e124852a-49db-4318-99a8-76bd4aa80ba5
+agent_id: ad3caa0c-ac90-4f8d-8691-2f43d9addc71
+tls_config:
+  ca_file: /opt/observiq-otel-collector/tls/bindplane-ca.crt
+```
+
+If the server's certificate authority is already imported into the client's operating system trust
+store, it is not required to be set in the configuration.
+
+#### Mutual TLS
+
+In this example, three certificate authorities are referenced:
+- `my-corp-ca.crt`: Signed the server's certificate, must be trusted by all clients / collectors
+- `client-ca.crt`: Signed all client certificates, must be set in the server configuration
+- `collector-ca.crt`: Signed all collector certificates, must be set in the server configuration
+
+**Server Configuration**
+
+Mutual TLS is configured by setting `tlsCert`, `tlsKey`, and `tlsCa` on the server. 
+
+```yaml
+host: 0.0.0.0
+port: 3001
+username: myuser
+password: mypassword
+logfilePath: /var/log/bindplane/bindplane.log
+serverURL: https://bindplane-op.mydomain.net:3001
+server:
+  storeType: bbolt
+  storageFilePath: /var/lib/bindplane/storage/bindplane.db
+  secretKey: e124852a-49db-4318-99a8-76bd4aa80ba5
+  sessionsSecret: 99112c19-9d87-4460-958c-a9affa874e21
+  remoteURL: wss://bindplane-op.mydomain.net:3001
+tlsCert: /etc/bindplane/tls/bindplane.crt
+tlsKey: /etc/bindplane/tls/bindplane.key
+# Any client / collector certificate signed by one of these
+# authorities will be trusted.
+tlsCa:
+  - /etc/bindplane/tls/client-ca.crt
+  - /etc/bindplane/tls/collector-ca.crt
+```
+
+Note that serverURL and remoteURL have a tls protocol set (`https` / `wss`).
+
+Note that mutliple certificate authorities can be specified. This example will trust
+incoming connections from certificates signed by `client-ca` and `collector-ca`.
+
+**Client Profile**
+
+All clients must trust the certificate authority that signed the server's 
+certificate. This can be accomplished by setting `tlsCa` on the client or 
+by importing the certificate authority into your operating system's trust store.
+
+Create a profile named `mtls`:
+
+```bash
+bindplanectl profile set mtls \
+  --username myuser \
+  --password mypassword \
+  --server-url http://192.168.1.10:3001 \
+  --tls-cert /etc/bindplane/tls/client.crt \
+  --tls-key /etc/bindplane/tls/client.key \
+  --tls-ca /etc/bindplane/tls/my-corp-ca.crt
+
+bindplanectl profile use mtls
+```
+
+A profile will be created at `~/.bindplane/profiles/mtls.yaml`:
+
+```yaml
+username: myuser
+password: mypassword
+serverURL: https://bindplane-op.mydomain.net:3001
+tlsCert: /etc/bindplane/tls/client.crt
+tlsKey: /etc/bindplane/tls/client.key
+tlsCa:
+  - /etc/bindplane/tls/my-corp-ca.crt
+```
+
+If the server's certificate authority is already imported into the client's operating system trust
+store, it is not required to be set in the configuration.
+
+Browsers will show a TLS warning unless the certificate authority is trusted by
+your operating system.
+
+**Collector Manager Configuration**
+
+```yaml
+endpoint: https://bindplane-op.mydomain.net:3001/v1/opamp
+secret_key: e124852a-49db-4318-99a8-76bd4aa80ba5
+agent_id: ad3caa0c-ac90-4f8d-8691-2f43d9addc71
+tls_config:
+  cert_file: /opt/observiq-otel-collector/tls/collector.crt
+  key_file: /opt/observiq-otel-collector/tls/collector.crt
+  ca_file: /opt/observiq-otel-collector/tls/bindplane-ca.crt
+```
+
+If the server's certificate authority is already imported into the client's operating system trust
+store, it is not required to be set in the configuration.

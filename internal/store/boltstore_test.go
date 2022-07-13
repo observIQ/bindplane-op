@@ -390,12 +390,11 @@ func TestNewBoltStore(t *testing.T) {
 			require.NotNil(t, db, "failed to initialize test bbolt, is nil")
 
 			// Test
-			output := NewBoltStore(db, "super-secret-key", nil)
+			output := NewBoltStore(db, "super-secret-key", zap.NewNop())
 			require.NotNil(t, output)
 			require.IsType(t, &boltstore{}, output)
 			require.Equal(t, db, output.(*boltstore).db)
 			require.Equal(t, 0, output.Updates().Subscribers())
-			require.Nil(t, output.(*boltstore).logger)
 		})
 	}
 }

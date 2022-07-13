@@ -28,7 +28,7 @@ The BindPlane server has two installation methods. Once installed, the following
 
 - Systemd service `bindplane` located at `/usr/lib/systemd/system/bindplane.service`.
 - System user `bindplane` with group `bindplane`. This user does not have a login shell, and is meant to run the `bindplane` service.
-- Configuraton at `/etc/bindplane/config.yaml`
+- Configuration at `/etc/bindplane/config.yaml`
 - Persistent storage at `/var/lib/bindplane`
 - Logging at `/var/log/bindplane/bindplane.log`. The log file is rotated automatically by the `bindplane` process.
 
@@ -197,7 +197,7 @@ Follow the [collector installation guide](https://github.com/observIQ/observiq-o
 
 Once installed, create a manager configuration at `/opt/observiq-otel-collector/manager.yaml`. 
 
-The manager configuration consists of the following required paramters:
+The manager configuration consists of the following required parameters:
 - endpoint: The websocket URL used to connect to bindplane (with `/v1/opamp` as the path)
 - secret_key: The secret key configured on the BindPlane server
 - agent_id: A randomly generated UUIDv4, unique to this agent
@@ -228,9 +228,9 @@ existing configuration.
 
 Follow the [collector installation guide](https://github.com/observIQ/observiq-otel-collector/blob/main/docs/installation-windows.md).
 
-Once installed, create a manager configuraton at `C:\Program Files\observIQ OpenTelemetry Collector\manager.yaml`.
+Once installed, create a manager Configuration at `C:\Program Files\observIQ OpenTelemetry Collector\manager.yaml`.
 
-The manager configuration consists of the following required paramters:
+The manager configuration consists of the following required parameters:
 - endpoint: The websocket URL used to connect to bindplane (with `/v1/opamp` as the path)
 - secret_key: The secret key configured on the BindPlane server
 - agent_id: A randomly generated UUIDv4, unique to this agent
