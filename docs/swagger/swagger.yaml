@@ -269,6 +269,53 @@ definitions:
       type:
         type: string
     type: object
+  model.Processor:
+    properties:
+      apiVersion:
+        type: string
+      kind:
+        type: string
+      metadata:
+        $ref: '#/definitions/model.Metadata'
+      spec:
+        $ref: '#/definitions/model.ParameterizedSpec'
+        description: Spec TODO(doc)
+    type: object
+  model.ProcessorResponse:
+    properties:
+      processor:
+        $ref: '#/definitions/model.Processor'
+    type: object
+  model.ProcessorType:
+    properties:
+      apiVersion:
+        type: string
+      kind:
+        type: string
+      metadata:
+        $ref: '#/definitions/model.Metadata'
+      spec:
+        $ref: '#/definitions/model.ResourceTypeSpec'
+    type: object
+  model.ProcessorTypeResponse:
+    properties:
+      processorType:
+        $ref: '#/definitions/model.ProcessorType'
+    type: object
+  model.ProcessorTypesResponse:
+    properties:
+      processorTypes:
+        items:
+          $ref: '#/definitions/model.ProcessorType'
+        type: array
+    type: object
+  model.ProcessorsResponse:
+    properties:
+      processors:
+        items:
+          $ref: '#/definitions/model.Processor'
+        type: array
+    type: object
   model.RelevantIfCondition:
     properties:
       name:
@@ -285,6 +332,10 @@ definitions:
       parameters:
         items:
           $ref: '#/definitions/model.Parameter'
+        type: array
+      processors:
+        items:
+          $ref: '#/definitions/model.ResourceConfiguration'
         type: array
       type:
         type: string
@@ -920,6 +971,124 @@ paths:
           schema:
             $ref: '#/definitions/rest.ErrorResponse'
       summary: Get Agent Download
+  /processor-types:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ProcessorTypesResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rest.ErrorResponse'
+      summary: List processor types
+  /processor-types/{name}:
+    delete:
+      parameters:
+      - description: the name of the processor type to delete
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Successful Delete, no content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/rest.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rest.ErrorResponse'
+      summary: Delete processor type by name
+    get:
+      parameters:
+      - description: the name of the processor type
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ProcessorTypeResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rest.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rest.ErrorResponse'
+      summary: Get processor type by name
+  /processors:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ProcessorsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rest.ErrorResponse'
+      summary: List processors
+  /processors/{name}:
+    delete:
+      parameters:
+      - description: the name of the processor to delete
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Successful Delete, no content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/rest.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rest.ErrorResponse'
+      summary: Delete processor by name
+    get:
+      parameters:
+      - description: the name of the processor
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ProcessorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rest.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rest.ErrorResponse'
+      summary: Get processor by name
   /source-types:
     get:
       produces:

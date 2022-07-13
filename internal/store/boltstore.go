@@ -572,6 +572,42 @@ func (s *boltstore) DeleteSourceType(name string) (*model.SourceType, error) {
 	return item, err
 }
 
+func (s *boltstore) Processor(name string) (*model.Processor, error) {
+	item, exists, err := resource[*model.Processor](s, model.KindProcessor, name)
+	if !exists {
+		item = nil
+	}
+	return item, err
+}
+func (s *boltstore) Processors() ([]*model.Processor, error) {
+	return resources[*model.Processor](s, model.KindProcessor)
+}
+func (s *boltstore) DeleteProcessor(name string) (*model.Processor, error) {
+	item, exists, err := deleteResourceAndNotify(s, model.KindProcessor, name, &model.Processor{})
+	if !exists {
+		return nil, err
+	}
+	return item, err
+}
+
+func (s *boltstore) ProcessorType(name string) (*model.ProcessorType, error) {
+	item, exists, err := resource[*model.ProcessorType](s, model.KindProcessorType, name)
+	if !exists {
+		item = nil
+	}
+	return item, err
+}
+func (s *boltstore) ProcessorTypes() ([]*model.ProcessorType, error) {
+	return resources[*model.ProcessorType](s, model.KindProcessorType)
+}
+func (s *boltstore) DeleteProcessorType(name string) (*model.ProcessorType, error) {
+	item, exists, err := deleteResourceAndNotify(s, model.KindProcessorType, name, &model.ProcessorType{})
+	if !exists {
+		return nil, err
+	}
+	return item, err
+}
+
 func (s *boltstore) Destination(name string) (*model.Destination, error) {
 	item, exists, err := resource[*model.Destination](s, model.KindDestination, name)
 	if !exists {

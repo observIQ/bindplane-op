@@ -56,6 +56,14 @@ type Store interface {
 	SourceTypes() ([]*model.SourceType, error)
 	DeleteSourceType(name string) (*model.SourceType, error)
 
+	Processor(name string) (*model.Processor, error)
+	Processors() ([]*model.Processor, error)
+	DeleteProcessor(name string) (*model.Processor, error)
+
+	ProcessorType(name string) (*model.ProcessorType, error)
+	ProcessorTypes() ([]*model.ProcessorType, error)
+	DeleteProcessorType(name string) (*model.ProcessorType, error)
+
 	Destination(name string) (*model.Destination, error)
 	Destinations() ([]*model.Destination, error)
 	DeleteDestination(name string) (*model.Destination, error)
@@ -175,7 +183,7 @@ func WithSort(field string) QueryOption {
 // Seed adds bundled resources to the store
 func Seed(store Store, logger *zap.Logger) error {
 	var errs error
-	for _, dir := range []string{"source-types", "destination-types"} {
+	for _, dir := range []string{"processor-types", "source-types", "destination-types"} {
 		err := seedDir(dir, store, logger)
 		if err != nil {
 			errs = multierror.Append(errs, err)

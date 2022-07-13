@@ -104,6 +104,14 @@ func (r *parameterDefinitionResolver) Type(ctx context.Context, obj *model.Param
 	}
 }
 
+func (r *processorResolver) Kind(ctx context.Context, obj *model.Processor) (string, error) {
+	return string(obj.GetKind()), nil
+}
+
+func (r *processorTypeResolver) Kind(ctx context.Context, obj *model.ProcessorType) (string, error) {
+	return string(obj.GetKind()), nil
+}
+
 func (r *queryResolver) Agents(ctx context.Context, selector *string, query *string) (*model1.Agents, error) {
 	ctx, span := tracer.Start(ctx, "graphql/Agents")
 	defer span.End()
@@ -156,6 +164,22 @@ func (r *queryResolver) SourceTypes(ctx context.Context) ([]*model.SourceType, e
 
 func (r *queryResolver) SourceType(ctx context.Context, name string) (*model.SourceType, error) {
 	return r.Resolver.bindplane.Store().SourceType(name)
+}
+
+func (r *queryResolver) Processors(ctx context.Context) ([]*model.Processor, error) {
+	return r.Resolver.bindplane.Store().Processors()
+}
+
+func (r *queryResolver) Processor(ctx context.Context, name string) (*model.Processor, error) {
+	return r.Resolver.bindplane.Store().Processor(name)
+}
+
+func (r *queryResolver) ProcessorTypes(ctx context.Context) ([]*model.ProcessorType, error) {
+	return r.Resolver.bindplane.Store().ProcessorTypes()
+}
+
+func (r *queryResolver) ProcessorType(ctx context.Context, name string) (*model.ProcessorType, error) {
+	return r.Resolver.bindplane.Store().ProcessorType(name)
 }
 
 func (r *queryResolver) Destinations(ctx context.Context) ([]*model.Destination, error) {
@@ -301,6 +325,12 @@ func (r *Resolver) ParameterDefinition() generated.ParameterDefinitionResolver {
 	return &parameterDefinitionResolver{r}
 }
 
+// Processor returns generated.ProcessorResolver implementation.
+func (r *Resolver) Processor() generated.ProcessorResolver { return &processorResolver{r} }
+
+// ProcessorType returns generated.ProcessorTypeResolver implementation.
+func (r *Resolver) ProcessorType() generated.ProcessorTypeResolver { return &processorTypeResolver{r} }
+
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
@@ -325,6 +355,8 @@ type destinationResolver struct{ *Resolver }
 type destinationTypeResolver struct{ *Resolver }
 type metadataResolver struct{ *Resolver }
 type parameterDefinitionResolver struct{ *Resolver }
+type processorResolver struct{ *Resolver }
+type processorTypeResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type relevantIfConditionResolver struct{ *Resolver }
 type sourceResolver struct{ *Resolver }

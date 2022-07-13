@@ -1,12 +1,18 @@
-import { FormControlLabel, Switch, TextField } from "@mui/material";
-import { isArray, isFunction } from "lodash";
-import { ChangeEvent } from "react";
+import {
+  Autocomplete,
+  Chip,
+  FormControlLabel,
+  Switch,
+  TextField,
+} from "@mui/material";
+import { isArray, isEmpty, isFunction } from "lodash";
+import { ChangeEvent, useState } from "react";
 import { ParameterDefinition, ParameterType } from "../../graphql/generated";
 import { validateNameField } from "../../utils/forms/validate-name-field";
 import { useValidationContext } from "./ValidationContext";
+import { classes as classesUtil } from "../../utils/styles";
 
 import styles from "./parameter-input.module.scss";
-import { classes as classesUtil } from '../../utils/styles';
 
 interface ParamInputProps {
   classes?: { [name: string]: string };
@@ -18,13 +24,15 @@ interface ParamInputProps {
 export const ParameterInput: React.FC<ParamInputProps> = (props) => {
   let classes = props.classes;
   if (props.definition.relevantIf != null) {
-    classes = Object.assign(classes || {}, { root: classesUtil([classes?.root, styles.indent]) });
+    classes = Object.assign(classes || {}, {
+      root: classesUtil([classes?.root, styles.indent]),
+    });
   }
   switch (props.definition.type) {
     case ParameterType.String:
       return <StringParamInput classes={classes} {...props} />;
     case ParameterType.Strings:
-      return <StringsParamInput classes={classes} {...props} />;
+      return <StringsInput classes={classes} {...props} />;
     case ParameterType.Enum:
       return <EnumParamInput classes={classes} {...props} />;
     case ParameterType.Bool:
@@ -92,35 +100,67 @@ export const EnumParamInput: React.FC<ParamInputProps> = ({
   );
 };
 
-export const StringsParamInput: React.FC<ParamInputProps> = ({
+export const StringsInput: React.FC<ParamInputProps> = ({
   classes,
   definition,
-  value: arrayValue,
+  value,
   onValueChange,
 }) => {
-  // TODO (dsvanlani) This will not hold up very long, but for now save the state as an
-  // array of strings split by comma.  This should eventually be a multi string input
-  const value = isArray(arrayValue) ? arrayValue.join(",") : undefined;
-  function onChange(e: ChangeEvent<HTMLInputElement>) {
-    const newValue = e.target.value.split(",");
-    isFunction(onValueChange) && onValueChange(newValue);
+  const [inputValue, setInputValue] = useState("");
+
+  // handleChipClick edits the selected chips value.
+  function handleChipClick(ix: number) {
+    if (!isArray(value)) {
+      return;
+    }
+
+    // Edit the chips value
+    setInputValue(value[ix]);
+
+    // Remove the chip from the values because its being edited.
+    const copy = [...value];
+    copy.splice(ix, 1);
+    isFunction(onValueChange) && onValueChange(copy);
+  }
+
+  // Make sure we "enter" the value if a user leaves the
+  // input without hitting enter
+  function handleBlur() {
+    if (!isEmpty(inputValue)) {
+      setInputValue("");
+      onValueChange && onValueChange([...value, inputValue]);
+    }
   }
 
   return (
-    <TextField
+    <Autocomplete
+      options={[]}
+      multiple
+      disableClearable
+      freeSolo
       classes={classes}
+      // value and onChange pertain to the string[] value of the input
       value={value}
-      onChange={onChange}
-      name={definition.name}
-      fullWidth
-      size="small"
-      label={definition.label}
-      helperText={definition.description}
-      required={definition.required}
-      autoComplete="off"
-      autoCorrect="off"
-      autoCapitalize="off"
-      spellCheck="false"
+      onChange={(e, v: string[]) => onValueChange && onValueChange(v)}
+      // inputValue and onInputChange refer to the latest string value being entered
+      inputValue={inputValue}
+      onInputChange={(e, newValue) => setInputValue(newValue)}
+      onBlur={handleBlur}
+      renderTags={(value: readonly string[], getTagProps) =>
+        value.map((option: string, index: number) => (
+          <Chip
+            size="small"
+            variant="outlined"
+            label={option}
+            {...getTagProps({ index })}
+            classes={{ label: styles.chip }}
+            onClick={() => handleChipClick(index)}
+          />
+        ))
+      }
+      renderInput={(params) => (
+        <TextField {...params} label={definition.label} size={"small"} />
+      )}
     />
   );
 };
