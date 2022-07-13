@@ -4,7 +4,7 @@ metadata:
   name: solr
   displayName: Solr
   icon: /icons/sources/solr.svg
-  description: Solr Metrics
+  description: Apache Solr metrics and logs
 spec:
   version: 0.0.1
   supported_platforms:
