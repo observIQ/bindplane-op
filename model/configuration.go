@@ -238,6 +238,9 @@ func evalSource(source *ResourceConfiguration, defaultName string, store Resourc
 	for i, processor := range source.Processors {
 		processor := processor
 		_, processorParts := evalProcessor(&processor, fmt.Sprintf("%s__processor%d", srcName, i), store, errorHandler)
+		if processorParts == nil {
+			continue
+		}
 		partials.Add(processorParts)
 	}
 

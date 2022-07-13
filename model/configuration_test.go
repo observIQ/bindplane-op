@@ -464,3 +464,66 @@ service:
 
 	require.Equal(t, expect, result)
 }
+
+func TestEvalConfigurationFailsMissingResource(t *testing.T) {
+	store := newTestResourceStore()
+
+	postgresql := testResource[*SourceType](t, "sourcetype-macos.yaml")
+	store.sourceTypes[postgresql.Name()] = postgresql
+
+	googleCloudType := testResource[*DestinationType](t, "destinationtype-googlecloud.yaml")
+	store.destinationTypes[googleCloudType.Name()] = googleCloudType
+
+	googleCloud := testResource[*Destination](t, "destination-googlecloud.yaml")
+	store.destinations[googleCloud.Name()] = googleCloud
+
+	resourceAttributeTransposerType := testResource[*ProcessorType](t, "processortype-resourceattributetransposer.yaml")
+	store.processorTypes[resourceAttributeTransposerType.Name()] = resourceAttributeTransposerType
+
+	configuration := testResource[*Configuration](t, "configuration-macos-processors.yaml")
+
+	tests := []struct {
+		name            string
+		deleteResources func()
+		expectError     string
+		expect          string
+	}{
+		{
+			name:            "deletes sourceType",
+			deleteResources: func() { delete(store.sourceTypes, postgresql.Name()) },
+			expectError:     "1 error occurred:\n\t* unknown SourceType: MacOS\n\n",
+		},
+		{
+			name:            "deletes googleCloudType",
+			deleteResources: func() { delete(store.destinationTypes, googleCloudType.Name()) },
+			expectError:     "1 error occurred:\n\t* unknown DestinationType: googlecloud\n\n",
+		},
+		{
+			name:            "deletes destination",
+			deleteResources: func() { delete(store.destinations, googleCloud.Name()) },
+			expectError:     "1 error occurred:\n\t* unknown Destination: googlecloud\n\n",
+		},
+		{
+			name:            "deletes processorType",
+			deleteResources: func() { delete(store.processorTypes, resourceAttributeTransposerType.Name()) },
+			expectError:     "2 errors occurred:\n\t* unknown ProcessorType: resource-attribute-transposer\n\t* unknown ProcessorType: resource-attribute-transposer\n\n",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			// before rendering, delete resources that we reference
+			test.deleteResources()
+
+			_, err := configuration.Render(context.TODO(), store)
+			require.Error(t, err)
+			require.Equal(t, test.expectError, err.Error())
+
+			// reset for next iteration
+			store.sourceTypes[postgresql.Name()] = postgresql
+			store.destinationTypes[googleCloudType.Name()] = googleCloudType
+			store.destinations[googleCloud.Name()] = googleCloud
+			store.processorTypes[resourceAttributeTransposerType.Name()] = resourceAttributeTransposerType
+		})
+	}
+}
