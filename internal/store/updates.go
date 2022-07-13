@@ -130,7 +130,7 @@ func (updates *Updates) addTransitiveUpdates(s Store) error {
 }
 
 func (updates *Updates) addSourceUpdates(s Store) error {
-	if updates.SourceTypes.Empty() {
+	if updates.SourceTypes.Empty() && updates.Processors.Empty() && updates.ProcessorTypes.Empty() {
 		return nil
 	}
 
@@ -140,14 +140,36 @@ func (updates *Updates) addSourceUpdates(s Store) error {
 		return err
 	}
 
-	// updates to a SourceType will trigger updates of all of the Sources that use that SourceType.
-	for _, sourceTypeEvent := range updates.SourceTypes {
-		if sourceTypeEvent.Type == EventTypeUpdate {
+sourceLoop:
+	for _, source := range sources {
+		// updates to a SourceType will trigger updates of all of the Sources that use that SourceType.
+		for _, sourceTypeEvent := range updates.SourceTypes.Updates() {
 			sourceTypeName := sourceTypeEvent.Item.Name()
 
-			for _, source := range sources {
-				if source.Spec.Type == sourceTypeName {
+			if source.Spec.Type == sourceTypeName {
+				updates.Sources.Include(source, EventTypeUpdate)
+				continue sourceLoop
+			}
+		}
+
+		// updates to a ProcessorType will trigger updates of all of the Sources that use that ProcessorType.
+		for _, processorTypeEvent := range updates.ProcessorTypes.Updates() {
+			processorTypeName := processorTypeEvent.Item.Name()
+			for _, processor := range source.Spec.Processors {
+				if processor.Type == processorTypeName {
 					updates.Sources.Include(source, EventTypeUpdate)
+					continue sourceLoop
+				}
+			}
+		}
+
+		// updates to a Processor will trigger updates of all of the Sources that use that Processor.
+		for _, processorEvent := range updates.Processors.Updates() {
+			processorName := processorEvent.Item.Name()
+			for _, processor := range source.Spec.Processors {
+				if processor.Name == processorName {
+					updates.Sources.Include(source, EventTypeUpdate)
+					continue sourceLoop
 				}
 			}
 		}
@@ -161,8 +183,22 @@ func (updates *Updates) addProcessorUpdates(s Store) error {
 		return nil
 	}
 
-	// TODO(andy): add processors based on modified processor-types
-	// TODO(andy): add sources based on modified processor-types
+	processors, err := s.Processors()
+	if err != nil {
+		return err
+	}
+
+	for _, processorTypeEvent := range updates.ProcessorTypes {
+		if processorTypeEvent.Type == EventTypeUpdate {
+			processorTypeName := processorTypeEvent.Item.Name()
+
+			for _, processor := range processors {
+				if processor.Spec.Type == processorTypeName {
+					updates.Processors.Include(processor, EventTypeUpdate)
+				}
+			}
+		}
+	}
 
 	return nil
 }

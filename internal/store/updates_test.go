@@ -31,13 +31,19 @@ func updatesTestSetup(t *testing.T) {
 	updatesTestStore = NewMapStore(zap.NewNop(), "super-secret-key")
 	resourceMap = map[string]model.Resource{}
 	resources := []model.Resource{
+		newTestProcessorType("pt1"),
+		newTestProcessorType("pt2"),
+		newTestProcessorType("pt3"),
+		newTestProcessor("p1", "pt1"),
 		newTestSourceType("st1"),
 		newTestSourceType("st2"),
 		newTestSourceType("st3"),
 		newTestSourceType("st4"),
+		newTestSourceType("st5"),
 		newTestSource("s1", "st1"),
 		newTestSource("s2", "st2"),
 		newTestSource("s3", "st3"),
+		newTestSourceWithProcessors("s4", "st5", []model.ResourceConfiguration{{Type: "pt2"}, {Name: "p1"}}),
 		newTestDestinationType("dt1"),
 		newTestDestinationType("dt2"),
 		newTestDestinationType("dt3"),
@@ -50,6 +56,8 @@ func updatesTestSetup(t *testing.T) {
 		newTestConfiguration("c3", []string{"s1", "s2", "s3"}, nil, []string{"d1", "d2", "d3"}, nil),
 		newTestConfiguration("c4", nil, []string{"st4"}, nil, []string{"dt4"}),
 		newTestConfiguration("c5", nil, nil, nil, nil),
+		newTestConfiguration("c6", []string{"s4"}, nil, []string{"d3"}, nil),
+		newTestConfiguration("c7", nil, []string{"st5"}, []string{"d3"}, nil),
 	}
 	for _, resource := range resources {
 		resourceMap[resource.Name()] = resource
@@ -64,6 +72,20 @@ func newTestSourceType(name string) *model.SourceType {
 
 func newTestSource(name string, sourceType string) *model.Source {
 	return model.NewSource(name, sourceType, []model.Parameter{})
+}
+
+func newTestSourceWithProcessors(name string, sourceType string, processors []model.ResourceConfiguration) *model.Source {
+	src := model.NewSource(name, sourceType, []model.Parameter{})
+	src.Spec.Processors = processors
+	return src
+}
+
+func newTestProcessorType(name string) *model.ProcessorType {
+	return model.NewProcessorType(name, []model.ParameterDefinition{})
+}
+
+func newTestProcessor(name string, processorType string) *model.Processor {
+	return model.NewProcessor(name, processorType, []model.Parameter{})
 }
 
 func newTestDestinationType(name string) *model.DestinationType {
@@ -115,12 +137,16 @@ func TestTransitiveUpdates(t *testing.T) {
 
 		Sources          []string
 		SourceTypes      []string
+		Processors       []string
+		ProcessorTypes   []string
 		Destinations     []string
 		DestinationTypes []string
 		Configurations   []string
 
 		ExpectSources          []string
 		ExpectSourceTypes      []string
+		ExpectProcessors       []string
+		ExpectProcessorTypes   []string
 		ExpectDestinations     []string
 		ExpectDestinationTypes []string
 		ExpectConfigurations   []string
@@ -170,6 +196,39 @@ func TestTransitiveUpdates(t *testing.T) {
 			ExpectDestinations:   []string{"d2"},
 			ExpectConfigurations: []string{"c1", "c2", "c3"},
 		},
+		{
+			Name:                 "s1 source, st1 sourceType, d2 destination",
+			Sources:              []string{"s1"},
+			SourceTypes:          []string{"st1"},
+			Destinations:         []string{"d2"},
+			Configurations:       []string{"c1"},
+			ExpectSources:        []string{"s1"},
+			ExpectSourceTypes:    []string{"st1"},
+			ExpectDestinations:   []string{"d2"},
+			ExpectConfigurations: []string{"c1", "c2", "c3"},
+		},
+		{
+			Name:                 "p1",
+			Processors:           []string{"p1"},
+			ExpectProcessors:     []string{"p1"},
+			ExpectSources:        []string{"s4"},
+			ExpectConfigurations: []string{"c6"},
+		},
+		{
+			Name:                 "pt2",
+			ProcessorTypes:       []string{"pt2"},
+			ExpectProcessorTypes: []string{"pt2"},
+			ExpectSources:        []string{"s4"},
+			ExpectConfigurations: []string{"c6"},
+		},
+		{
+			Name:                 "pt1",
+			ProcessorTypes:       []string{"pt1"},
+			ExpectSources:        []string{"s4"},
+			ExpectProcessors:     []string{"p1"},
+			ExpectProcessorTypes: []string{"pt1"},
+			ExpectConfigurations: []string{"c6"},
+		},
 	}
 
 	for _, test := range tests {
@@ -179,6 +238,8 @@ func TestTransitiveUpdates(t *testing.T) {
 			// populate updates
 			addUpdates(t, test.Sources, updates.Sources)
 			addUpdates(t, test.SourceTypes, updates.SourceTypes)
+			addUpdates(t, test.Processors, updates.Processors)
+			addUpdates(t, test.ProcessorTypes, updates.ProcessorTypes)
 			addUpdates(t, test.Destinations, updates.Destinations)
 			addUpdates(t, test.DestinationTypes, updates.DestinationTypes)
 			addUpdates(t, test.Configurations, updates.Configurations)
@@ -190,6 +251,8 @@ func TestTransitiveUpdates(t *testing.T) {
 			// compare results
 			require.ElementsMatch(t, test.ExpectSources, updates.Sources.Keys(), "Sources")
 			require.ElementsMatch(t, test.ExpectSourceTypes, updates.SourceTypes.Keys(), "SourceTypes")
+			require.ElementsMatch(t, test.ExpectProcessors, updates.Processors.Keys(), "Processors")
+			require.ElementsMatch(t, test.ExpectProcessorTypes, updates.ProcessorTypes.Keys(), "ProcessorTypes")
 			require.ElementsMatch(t, test.ExpectDestinations, updates.Destinations.Keys(), "Destinations")
 			require.ElementsMatch(t, test.ExpectDestinationTypes, updates.DestinationTypes.Keys(), "DestinationTypes")
 			require.ElementsMatch(t, test.ExpectConfigurations, updates.Configurations.Keys(), "Configurations")

@@ -61,9 +61,9 @@ func (s *Processor) ComponentID(name string) otel.ComponentID {
 }
 
 // NewProcessor creates a new Processor with the specified name, type, and parameters
-func NewProcessor(name string, sourceTypeName string, parameters []Parameter) *Processor {
+func NewProcessor(name string, processorTypeName string, parameters []Parameter) *Processor {
 	return NewProcessorWithSpec(name, ParameterizedSpec{
-		Type:       sourceTypeName,
+		Type:       processorTypeName,
 		Parameters: parameters,
 	})
 }
