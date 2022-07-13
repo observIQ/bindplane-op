@@ -205,8 +205,6 @@ func TestSourceValidate(t *testing.T) {
 		t.Run(test.testfile, func(t *testing.T) {
 			src := validateResource[*Source](t, test.testfile)
 
-			t.Logf("Parsed config: %v", src)
-
 			// test normal Validate() used by all resources
 			err := src.Validate()
 			if test.expectValidateError == "" {

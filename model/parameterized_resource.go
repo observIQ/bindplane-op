@@ -15,8 +15,6 @@
 package model
 
 import (
-	"fmt"
-
 	"github.com/observiq/bindplane-op/model/otel"
 	"github.com/observiq/bindplane-op/model/validation"
 )
@@ -66,7 +64,6 @@ func (s ParameterizedSpec) overrideParameters(parameters []Parameter) Parameteri
 // validateTypeAndParameters is used by Source and Destination validation and uses methods created for Configuration
 // validation.
 func (s *ParameterizedSpec) validateTypeAndParameters(kind Kind, errors validation.Errors, store ResourceStore) {
-	fmt.Printf("validate %s %s with %d processors\n", kind, s.Type, len(s.Processors))
 	// ResourceConfiguration is a resource embedded in a Configuration, but it works equally well for Source and
 	// Destination validation.
 	rc := &ResourceConfiguration{
