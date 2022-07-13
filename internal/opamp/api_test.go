@@ -361,7 +361,11 @@ service:
 
 	// setup initial state
 	logger := zap.NewNop()
-	testMapStore := store.NewMapStore(logger, "sessions-secret")
+
+	testMapStore := store.NewMapStore(context.TODO(), store.Options{
+		SessionsSecret:   "supersecret-key",
+		MaxEventsToMerge: 1000,
+	}, zap.NewNop())
 	testManager, err := server.NewManager(
 		&common.Server{
 			SecretKey: "secret",

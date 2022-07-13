@@ -27,8 +27,12 @@ definitions:
         type: string
       platform:
         type: string
+      protocol:
+        description: used by the agent management protocol
+        type: string
       remoteAddress:
         type: string
+      state: {}
       status:
         description: reported by Status messages
         type: integer
@@ -265,6 +269,10 @@ definitions:
       parameters:
         items:
           $ref: '#/definitions/model.Parameter'
+        type: array
+      processors:
+        items:
+          $ref: '#/definitions/model.ResourceConfiguration'
         type: array
       type:
         type: string
