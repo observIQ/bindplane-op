@@ -22,6 +22,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// AddRoutes adds the routes for swagger docs to the router.
 func AddRoutes(router gin.IRouter) {
 	// Swagger documentation
 	SwaggerInfo.BasePath = "/v1"
