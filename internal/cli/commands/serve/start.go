@@ -126,9 +126,6 @@ func (s *Server) Start(bindplane *cli.BindPlane, h profile.Helper, forceConsoleC
 	// Swagger documentation
 	swagger.AddRoutes(router)
 
-	// swaggerdocs.SwaggerInfo.BasePath = "/v1"
-	// router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-
 	// opamp does its own authorization based on the OnConnecting callback
 	err = opamp.AddRoutes(v1, server)
 	if err != nil {
