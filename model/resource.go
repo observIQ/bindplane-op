@@ -402,10 +402,14 @@ func NewEmptyResource(kind Kind) (Resource, error) {
 		return &Configuration{}, nil
 	case KindSource:
 		return &Source{}, nil
+	case KindProcessor:
+		return &Processor{}, nil
 	case KindDestination:
 		return &Destination{}, nil
 	case KindSourceType:
 		return &SourceType{}, nil
+	case KindProcessorType:
+		return &ProcessorType{}, nil
 	case KindDestinationType:
 		return &DestinationType{}, nil
 	default:

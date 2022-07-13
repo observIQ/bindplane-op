@@ -1,0 +1,14 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: Source
+metadata:
+  name: bar
+  description: bar is my old macbook with a touchbar
+spec:
+  type: MacOS
+  parameters:
+    - name: enable_system_log
+      value: true
+    - name: collection_interval_seconds
+      value: "100"
+  processors:
+    - name: not_found

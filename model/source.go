@@ -88,7 +88,9 @@ func NewSourceWithSpec(name string, spec ParameterizedSpec) *Source {
 func FindSource(source *ResourceConfiguration, defaultName string, store ResourceStore) (*Source, error) {
 	if source.Name == "" {
 		// inline source
-		return NewSource(defaultName, source.Type, source.Parameters), nil
+		src := NewSource(defaultName, source.Type, source.Parameters)
+		src.Spec.Processors = source.Processors
+		return src, nil
 	}
 	// find the source and override parameters
 	src, err := store.Source(source.Name)

@@ -379,6 +379,7 @@ func (rc *ResourceConfiguration) validate(resourceKind Kind, errors validation.E
 	if rc.validateHasNameOrType(resourceKind, errors) {
 		rc.validateParameters(resourceKind, errors, store)
 	}
+	rc.validateProcessors(resourceKind, errors, store)
 }
 
 func (rc *ResourceConfiguration) validateHasNameOrType(resourceKind Kind, errors validation.Errors) bool {
@@ -416,6 +417,12 @@ func (rc *ResourceConfiguration) validateParameters(resourceKind Kind, errors va
 		if err != nil {
 			errors.Add(err)
 		}
+	}
+}
+
+func (rc *ResourceConfiguration) validateProcessors(resourceKind Kind, errors validation.Errors, store ResourceStore) {
+	for _, processor := range rc.Processors {
+		processor.validate(KindProcessor, errors, store)
 	}
 }
 

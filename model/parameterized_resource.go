@@ -15,14 +15,17 @@
 package model
 
 import (
+	"fmt"
+
 	"github.com/observiq/bindplane-op/model/otel"
 	"github.com/observiq/bindplane-op/model/validation"
 )
 
-// ParameterizedSpec is the spec for a ParamaterizedResource
+// ParameterizedSpec is the spec for a ParameterizedResource
 type ParameterizedSpec struct {
-	Type       string      `yaml:"type" json:"type" mapstructure:"type"`
-	Parameters []Parameter `yaml:"parameters" json:"parameters" mapstructure:"parameters"`
+	Type       string                  `yaml:"type" json:"type" mapstructure:"type"`
+	Parameters []Parameter             `yaml:"parameters" json:"parameters" mapstructure:"parameters"`
+	Processors []ResourceConfiguration `yaml:"processors" json:"processors" mapstructure:"processors"`
 }
 
 // parameterizedResource is a resource based on a resource type which provides a specific resource value via templated
@@ -57,17 +60,20 @@ func (s ParameterizedSpec) overrideParameters(parameters []Parameter) Parameteri
 			s.Parameters = append(s.Parameters, p)
 		}
 	}
-	return ParameterizedSpec{Type: s.Type, Parameters: result}
+	return ParameterizedSpec{Type: s.Type, Parameters: result, Processors: s.Processors}
 }
 
 // validateTypeAndParameters is used by Source and Destination validation and uses methods created for Configuration
 // validation.
 func (s *ParameterizedSpec) validateTypeAndParameters(kind Kind, errors validation.Errors, store ResourceStore) {
+	fmt.Printf("validate %s %s with %d processors\n", kind, s.Type, len(s.Processors))
 	// ResourceConfiguration is a resource embedded in a Configuration, but it works equally well for Source and
 	// Destination validation.
 	rc := &ResourceConfiguration{
 		Type:       s.Type,
 		Parameters: s.Parameters,
+		Processors: s.Processors,
 	}
 	rc.validateParameters(kind, errors, store)
+	rc.validateProcessors(kind, errors, store)
 }
