@@ -21,59 +21,59 @@ import (
 	"github.com/observiq/bindplane-op/model/validation"
 )
 
-// Source will generate an exporter and be at the end of a pipeline
-type Source struct {
+// Processor will generate an exporter and be at the end of a pipeline
+type Processor struct {
 	// ResourceMeta TODO(doc)
 	ResourceMeta `yaml:",inline" json:",inline" mapstructure:",squash"`
 	// Spec TODO(doc)
 	Spec ParameterizedSpec `json:"spec" yaml:"spec" mapstructure:"spec"`
 }
 
-var _ parameterizedResource = (*Source)(nil)
+var _ parameterizedResource = (*Processor)(nil)
 
-// ValidateWithStore checks that the source is valid, returning an error if it is not. It uses the store to retrieve the
-// source type so that parameter values can be validated against the parameter definitions.
-func (s *Source) ValidateWithStore(store ResourceStore) error {
+// ValidateWithStore checks that the processor is valid, returning an error if it is not. It uses the store to retrieve the
+// processor type so that parameter values can be validated against the parameter definitions.
+func (s *Processor) ValidateWithStore(store ResourceStore) error {
 	errors := validation.NewErrors()
 
 	s.validate(errors)
-	s.Spec.validateTypeAndParameters(KindSource, errors, store)
+	s.Spec.validateTypeAndParameters(KindProcessor, errors, store)
 
 	return errors.Result()
 }
 
-// GetKind returns "Source"
-func (s *Source) GetKind() Kind { return KindSource }
+// GetKind returns "Processor"
+func (s *Processor) GetKind() Kind { return KindProcessor }
 
 // ResourceTypeName is the name of the ResourceType that renders this resource type
-func (s *Source) ResourceTypeName() string {
+func (s *Processor) ResourceTypeName() string {
 	return s.Spec.Type
 }
 
 // ResourceParameters are the parameters passed to the ResourceType to generate the configuration
-func (s *Source) ResourceParameters() []Parameter {
+func (s *Processor) ResourceParameters() []Parameter {
 	return s.Spec.Parameters
 }
 
 // ComponentID provides a unique component id for the specified component name
-func (s *Source) ComponentID(name string) otel.ComponentID {
+func (s *Processor) ComponentID(name string) otel.ComponentID {
 	return otel.UniqueComponentID(name, s.Spec.Type, s.Name())
 }
 
-// NewSource creates a new Source with the specified name, type, and parameters
-func NewSource(name string, sourceTypeName string, parameters []Parameter) *Source {
-	return NewSourceWithSpec(name, ParameterizedSpec{
-		Type:       sourceTypeName,
+// NewProcessor creates a new Processor with the specified name, type, and parameters
+func NewProcessor(name string, processorTypeName string, parameters []Parameter) *Processor {
+	return NewProcessorWithSpec(name, ParameterizedSpec{
+		Type:       processorTypeName,
 		Parameters: parameters,
 	})
 }
 
-// NewSourceWithSpec creates a new Source with the specified spec
-func NewSourceWithSpec(name string, spec ParameterizedSpec) *Source {
-	return &Source{
+// NewProcessorWithSpec creates a new Processor with the specified spec
+func NewProcessorWithSpec(name string, spec ParameterizedSpec) *Processor {
+	return &Processor{
 		ResourceMeta: ResourceMeta{
 			APIVersion: "bindplane.observiq.com/v1beta",
-			Kind:       KindSource,
+			Kind:       KindProcessor,
 			Metadata: Metadata{
 				Name:   name,
 				Labels: MakeLabels(),
@@ -83,36 +83,34 @@ func NewSourceWithSpec(name string, spec ParameterizedSpec) *Source {
 	}
 }
 
-// FindSource returns a Source from the store if it exists. If it doesn't exist, it creates a new Source with the
+// FindProcessor returns a Processor from the store if it exists. If it doesn't exist, it creates a new Processor with the
 // specified defaultName.
-func FindSource(source *ResourceConfiguration, defaultName string, store ResourceStore) (*Source, error) {
-	if source.Name == "" {
+func FindProcessor(processor *ResourceConfiguration, defaultName string, store ResourceStore) (*Processor, error) {
+	if processor.Name == "" {
 		// inline source
-		src := NewSource(defaultName, source.Type, source.Parameters)
-		src.Spec.Processors = source.Processors
-		return src, nil
+		return NewProcessor(defaultName, processor.Type, processor.Parameters), nil
 	}
-	// find the source and override parameters
-	src, err := store.Source(source.Name)
+	// find the processor and override parameters
+	prc, err := store.Processor(processor.Name)
 	if err != nil {
 		return nil, err
 	}
-	if src == nil {
-		return nil, fmt.Errorf("unknown %s: %s", KindSource, source.Name)
+	if prc == nil {
+		return nil, fmt.Errorf("unknown %s: %s", KindProcessor, processor.Name)
 	}
-	spec := src.Spec.overrideParameters(source.Parameters)
-	return NewSourceWithSpec(src.Name(), spec), nil
+	spec := prc.Spec.overrideParameters(processor.Parameters)
+	return NewProcessorWithSpec(prc.Name(), spec), nil
 }
 
 // ----------------------------------------------------------------------
 
 // PrintableFieldTitles returns the list of field titles, used for printing a table of resources
-func (s *Source) PrintableFieldTitles() []string {
+func (s *Processor) PrintableFieldTitles() []string {
 	return []string{"Name", "Type", "Description"}
 }
 
 // PrintableFieldValue returns the field value for a title, used for printing a table of resources
-func (s *Source) PrintableFieldValue(title string) string {
+func (s *Processor) PrintableFieldValue(title string) string {
 	switch title {
 	case "ID":
 		return s.ID()

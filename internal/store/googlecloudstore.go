@@ -293,6 +293,42 @@ func (s *googleCloudStore) DeleteSourceType(name string) (*model.SourceType, err
 	return item, err
 }
 
+func (s *googleCloudStore) Processor(name string) (*model.Processor, error) {
+	item, exists, err := getDatastoreResource[*model.Processor](s, model.KindProcessor, name)
+	if !exists {
+		item = nil
+	}
+	return item, err
+}
+func (s *googleCloudStore) Processors() ([]*model.Processor, error) {
+	return getDatastoreResources[*model.Processor](s, model.KindProcessor, nil)
+}
+func (s *googleCloudStore) DeleteProcessor(name string) (*model.Processor, error) {
+	item, exists, err := deleteDatastoreResourceAndNotify[*model.Processor](s, model.KindProcessor, name)
+	if !exists {
+		return nil, err
+	}
+	return item, err
+}
+
+func (s *googleCloudStore) ProcessorType(name string) (*model.ProcessorType, error) {
+	item, exists, err := getDatastoreResource[*model.ProcessorType](s, model.KindProcessorType, name)
+	if !exists {
+		item = nil
+	}
+	return item, err
+}
+func (s *googleCloudStore) ProcessorTypes() ([]*model.ProcessorType, error) {
+	return getDatastoreResources[*model.ProcessorType](s, model.KindProcessorType, nil)
+}
+func (s *googleCloudStore) DeleteProcessorType(name string) (*model.ProcessorType, error) {
+	item, exists, err := deleteDatastoreResourceAndNotify[*model.ProcessorType](s, model.KindProcessorType, name)
+	if !exists {
+		return nil, err
+	}
+	return item, err
+}
+
 func (s *googleCloudStore) Destination(name string) (*model.Destination, error) {
 	item, exists, err := getDatastoreResource[*model.Destination](s, model.KindDestination, name)
 	if !exists {
@@ -651,6 +687,10 @@ func upsertAnyDatastoreResource(s *googleCloudStore, r model.Resource) (model.Up
 		return upsertDatastoreResource(s, r.(*model.Source))
 	case model.KindSourceType:
 		return upsertDatastoreResource(s, r.(*model.SourceType))
+	case model.KindProcessor:
+		return upsertDatastoreResource(s, r.(*model.Processor))
+	case model.KindProcessorType:
+		return upsertDatastoreResource(s, r.(*model.ProcessorType))
 	case model.KindDestination:
 		return upsertDatastoreResource(s, r.(*model.Destination))
 	case model.KindDestinationType:
@@ -738,6 +778,10 @@ func deleteAnyDatastoreResource(s *googleCloudStore, r model.Resource) (model.Re
 		return deleteDatastoreResource[*model.Source](s, r.GetKind(), r.Name())
 	case model.KindSourceType:
 		return deleteDatastoreResource[*model.SourceType](s, r.GetKind(), r.Name())
+	case model.KindProcessor:
+		return deleteDatastoreResource[*model.Processor](s, r.GetKind(), r.Name())
+	case model.KindProcessorType:
+		return deleteDatastoreResource[*model.ProcessorType](s, r.GetKind(), r.Name())
 	case model.KindDestination:
 		return deleteDatastoreResource[*model.Destination](s, r.GetKind(), r.Name())
 	case model.KindDestinationType:

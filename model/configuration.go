@@ -94,9 +94,10 @@ type ConfigurationSpec struct {
 
 // ResourceConfiguration represents a source or destination configuration
 type ResourceConfiguration struct {
-	Name       string      `json:"name,omitempty" yaml:"name,omitempty" mapstructure:"name"`
-	Type       string      `json:"type,omitempty" yaml:"type,omitempty" mapstructure:"type"`
-	Parameters []Parameter `json:"parameters,omitempty" yaml:"parameters,omitempty" mapstructure:"parameters"`
+	Name       string                  `json:"name,omitempty" yaml:"name,omitempty" mapstructure:"name"`
+	Type       string                  `json:"type,omitempty" yaml:"type,omitempty" mapstructure:"type"`
+	Parameters []Parameter             `json:"parameters,omitempty" yaml:"parameters,omitempty" mapstructure:"parameters"`
+	Processors []ResourceConfiguration `json:"processors,omitempty" yaml:"processors,omitempty" mapstructure:"processors"`
 }
 
 // Validate validates most of the configuration, but if a store is available, ValidateWithStore should be used to
@@ -113,8 +114,8 @@ func (c *Configuration) validate(errs validation.Errors) {
 }
 
 // ValidateWithStore checks that the configuration is valid, returning an error if it is not. It uses the store to
-// retreive source types and destination types so that parameter values can be validated against the parameter
-// defintions.
+// retrieve source types and destination types so that parameter values can be validated against the parameter
+// definitions.
 func (c *Configuration) ValidateWithStore(store ResourceStore) error {
 	errors := validation.NewErrors()
 
@@ -147,6 +148,8 @@ func (c *Configuration) IsForAgent(agent *Agent) bool {
 type ResourceStore interface {
 	Source(name string) (*Source, error)
 	SourceType(name string) (*SourceType, error)
+	Processor(name string) (*Processor, error)
+	ProcessorType(name string) (*ProcessorType, error)
 	Destination(name string) (*Destination, error)
 	DestinationType(name string) (*DestinationType, error)
 }
@@ -228,7 +231,30 @@ func evalSource(source *ResourceConfiguration, defaultName string, store Resourc
 		return "", nil
 	}
 
-	return fmt.Sprintf("%s__%s", src.Spec.Type, src.Name()), srcType.eval(src, errorHandler)
+	srcName := fmt.Sprintf("%s__%s", src.Spec.Type, src.Name())
+	partials := srcType.eval(src, errorHandler)
+
+	// evaluate the processors associated with the source
+	for i, processor := range source.Processors {
+		processor := processor
+		_, processorParts := evalProcessor(&processor, fmt.Sprintf("%s__processor%d", srcName, i), store, errorHandler)
+		if processorParts == nil {
+			continue
+		}
+		partials.Add(processorParts)
+	}
+
+	return srcName, partials
+}
+
+func evalProcessor(processor *ResourceConfiguration, defaultName string, store ResourceStore, errorHandler TemplateErrorHandler) (string, otel.Partials) {
+	prc, prcType, err := findProcessorAndType(processor, defaultName, store)
+	if err != nil {
+		errorHandler(err)
+		return "", nil
+	}
+
+	return prc.Name(), prcType.eval(prc, errorHandler)
 }
 
 func evalDestination(destination *ResourceConfiguration, defaultName string, store ResourceStore, errorHandler TemplateErrorHandler) (string, otel.Partials) {
@@ -258,6 +284,23 @@ func findSourceAndType(source *ResourceConfiguration, defaultName string, store 
 	return src, srcType, nil
 }
 
+func findProcessorAndType(source *ResourceConfiguration, defaultName string, store ResourceStore) (*Processor, *ProcessorType, error) {
+	prc, err := FindProcessor(source, defaultName, store)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	prcType, err := store.ProcessorType(prc.Spec.Type)
+	if err == nil && prcType == nil {
+		err = fmt.Errorf("unknown %s: %s", KindProcessorType, prc.Spec.Type)
+	}
+	if err != nil {
+		return prc, nil, err
+	}
+
+	return prc, prcType, nil
+}
+
 func findDestinationAndType(destination *ResourceConfiguration, defaultName string, store ResourceStore) (*Destination, *DestinationType, error) {
 	dest, err := FindDestination(destination, defaultName, store)
 	if err != nil {
@@ -283,6 +326,12 @@ func findResourceAndType(resourceKind Kind, resource *ResourceConfiguration, def
 			return src, nil, err
 		}
 		return src, &srcType.ResourceType, err
+	case KindProcessor:
+		prc, prcType, err := findProcessorAndType(resource, defaultName, store)
+		if prcType == nil {
+			return prc, nil, err
+		}
+		return prc, &prcType.ResourceType, err
 	case KindDestination:
 		dest, destType, err := findDestinationAndType(resource, defaultName, store)
 		if destType == nil {
@@ -333,6 +382,7 @@ func (rc *ResourceConfiguration) validate(resourceKind Kind, errors validation.E
 	if rc.validateHasNameOrType(resourceKind, errors) {
 		rc.validateParameters(resourceKind, errors, store)
 	}
+	rc.validateProcessors(resourceKind, errors, store)
 }
 
 func (rc *ResourceConfiguration) validateHasNameOrType(resourceKind Kind, errors validation.Errors) bool {
@@ -370,6 +420,12 @@ func (rc *ResourceConfiguration) validateParameters(resourceKind Kind, errors va
 		if err != nil {
 			errors.Add(err)
 		}
+	}
+}
+
+func (rc *ResourceConfiguration) validateProcessors(resourceKind Kind, errors validation.Errors, store ResourceStore) {
+	for _, processor := range rc.Processors {
+		processor.validate(KindProcessor, errors, store)
 	}
 }
 

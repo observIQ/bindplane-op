@@ -14,25 +14,25 @@
 
 package model
 
-// SourceType is a ResourceType used to define sources
-type SourceType struct {
+// ProcessorType is a ResourceType used to define sources
+type ProcessorType struct {
 	ResourceType `yaml:",inline" json:",inline" mapstructure:",squash"`
 }
 
-// NewSourceType creates a new source-type with the specified name,
-func NewSourceType(name string, parameters []ParameterDefinition) *SourceType {
-	return NewSourceTypeWithSpec(name, ResourceTypeSpec{
+// NewProcessorType creates a new processor-type with the specified name,
+func NewProcessorType(name string, parameters []ParameterDefinition) *ProcessorType {
+	return NewProcessorTypeWithSpec(name, ResourceTypeSpec{
 		Parameters: parameters,
 	})
 }
 
-// NewSourceTypeWithSpec creates a new source-type with the specified name and spec.
-func NewSourceTypeWithSpec(name string, spec ResourceTypeSpec) *SourceType {
-	return &SourceType{
+// NewProcessorTypeWithSpec creates a new processor-type with the specified name and spec.
+func NewProcessorTypeWithSpec(name string, spec ResourceTypeSpec) *ProcessorType {
+	return &ProcessorType{
 		ResourceType: ResourceType{
 			ResourceMeta: ResourceMeta{
 				APIVersion: V1Alpha,
-				Kind:       KindSourceType,
+				Kind:       KindProcessorType,
 				Metadata: Metadata{
 					Name: name,
 				},
@@ -42,7 +42,7 @@ func NewSourceTypeWithSpec(name string, spec ResourceTypeSpec) *SourceType {
 	}
 }
 
-// GetKind returns "SourceType"
-func (s *SourceType) GetKind() Kind {
-	return KindSourceType
+// GetKind returns "ProcessorType"
+func (s *ProcessorType) GetKind() Kind {
+	return KindProcessorType
 }

@@ -51,8 +51,10 @@ const (
 	KindConfiguration   Kind = "Configuration"
 	KindAgent           Kind = "Agent"
 	KindSource          Kind = "Source"
+	KindProcessor       Kind = "Processor"
 	KindDestination     Kind = "Destination"
 	KindSourceType      Kind = "SourceType"
+	KindProcessorType   Kind = "ProcessorType"
 	KindDestinationType Kind = "DestinationType"
 	KindUnknown         Kind = "Unknown"
 )
@@ -67,8 +69,10 @@ func createKindLookup() map[string]Kind {
 		KindConfiguration,
 		KindAgent,
 		KindSource,
+		KindProcessor,
 		KindDestination,
 		KindSourceType,
+		KindProcessorType,
 		KindDestinationType,
 	} {
 		key := strings.ToLower(string(kind))
@@ -249,6 +253,10 @@ func ParseResource(r *AnyResource) (Resource, error) {
 		return parseResource(r, &Source{})
 	case KindSourceType:
 		return parseResource(r, &SourceType{})
+	case KindProcessor:
+		return parseResource(r, &Processor{})
+	case KindProcessorType:
+		return parseResource(r, &ProcessorType{})
 	case KindDestination:
 		return parseResource(r, &Destination{})
 	case KindDestinationType:
@@ -394,10 +402,14 @@ func NewEmptyResource(kind Kind) (Resource, error) {
 		return &Configuration{}, nil
 	case KindSource:
 		return &Source{}, nil
+	case KindProcessor:
+		return &Processor{}, nil
 	case KindDestination:
 		return &Destination{}, nil
 	case KindSourceType:
 		return &SourceType{}, nil
+	case KindProcessorType:
+		return &ProcessorType{}, nil
 	case KindDestinationType:
 		return &DestinationType{}, nil
 	default:

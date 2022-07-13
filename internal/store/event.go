@@ -87,6 +87,20 @@ func (e Events[T]) Include(item T, eventType EventType) {
 	}
 }
 
+func (e Events[T]) Updates() []Event[T] {
+	return e.ByType(EventTypeUpdate)
+}
+
+func (e Events[T]) ByType(eventType EventType) []Event[T] {
+	var results []Event[T]
+	for _, event := range e {
+		if event.Type == eventType {
+			results = append(results, event)
+		}
+	}
+	return results
+}
+
 // ----------------------------------------------------------------------
 // merge for use with RelayWithMerge
 
