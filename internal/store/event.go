@@ -100,3 +100,26 @@ func (e Events[T]) ByType(eventType EventType) []Event[T] {
 	}
 	return results
 }
+
+// ----------------------------------------------------------------------
+// merge for use with RelayWithMerge
+
+// Merge will add events from the other events. Note that this will currently overwrite any existing events. Use
+// CanSafelyMerge first to determine if a Merge can be done without overwriting and losing events.
+func (e Events[T]) Merge(other Events[T]) {
+	for k, v := range other {
+		e[k] = v
+	}
+}
+
+// CanSafelyMerge returns true if the other events can be merged into this one. Currently we only merge events with
+// different keys.
+func (e Events[T]) CanSafelyMerge(other Events[T]) bool {
+	for key := range other {
+		if _, ok := e[key]; ok {
+			return false
+		}
+	}
+	// no keys in common
+	return true
+}

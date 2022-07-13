@@ -231,7 +231,7 @@ func verifyUpdates(t *testing.T, done chan bool, Updates <-chan *Updates, expect
 			}
 			actual := configurationChangesFromUpdates(updates)
 
-			t.Logf("actual %v\n", actual)
+			t.Logf("actual %v\nexpected %v", actual, expected)
 
 			if !assert.ElementsMatch(t, expected[i].configurationsRemoved, actual.configurationsRemoved, "configurationsRemoved should match") {
 				complete(false)
@@ -251,15 +251,20 @@ func verifyUpdates(t *testing.T, done chan bool, Updates <-chan *Updates, expect
 }
 
 func runNotifyUpdatesTests(t *testing.T, store Store, done chan bool) {
-	applyAllTestResources(t, store)
-
-	updates, _ := eventbus.Subscribe(store.Updates())
 
 	update := func(r model.Resource) {
 		status, err := store.ApplyResources([]model.Resource{r})
 		require.NoError(t, err)
 		requireOkStatuses(t, status)
 	}
+
+	updates, _ := eventbus.Subscribe(store.Updates())
+	applyAllTestResources(t, store)
+	go verifyUpdates(t, done, updates, []configurationChanges{
+		expectedUpdates(testConfiguration.Name(), testRawConfiguration1.Name(), testRawConfiguration2.Name()),
+	})
+	ok := <-done
+	require.True(t, ok)
 
 	// these tests are dependent on each other and are expected to run in order.
 
@@ -333,8 +338,9 @@ func runNotifyUpdatesTests(t *testing.T, store Store, done chan bool) {
 }
 
 func runDeleteChannelTests(t *testing.T, store Store, done chan bool) {
-	updates, _ := eventbus.Subscribe(store.Updates())
 	t.Run("delete configuration, expect configuration-1 in deleteconfigurations channel", func(t *testing.T) {
+		updates, unsubscribe := eventbus.Subscribe(store.Updates())
+		defer unsubscribe()
 		go verifyUpdates(t, done, updates, []configurationChanges{
 			expectedUpdates(testConfiguration.Name()),
 			expectedRemoves(testConfiguration.Name()),
@@ -354,6 +360,8 @@ func runDeleteChannelTests(t *testing.T, store Store, done chan bool) {
 	})
 
 	t.Run("batch delete a single configuration, expect configuration-1 in deleteconfigurations channel", func(t *testing.T) {
+		updates, unsubscribe := eventbus.Subscribe(store.Updates())
+		defer unsubscribe()
 		go verifyUpdates(t, done, updates, []configurationChanges{
 			expectedUpdates(testConfiguration.Name()),
 			expectedRemoves(testConfiguration.Name()),
@@ -373,6 +381,8 @@ func runDeleteChannelTests(t *testing.T, store Store, done chan bool) {
 	})
 
 	t.Run("batch delete a source attached to a configuration expect source in-use status", func(t *testing.T) {
+		updates, unsubscribe := eventbus.Subscribe(store.Updates())
+		defer unsubscribe()
 		go verifyUpdates(t, done, updates, []configurationChanges{
 			expectedUpdates(testConfiguration.Name()),
 		})
@@ -397,6 +407,8 @@ func runDeleteChannelTests(t *testing.T, store Store, done chan bool) {
 	})
 
 	t.Run("batch delete source and its configuration, expect configuration-1 in channel", func(t *testing.T) {
+		updates, unsubscribe := eventbus.Subscribe(store.Updates())
+		defer unsubscribe()
 		go verifyUpdates(t, done, updates, []configurationChanges{
 			expectedUpdates(testConfiguration.Name()),
 			expectedRemoves(testConfiguration.Name()),
@@ -942,7 +954,11 @@ func verifyAgentsRemove(t *testing.T, done chan bool, Updates <-chan *Updates, e
 			done <- false
 			t.Log("Timed out waiting for updates.")
 			return
-		case updates := <-Updates:
+		case updates, ok := <-Updates:
+			if !ok {
+				done <- false
+				return
+			}
 			agentUpdates := updates.Agents
 
 			// skip when we're seeding
@@ -966,6 +982,7 @@ func verifyAgentsRemove(t *testing.T, done chan bool, Updates <-chan *Updates, e
 
 			assert.ElementsMatch(t, expectRemoves, ids)
 			done <- true
+			return
 		}
 	}
 }
@@ -1074,16 +1091,17 @@ func runDeleteAgentsTests(t *testing.T, store Store) {
 		t.Run(test.description, func(t *testing.T) {
 			// setup
 			store.Clear()
-			channel, _ := eventbus.Subscribe(store.Updates())
-			ctx := context.Background()
-			done := make(chan bool, 0)
-
 			for _, id := range test.seedAgentIDs {
 				addAgent(store, &model.Agent{ID: id})
 			}
 
+			channel, unsubscribe := eventbus.Subscribe(store.Updates())
+			defer unsubscribe()
+
+			done := make(chan bool, 0)
 			go verifyAgentsRemove(t, done, channel, test.deleteAgentIDs)
 
+			ctx := context.Background()
 			_, err := store.DeleteAgents(ctx, test.deleteAgentIDs)
 			require.NoError(t, err)
 

@@ -15,7 +15,11 @@
 package store
 
 import (
+	"context"
+	"time"
+
 	"github.com/hashicorp/go-multierror"
+	"github.com/observiq/bindplane-op/internal/eventbus"
 	"github.com/observiq/bindplane-op/model"
 )
 
@@ -33,6 +37,7 @@ type Updates struct {
 
 // NewUpdates returns a New Updates struct
 func NewUpdates() *Updates {
+	// TODO: optimize allocate as needed
 	return &Updates{
 		Agents:           NewEvents[*model.Agent](),
 		Sources:          NewEvents[*model.Source](),
@@ -268,4 +273,75 @@ func (updates *Updates) addConfigurationUpdatesFromComponents(configuration *mod
 			return
 		}
 	}
+}
+
+// ----------------------------------------------------------------------
+// merge for use with RelayWithMerge
+
+func mergeUpdates(into, single *Updates) bool {
+	// first make sure we can safely merge
+	safe := into.Agents.CanSafelyMerge(single.Agents) &&
+		into.Sources.CanSafelyMerge(single.Sources) &&
+		into.SourceTypes.CanSafelyMerge(single.SourceTypes) &&
+		into.Destinations.CanSafelyMerge(single.Destinations) &&
+		into.DestinationTypes.CanSafelyMerge(single.DestinationTypes) &&
+		into.Configurations.CanSafelyMerge(single.Configurations)
+
+	if !safe {
+		return false
+	}
+
+	// merge individual events
+	into.Agents.Merge(single.Agents)
+	into.Sources.Merge(single.Sources)
+	into.SourceTypes.Merge(single.SourceTypes)
+	into.Destinations.Merge(single.Destinations)
+	into.DestinationTypes.Merge(single.DestinationTypes)
+	into.Configurations.Merge(single.Configurations)
+
+	return true
+}
+
+// ----------------------------------------------------------------------
+
+type storeUpdates struct {
+	updates eventbus.Source[*Updates]
+	// updatesInternal is an internal source used for notification. It will relay to the updates available to clients of
+	// the store.
+	updatesInternal eventbus.Source[*Updates]
+}
+
+func newStoreUpdates(ctx context.Context, maxEventsToMerge int) *storeUpdates {
+	updates := eventbus.NewSource[*Updates]()
+	updatesInternal := eventbus.NewSource[*Updates]()
+
+	if maxEventsToMerge == 0 {
+		maxEventsToMerge = 100
+	}
+
+	// introduce a separate relay with a large buffer to avoid blocking on changes
+	eventbus.RelayWithMerge(
+		ctx,
+		updatesInternal,
+		mergeUpdates,
+		updates,
+		200*time.Millisecond,
+		maxEventsToMerge,
+		eventbus.WithUnboundedChannel[*Updates](100*time.Millisecond),
+	)
+
+	return &storeUpdates{
+		updates:         updates,
+		updatesInternal: updatesInternal,
+	}
+}
+
+// Updates returns the external channel that can be provided to external clients.
+func (s *storeUpdates) Updates() eventbus.Source[*Updates] {
+	return s.updates
+}
+
+// Send adds an Updates event to the internal channel where it can be merged and relayed to the external channel.
+func (s *storeUpdates) Send(updates *Updates) {
+	s.updatesInternal.Send(updates)
 }

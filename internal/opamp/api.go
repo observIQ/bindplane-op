@@ -303,11 +303,8 @@ func (s *opampServer) UpdateAgent(ctx context.Context, agent *model.Agent, updat
 	agentRawConfiguration := agentConfiguration.Raw()
 	newRawConfiguration := newConfiguration.Raw()
 
-	// use a separate goroutine to avoid blocking on the channel write
-	go func() {
-		// change the agent status to Configuring, but ignore any failure as this status is considered nice to have and not required to update the agent
-		_, _ = s.manager.UpsertAgent(ctx, agent.ID, func(current *model.Agent) { current.Status = model.Configuring })
-	}()
+	// change the agent status to Configuring, but ignore any failure as this status is considered nice to have and not required to update the agent
+	_, _ = s.manager.UpsertAgent(ctx, agent.ID, func(current *model.Agent) { current.Status = model.Configuring })
 
 	return s.send(context.Background(), conn, &protobufs.ServerToAgent{
 		InstanceUid:  agent.ID,

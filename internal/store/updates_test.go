@@ -15,6 +15,7 @@
 package store
 
 import (
+	"context"
 	"testing"
 
 	"github.com/observiq/bindplane-op/model"
@@ -25,10 +26,16 @@ import (
 var (
 	updatesTestStore Store
 	resourceMap      map[string]model.Resource
+	testOptions      = Options{
+		SessionsSecret:   "super-secret-key",
+		MaxEventsToMerge: 1,
+	}
 )
 
 func updatesTestSetup(t *testing.T) {
-	updatesTestStore = NewMapStore(zap.NewNop(), "super-secret-key")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	updatesTestStore = NewMapStore(ctx, testOptions, zap.NewNop())
 	resourceMap = map[string]model.Resource{}
 	resources := []model.Resource{
 		newTestProcessorType("pt1"),

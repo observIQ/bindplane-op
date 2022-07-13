@@ -32,6 +32,15 @@ import (
 	"go.uber.org/zap"
 )
 
+// Options are options that are common to all store implementations
+type Options struct {
+	// SessionsSecret is used to encode sessions
+	SessionsSecret string
+	// MaxEventsToMerge is the maximum number of update events (inserts, updates, deletes, etc) to merge into a single
+	// event.
+	MaxEventsToMerge int
+}
+
 // Store handles interacting with a storage backend,
 type Store interface {
 	Clear()

@@ -43,7 +43,7 @@ type mapStore struct {
 	destinations     resourceStore[*model.Destination]
 	destinationTypes resourceStore[*model.DestinationType]
 
-	updates            eventbus.Source[*Updates]
+	updates            *storeUpdates
 	agentIndex         search.Index
 	configurationIndex search.Index
 	logger             *zap.Logger
@@ -55,7 +55,7 @@ type mapStore struct {
 var _ Store = (*mapStore)(nil)
 
 // NewMapStore returns an in memory Store
-func NewMapStore(logger *zap.Logger, sessionsSecret string) Store {
+func NewMapStore(ctx context.Context, options Options, logger *zap.Logger) Store {
 	return &mapStore{
 		agents:             make(map[string]*model.Agent),
 		configurations:     newResourceStore[*model.Configuration](),
@@ -65,11 +65,11 @@ func NewMapStore(logger *zap.Logger, sessionsSecret string) Store {
 		processorTypes:     newResourceStore[*model.ProcessorType](),
 		destinations:       newResourceStore[*model.Destination](),
 		destinationTypes:   newResourceStore[*model.DestinationType](),
-		updates:            eventbus.NewSource[*Updates](),
+		updates:            newStoreUpdates(ctx, options.MaxEventsToMerge),
 		agentIndex:         search.NewInMemoryIndex("agent"),
 		configurationIndex: search.NewInMemoryIndex("configuration"),
 		logger:             logger,
-		sessionStore:       newBPCookieStore(sessionsSecret),
+		sessionStore:       newBPCookieStore(options.SessionsSecret),
 	}
 }
 
@@ -572,7 +572,7 @@ func (mapstore *mapStore) AgentsIDsMatchingConfiguration(configuration *model.Co
 }
 
 func (mapstore *mapStore) Updates() eventbus.Source[*Updates] {
-	return mapstore.updates
+	return mapstore.updates.Updates()
 }
 
 // CleanupDisconnectedAgents removes agents that have disconnected before the specified time
