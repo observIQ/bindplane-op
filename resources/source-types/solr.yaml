@@ -12,23 +12,42 @@ spec:
     - linux
     - windows
   parameters:
+    # Metric
+    - name: enable_metrics
+      label: Enable Metrics
+      description: Enable to send metrics.
+      type: bool
+      default: true
+
     - name: collection_interval
       label: Collection Interval
       description: How often (seconds) to scrape for metrics.
       type: int
       default: 60
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
 
     - name: address
       label: Address
       description: IP address or hostname to scrape for JMX metrics.
       type: string
       default: localhost
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
 
     - name: port
       label: Port
       description: Port to scrape for JMX metrics.
       type: int
       default: 9012
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
 
     - name: jar_path
       label: JMX Metrics Collection Jar Path
@@ -36,9 +55,47 @@ spec:
       type: string
       default: "/opt/opentelemetry-java-contrib-jmx-metrics.jar"
       advancedConfig: true
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    # Logs
+    - name: enable_logs
+      label: Enable Logs
+      description: Enable to send logs.
+      type: bool
+      default: true
+
+    - name: file_path
+      label: File Path(s)
+      description: File or directory paths to tail for logs.
+      type: strings
+      default:
+        - /var/solr/logs/solr.log
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+    - name: start_at
+      label: Start At
+      description: Start reading file from 'beginning' or 'end'.
+      type: enum
+      validValues:
+        - beginning
+        - end
+      default: end
+      advancedConfig: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
 
   metrics:
     receivers: |
+      {{ if .enable_metrics }}
       - jmx:
           jar_path: {{ .jar_path }}
           collection_interval: {{ .collection_interval }}s
@@ -46,6 +103,26 @@ spec:
           target_system: solr
           resource_attributes:
             solr.endpoint: {{ .address }}:{{ .port }}
+      {{ end }}
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]
+
+  logs:
+    receivers: |
+      {{ if .enable_logs }}
+      - plugin:
+          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/solr_logs.yaml
+          parameters:
+            file_log_path:
+              {{ range $fp := .file_path }}
+              - '{{ $fp }}'
+              {{ end }}
+            start_at: {{ .start_at }}
+      {{ end }}
 
     processors: |
       - resourcedetection:
