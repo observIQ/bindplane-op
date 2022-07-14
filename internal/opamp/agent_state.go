@@ -165,15 +165,6 @@ func syncOne[T protoiface.MessageV1](ctx context.Context, logger *zap.Logger, ag
 	agentMessage, agentMessageExists := syncer.message(agentToServer)
 	localMessage, localMessageExists := syncer.message(&state.Status)
 
-	// logger.Info("--- syncOne ----------------------------------------------------------------------",
-	// 	zap.String("syncer", syncer.name()),
-	// 	zap.Any("agentMessage", agentMessage),
-	// 	zap.Any("localMessage", localMessage),
-	// 	zap.Any("agentMessageExists", agentMessageExists),
-	// 	zap.Any("localMessageExists", localMessageExists),
-	// 	zap.Any("equal", proto.Equal(agentMessage, localMessage)),
-	// )
-
 	initialSyncRequired := !localMessageExists && !agentMessageExists
 	serverSkippedMessage := state.IsMissingMessage(agentToServer)
 
