@@ -30,6 +30,10 @@ type packageStatusesSyncer struct{}
 
 var _ messageSyncer[*protobufs.PackageStatuses] = (*packageStatusesSyncer)(nil)
 
+func (s *packageStatusesSyncer) name() string {
+	return "PackageStatuses"
+}
+
 func (s *packageStatusesSyncer) message(msg *protobufs.AgentToServer) (result *protobufs.PackageStatuses, exists bool) {
 	result = msg.GetPackageStatuses()
 	return result, result != nil

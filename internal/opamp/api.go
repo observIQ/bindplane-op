@@ -196,7 +196,7 @@ func (s *opampServer) OnMessage(conn opamp.Connection, message *protobufs.AgentT
 		attribute.Bool("bindplane.opamp.hasConfiguration", hasConfiguration),
 	)
 
-	s.logger.Info("OpAMP agent message", zap.String("agentID", agentID))
+	s.logger.Info("OpAMP agent message", zap.String("agentID", agentID), zap.Strings("submessages", messageComponents(message)))
 	s.connections.connect(conn, agentID)
 
 	response := &protobufs.ServerToAgent{

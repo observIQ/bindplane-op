@@ -32,6 +32,10 @@ type effectiveConfigSyncer struct{}
 
 var _ messageSyncer[*protobufs.EffectiveConfig] = (*effectiveConfigSyncer)(nil)
 
+func (s *effectiveConfigSyncer) name() string {
+	return "EffectiveConfig"
+}
+
 func (s *effectiveConfigSyncer) message(msg *protobufs.AgentToServer) (result *protobufs.EffectiveConfig, exists bool) {
 	result = msg.GetEffectiveConfig()
 	return result, result != nil

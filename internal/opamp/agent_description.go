@@ -91,6 +91,10 @@ type agentDescriptionSyncer struct{}
 
 var _ messageSyncer[*protobufs.AgentDescription] = (*agentDescriptionSyncer)(nil)
 
+func (s *agentDescriptionSyncer) name() string {
+	return "AgentDescription"
+}
+
 func (s *agentDescriptionSyncer) message(msg *protobufs.AgentToServer) (result *protobufs.AgentDescription, exists bool) {
 	result = msg.GetAgentDescription()
 	return result, result != nil

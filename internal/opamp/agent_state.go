@@ -16,6 +16,7 @@ package opamp
 
 import (
 	"context"
+	"encoding/base64"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/mitchellh/mapstructure"
@@ -40,13 +41,11 @@ func (s *opampServer) updateAgentState(ctx context.Context, agentID string, conn
 		agent.Protocol = ProtocolName
 
 		// decode the state which we will update
-		state, err = decodeState(agent)
+		state, err = decodeState(agent.State)
 		if err != nil {
-			s.logger.Error("error encountered while decoding agent state", zap.Error(err))
-			return
+			s.logger.Error("error encountered while decoding agent state, starting with fresh state", zap.Error(err))
 		}
 
-		// TODO(andy): abort upsert if we know nothing changed?
 		syncOne[*protobufs.AgentDescription](ctx, s.logger, msg, state, conn, agent, response, &syncAgentDescription)
 		syncOne[*protobufs.EffectiveConfig](ctx, s.logger, msg, state, conn, agent, response, &syncEffectiveConfig)
 		syncOne[*protobufs.RemoteConfigStatus](ctx, s.logger, msg, state, conn, agent, response, &syncRemoteConfigStatus)
@@ -66,7 +65,7 @@ func (s *opampServer) updateAgentState(ctx context.Context, agentID string, conn
 		}
 
 		// the state could be new
-		agent.State = state
+		agent.State = encodeState(state)
 	})
 
 	return agent, state, err
@@ -74,19 +73,57 @@ func (s *opampServer) updateAgentState(ctx context.Context, agentID string, conn
 
 // ----------------------------------------------------------------------
 
-// agentState stores OpAMP state for the agent
-type agentState struct {
-	SequenceNum uint64
-	Status      *protobufs.AgentToServer
+// state is stored on the model.Agent in a partially serialized form. The status is a base64-encoded protobuf.
+type serializedAgentState struct {
+	SequenceNum uint64 `json:"sequenceNum" yaml:"sequenceNum" mapstructure:"sequenceNum"`
+	Status      string `json:"status,omitempty" yaml:"status,omitempty" mapstructure:"status"`
 }
 
-func decodeState(agent *model.Agent) (*agentState, error) {
-	result := &agentState{}
-	err := mapstructure.Decode(agent.State, result)
-	if result.Status == nil {
-		result.Status = &protobufs.AgentToServer{}
+// agentState stores OpAMP state for the agent
+type agentState struct {
+	SequenceNum uint64                  `json:"sequenceNum" yaml:"sequenceNum" mapstructure:"sequenceNum"`
+	Status      protobufs.AgentToServer `json:"status,omitempty" yaml:"status,omitempty" mapstructure:"status"`
+}
+
+func encodeState(state *agentState) *serializedAgentState {
+	if state == nil {
+		return &serializedAgentState{}
 	}
-	return result, err
+	bytes, err := proto.Marshal(&state.Status)
+	if err != nil {
+		bytes = nil
+	}
+	serialized := &serializedAgentState{
+		SequenceNum: state.SequenceNum,
+		Status:      base64.StdEncoding.EncodeToString(bytes),
+	}
+	return serialized
+}
+
+func decodeState(state interface{}) (*agentState, error) {
+	serialized := serializedAgentState{}
+
+	if err := mapstructure.Decode(state, &serialized); err != nil {
+		return &agentState{
+			SequenceNum: serialized.SequenceNum,
+		}, err
+	}
+
+	result := &agentState{
+		SequenceNum: serialized.SequenceNum,
+	}
+
+	bytes, err := base64.StdEncoding.DecodeString(serialized.Status)
+	if err != nil {
+		return result, err
+	}
+
+	// unmarshal proto
+	if err := proto.Unmarshal(bytes, &result.Status); err != nil {
+		return result, err
+	}
+
+	return result, nil
 }
 
 func (s *agentState) Configuration() *observiq.RawAgentConfiguration {
@@ -108,6 +145,9 @@ func (s *agentState) IsMissingMessage(agentToServer *protobufs.AgentToServer) bo
 
 // interface that defines how to sync each message
 type messageSyncer[T protoiface.MessageV1] interface {
+	// name is useful for debugging
+	name() string
+
 	// message returns the message within the AgentToServer the is being synced
 	message(msg *protobufs.AgentToServer) (T, bool)
 
@@ -123,29 +163,53 @@ type messageSyncer[T protoiface.MessageV1] interface {
 
 func syncOne[T protoiface.MessageV1](ctx context.Context, logger *zap.Logger, agentToServer *protobufs.AgentToServer, state *agentState, conn opamp.Connection, agent *model.Agent, response *protobufs.ServerToAgent, syncer messageSyncer[T]) (updated bool) {
 	agentMessage, agentMessageExists := syncer.message(agentToServer)
-	localMessage, localMessageExists := syncer.message(state.Status)
+	localMessage, localMessageExists := syncer.message(&state.Status)
+
+	// logger.Info("--- syncOne ----------------------------------------------------------------------",
+	// 	zap.String("syncer", syncer.name()),
+	// 	zap.Any("agentMessage", agentMessage),
+	// 	zap.Any("localMessage", localMessage),
+	// 	zap.Any("agentMessageExists", agentMessageExists),
+	// 	zap.Any("localMessageExists", localMessageExists),
+	// 	zap.Any("equal", proto.Equal(agentMessage, localMessage)),
+	// )
+
+	initialSyncRequired := !localMessageExists && !agentMessageExists
+	serverSkippedMessage := state.IsMissingMessage(agentToServer)
 
 	// make sure we have a message
-	if !agentMessageExists || state.IsMissingMessage(agentToServer) {
+	if initialSyncRequired || serverSkippedMessage {
 		// Either:
 		//
 		// 1) agent doesn't have the message at all => request contents
 		//
 		// 2) we missed a messages in sequence => request contents
 		//
+		logger.Debug("not synced or missed message => ReportFullState",
+			zap.String("syncer", syncer.name()),
+			zap.Bool("serverSkippedMessage", serverSkippedMessage),
+			zap.Bool("initialSyncRequired", initialSyncRequired),
+		)
 		if hasCapability(agentToServer, syncer.agentCapabilitiesFlag()) {
 			response.Flags |= protobufs.ServerToAgent_ReportFullState
 		}
 		return false
 	}
 
-	if localMessageExists && proto.Equal(agentMessage, localMessage) {
-		// data on the server is present and matches content => do nothing
-		return false
+	if localMessageExists {
+		if !agentMessageExists || proto.Equal(agentMessage, localMessage) {
+			// data on the server is present and matches content => do nothing
+			logger.Debug("exists locally and unchanged => do nothing", zap.String("syncer", syncer.name()))
+			return false
+		}
 	}
+
+	// before attempting to store, make sure we clone the message
+	agentMessage = proto.Clone(agentMessage).(T)
 
 	// update
 	if err := syncer.update(ctx, logger, state, conn, agent, agentMessage); err != nil {
+		logger.Debug("message different => update error", zap.String("syncer", syncer.name()), zap.Error(err))
 		errorMessage := err.Error()
 		if response.ErrorResponse != nil {
 			errorMessage = response.ErrorResponse.ErrorMessage + ", " + errorMessage
@@ -154,6 +218,8 @@ func syncOne[T protoiface.MessageV1](ctx context.Context, logger *zap.Logger, ag
 			Type:         protobufs.ServerErrorResponse_Unknown,
 			ErrorMessage: errorMessage,
 		}
+	} else {
+		logger.Debug("message different => update", zap.String("syncer", syncer.name()))
 	}
 
 	return true
@@ -161,4 +227,23 @@ func syncOne[T protoiface.MessageV1](ctx context.Context, logger *zap.Logger, ag
 
 func hasCapability(agentToServer *protobufs.AgentToServer, capability protobufs.AgentCapabilities) bool {
 	return capability&agentToServer.GetCapabilities() != 0
+}
+
+// ----------------------------------------------------------------------
+// misc utils
+
+func messageComponents(agentToServer *protobufs.AgentToServer) []string {
+	var components []string
+	components = includeComponent(components, agentToServer.AgentDescription, "AgentDescription")
+	components = includeComponent(components, agentToServer.EffectiveConfig, "EffectiveConfig")
+	components = includeComponent(components, agentToServer.RemoteConfigStatus, "RemoteConfigStatus")
+	components = includeComponent(components, agentToServer.PackageStatuses, "PackageStatuses")
+	return components
+}
+
+func includeComponent(components []string, msg any, name string) []string {
+	if msg != nil {
+		components = append(components, name)
+	}
+	return components
 }

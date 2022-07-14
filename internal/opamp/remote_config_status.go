@@ -30,6 +30,10 @@ type remoteConfigStatusSyncer struct{}
 
 var _ messageSyncer[*protobufs.RemoteConfigStatus] = (*remoteConfigStatusSyncer)(nil)
 
+func (s *remoteConfigStatusSyncer) name() string {
+	return "RemoteConfigStatus"
+}
+
 func (s *remoteConfigStatusSyncer) message(msg *protobufs.AgentToServer) (result *protobufs.RemoteConfigStatus, exists bool) {
 	result = msg.GetRemoteConfigStatus()
 	return result, result != nil
