@@ -143,8 +143,8 @@ spec:
 
   logs:
     receivers: |
-      - plugin/haproxy:
-          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/haproxy_logs.yaml
+      - plugin:
+          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/couchbase_logs.yaml
           parameters:
             start_at: {{ .start_at }}
 
@@ -178,9 +178,9 @@ spec:
               - '{{ $fp }}'
               {{ end }}
 
-            babysitter_log_path: {{ .babysitter_log_path }}
-            http_access_log_path:
-              {{ range $fp := .http_access_log_path }}
+            enable_babysitter_log: {{ .enable_babysitter_log }}
+            babysitter_log_path:
+              {{ range $fp := .babysitter_log_path }}
               - '{{ $fp }}'
               {{ end }}
 
