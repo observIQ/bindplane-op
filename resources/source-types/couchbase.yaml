@@ -1,0 +1,197 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: SourceType
+metadata:
+  name: couchbase
+  displayName: Couchbase
+  icon: /icons/sources/couchbase.svg
+  description: Couchbase log collector
+spec:
+  version: 0.0.1
+  supported_platforms:
+    - linux
+    - windows
+    - macos
+  parameters:
+    - name: enable_error_log
+      label: Error Logs
+      description: Enable to read error logs.
+      type: bool
+      default: true
+
+    - name: error_log_path
+      label: Error Log Path(s)
+      description: Log File paths to tail for error logs.
+      type: strings
+      default:
+        - "/opt/couchbase/var/lib/couchbase/logs/error.log"
+      relevantIf:
+        - name: enable_error_log
+          operator: equals
+          value: true
+
+    - name: enable_info_log
+      label: Info Log Path(s)
+      description: Enable to read info logs.
+      type: bool
+      default: false
+
+    - name: info_log_path
+      label: Info Log Path(s)
+      description: Log File paths to tail for info logs.
+      type: strings
+      default: 
+        - "/opt/couchbase/var/lib/couchbase/logs/info.log"
+      relevantIf:
+        - name: enable_info_log
+          operator: equals
+          value: true
+
+    - name: enable_debug_log
+      type: bool
+      label: Debug Logs
+      description: Enable to read debug logs.
+      default: false
+
+    - name: debug_log_path
+      type: strings
+      label: Debug Log Path(s)
+      description: Log File paths to tail for debug logs.
+      default: 
+        - "/opt/couchbase/var/lib/couchbase/logs/debug.log"
+      relevantIf:
+        - name: enable_debug_log
+          operator: equals
+          value: true
+
+    - name: enable_access_log
+      label: HTTP Access Logs
+      description: Enable to read http access logs.
+      type: bool
+      default: false
+
+    - name: http_access_log_path
+      label: HTTP Access Log Path(s)
+      description: Log File paths to tail for http access logs.
+      type: strings
+      default: 
+        - "/opt/couchbase/var/lib/couchbase/logs/http_access.log"
+      relevantIf:
+        - name: enable_access_log
+          operator: equals
+          value: true
+
+    - name: enable_internal_access_log
+      label: Internal Access Logs
+      description: Enable to read internal access logs.
+      type: bool
+      default: false
+
+    - name: http_internal_access_log_path
+      label: Internal Access Log Path(s)
+      description: Log File paths to tail for internal access logs.
+      type: strings
+      default: 
+        - "/opt/couchbase/var/lib/couchbase/logs/http_access_internal.log"
+      relevantIf:
+        - name: enable_internal_access_log
+          operator: equals
+          value: true
+
+    - name: enable_babysitter_log
+      label: Baby Sitter Logs
+      description: Enable to read baby sitter logs.
+      type: bool
+      default: false
+
+    - name: babysitter_log_path
+      label: Baby Sitter Log Path(s)
+      description: Log File paths to tail for baby sitter logs.
+      type: strings
+      default: 
+        - "/opt/couchbase/var/lib/couchbase/logs/babysitter.log"
+      relevantIf:
+        - name: enable_babysitter_log
+          operator: equals
+          value: true
+
+    - name: enable_xdcr_log
+      label: XDCR Logs
+      description: Enable to read xdcr logs.
+      type: bool
+      default: false
+
+    - name: xdcr_log_path
+      label: XDCR Log Path(s)
+      description: Log File paths to tail for xdcr logs.
+      type: strings
+      default: 
+        - "/opt/couchbase/var/lib/couchbase/logs/goxdcr.log"
+      relevantIf:
+        - name: enable_xdcr_log
+          operator: equals
+          value: true
+
+    - name: start_at
+      label: Start At
+      description: Start reading logs from 'beginning' or 'end'.
+      type: enum
+      validValues:
+        - beginning
+        - end
+      default: end
+      advancedConfig: true
+
+  logs:
+    receivers: |
+      - plugin/haproxy:
+          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/haproxy_logs.yaml
+          parameters:
+            start_at: {{ .start_at }}
+
+            enable_error_log: {{ .enable_error_log }}
+            error_log_path:
+              {{ range $fp := .error_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+
+            enable_debug_log: {{ .enable_debug_log }}
+            debug_log_path:
+              {{ range $fp := .debug_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+
+            enable_info_log: {{ .enable_info_log }}
+            info_log_path:
+              {{ range $fp := .info_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+
+            enable_access_log: {{ .enable_access_log }}
+            http_access_log_path:
+              {{ range $fp := .http_access_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+
+            enable_internal_access_log: {{ .enable_internal_access_log }}
+            http_internal_access_log_path:
+              {{ range $fp := .http_internal_access_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+
+            babysitter_log_path: {{ .babysitter_log_path }}
+            http_access_log_path:
+              {{ range $fp := .http_access_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+
+            enable_xdcr_log: {{ .enable_xdcr_log }}
+            xdcr_log_path:
+              {{ range $fp := .xdcr_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]
