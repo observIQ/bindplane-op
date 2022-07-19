@@ -15,7 +15,7 @@ require (
 	github.com/stretchr/testify v1.8.0
 	github.com/vektah/gqlparser/v2 v2.4.6
 	go.uber.org/zap v1.21.0
-	k8s.io/apimachinery v0.24.2
+	k8s.io/apimachinery v0.24.3
 
 )
 
