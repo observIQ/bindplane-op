@@ -1239,9 +1239,14 @@ const docTemplate = `{
                 "platform": {
                     "type": "string"
                 },
+                "protocol": {
+                    "description": "used by the agent management protocol",
+                    "type": "string"
+                },
                 "remoteAddress": {
                     "type": "string"
                 },
+                "state": {},
                 "status": {
                     "description": "reported by Status messages",
                     "type": "integer"
@@ -1603,6 +1608,12 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.Parameter"
+                    }
+                },
+                "processors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ResourceConfiguration"
                     }
                 },
                 "type": {
