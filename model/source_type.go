@@ -19,14 +19,14 @@ type SourceType struct {
 	ResourceType `yaml:",inline" json:",inline" mapstructure:",squash"`
 }
 
-// NewSourceType creates a new sourtype with the specified name,
+// NewSourceType creates a new source-type with the specified name,
 func NewSourceType(name string, parameters []ParameterDefinition) *SourceType {
 	return NewSourceTypeWithSpec(name, ResourceTypeSpec{
 		Parameters: parameters,
 	})
 }
 
-// NewSourceTypeWithSpec creates a new sourtype with the specified name and spec.
+// NewSourceTypeWithSpec creates a new source-type with the specified name and spec.
 func NewSourceTypeWithSpec(name string, spec ResourceTypeSpec) *SourceType {
 	return &SourceType{
 		ResourceType: ResourceType{

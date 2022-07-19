@@ -312,7 +312,9 @@ export const StepThree: React.FC = () => {
                   return (
                     <TableRow key={p.name}>
                       <TableCell>{label}</TableCell>
-                      <TableCell>{String(p.value)}</TableCell>
+                      <TableCell classes={{ root: styles["break-word-cell"] }}>
+                        {String(p.value)}
+                      </TableCell>
                     </TableRow>
                   );
                 })}

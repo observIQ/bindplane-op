@@ -38,6 +38,9 @@ import (
 
 var tracer = otel.Tracer("bindplane/opamp")
 
+// ProtocolName is "opamp"
+const ProtocolName = "opamp"
+
 var compatibleOpAMPVersions = []string{"v0.2.0"}
 
 const (
@@ -193,7 +196,7 @@ func (s *opampServer) OnMessage(conn opamp.Connection, message *protobufs.AgentT
 		attribute.Bool("bindplane.opamp.hasConfiguration", hasConfiguration),
 	)
 
-	s.logger.Info("OpAMP agent message", zap.String("agentID", agentID))
+	s.logger.Info("OpAMP agent message", zap.String("agentID", agentID), zap.Strings("submessages", messageComponents(message)))
 	s.connections.connect(conn, agentID)
 
 	response := &protobufs.ServerToAgent{
@@ -243,7 +246,7 @@ func (s *opampServer) OnConnectionClose(conn opamp.Connection) {
 // Protocol implementation
 
 func (s *opampServer) Name() string {
-	return "opamp"
+	return ProtocolName
 }
 
 // ConnectedAgentIDs should return a slice of the currently connected agent IDs
@@ -300,11 +303,8 @@ func (s *opampServer) UpdateAgent(ctx context.Context, agent *model.Agent, updat
 	agentRawConfiguration := agentConfiguration.Raw()
 	newRawConfiguration := newConfiguration.Raw()
 
-	// use a separate goroutine to avoid blocking on the channel write
-	go func() {
-		// change the agent status to Configuring, but ignore any failure as this status is considered nice to have and not required to update the agent
-		_, _ = s.manager.UpsertAgent(ctx, agent.ID, func(current *model.Agent) { current.Status = model.Configuring })
-	}()
+	// change the agent status to Configuring, but ignore any failure as this status is considered nice to have and not required to update the agent
+	_, _ = s.manager.UpsertAgent(ctx, agent.ID, func(current *model.Agent) { current.Status = model.Configuring })
 
 	return s.send(context.Background(), conn, &protobufs.ServerToAgent{
 		InstanceUid:  agent.ID,
@@ -332,61 +332,42 @@ func (s *opampServer) send(ctx context.Context, conn opamp.Connection, msg *prot
 
 // ----------------------------------------------------------------------
 
-func updateOpAmpAgentDetails(agent *model.Agent, conn opamp.Connection, desc *protobufs.AgentDescription) {
-	ad := parseAgentDescription(desc)
-	agent.ID = ad.AgentID
-	agent.Type = ad.AgentType
-	agent.Architecture = ad.Architecture
-	agent.Name = ad.AgentName
-	agent.HostName = ad.Hostname
-	agent.Platform = ad.Platform
-	agent.OperatingSystem = ad.OperatingSystem
-	agent.Labels = ad.labels()
-	agent.Version = ad.Version
-	agent.MacAddress = ad.MacAddress
-	if addr := conn.RemoteAddr(); addr != nil {
-		agent.RemoteAddress = addr.String()
-	} else {
-		agent.RemoteAddress = ""
-	}
-}
-
-// ----------------------------------------------------------------------
-
 func (s *opampServer) verifyAgentConfig(ctx context.Context, conn opamp.Connection, agentID string, message *protobufs.AgentToServer, response *protobufs.ServerToAgent) error {
-	// if we didn't receive configuration, ask for it
-	// TODO(andy): we might have the hash and be able to compare that
-	if message.GetEffectiveConfig().GetConfigMap() == nil {
-		s.logger.Info("no configuration available to verify, requesting from agent")
-		response.Flags |= protobufs.ServerToAgent_ReportFullState
-		return nil
-	}
-
 	ctx, span := tracer.Start(ctx, "opamp/verifyAgentConfig")
 	defer span.End()
 
-	// parse the current agent config yaml
-	agentRawConfiguration := agentCurrentConfiguration(message.EffectiveConfig)
-	agentConfiguration, err := agentRawConfiguration.Parse()
-	if err != nil {
-		return fmt.Errorf("unable to parse the current agent configuration: %w", err)
-	}
-
 	// store the current configuration as reported by status
-	agent, err := s.manager.UpsertAgent(ctx, agentID, s.upsertWithConfiguration(conn, message, agentConfiguration))
+	agent, state, err := s.updateAgentState(ctx, agentID, conn, message, response)
 	if err != nil {
 		return fmt.Errorf("unable to update agent [%s]: %w", agentID, err)
+	}
+
+	return s.updateAgentConfig(ctx, agent, state, response)
+}
+
+// updateAgentConfig updates the current configuration by setting the RemoteConfig message if necessary
+func (s *opampServer) updateAgentConfig(ctx context.Context, agent *model.Agent, state *agentState, response *protobufs.ServerToAgent) error {
+	agentRawConfiguration := state.Configuration()
+	if agentRawConfiguration == nil {
+		s.logger.Info("no configuration available to verify, requesting from agent")
+		return nil
+	}
+
+	agentConfiguration, err := agentRawConfiguration.Parse()
+	if err != nil {
+		// TODO(andy): ignore the current unparsable configuration and force new configuration?
+		return fmt.Errorf("unable to parse the current agent configuration: %w", err)
 	}
 
 	// check the manager for any updates that should be applied to this agent
 	updates, err := s.manager.AgentUpdates(ctx, agent)
 	if err != nil {
-		return fmt.Errorf("unable to get agent updates [%s]: %w", agentID, err)
+		return fmt.Errorf("unable to get agent updates [%s]: %w", agent.ID, err)
 	}
 
 	serverConfiguration, err := s.updatedConfiguration(ctx, agentConfiguration, updates)
 	if err != nil {
-		return fmt.Errorf("unable to compute the updated agent configuration [%s]: %w", agentID, err)
+		return fmt.Errorf("unable to compute the updated agent configuration [%s]: %w", agent.ID, err)
 	}
 
 	// compare the configurations and compute a difference
@@ -402,82 +383,19 @@ func (s *opampServer) verifyAgentConfig(ctx context.Context, conn opamp.Connecti
 	remoteConfig := agentRemoteConfig(&rawNewConfiguration, agentRawConfiguration)
 
 	// check to see if we already tried this and received an error
-	if bytes.Equal(message.GetRemoteConfigStatus().GetLastRemoteConfigHash(), remoteConfig.GetConfigHash()) {
+	if bytes.Equal(state.Status.GetRemoteConfigStatus().GetLastRemoteConfigHash(), remoteConfig.GetConfigHash()) {
 		s.logger.Info("already attempted to send this configuration")
 		return nil
 	}
 
 	// change the agent status to Configuring, but ignore any failure as this status is considered nice to have and not
 	// required to update the agent
-	_, _ = s.manager.UpsertAgent(ctx, agentID, func(current *model.Agent) { current.Status = model.Configuring })
+	_, _ = s.manager.UpsertAgent(ctx, agent.ID, func(current *model.Agent) { current.Status = model.Configuring })
 
 	s.logger.Info("agent running with outdated config", zap.Any("cur", agentConfiguration.Collector), zap.Any("new", serverConfiguration.Collector))
 	response.RemoteConfig = remoteConfig
 
 	return nil
-}
-
-func (s *opampServer) upsertWithRemoteConfigStatus(conn opamp.Connection, message *protobufs.AgentToServer) func(*model.Agent) {
-	return func(agent *model.Agent) {
-		// update the agent description
-		if message.GetAgentDescription().GetIdentifyingAttributes() != nil {
-			updateOpAmpAgentDetails(agent, conn, message.AgentDescription)
-		}
-		agent.Connect(agent.Version)
-		s.updateAgentStatus(agent, message.GetRemoteConfigStatus())
-	}
-}
-
-func (s *opampServer) upsertWithConfiguration(conn opamp.Connection, message *protobufs.AgentToServer, configuration *observiq.AgentConfiguration) func(*model.Agent) {
-	return func(agent *model.Agent) {
-		// update the agent description
-		if message.GetAgentDescription().GetIdentifyingAttributes() != nil {
-			updateOpAmpAgentDetails(agent, conn, message.AgentDescription)
-		}
-
-		// update the labels from manager.yaml
-		if configuration.Manager != nil {
-			s.logger.Info("manager.yaml labels", zap.String("labels", configuration.Manager.Labels))
-			if labels, err := model.LabelsFromSelector(configuration.Manager.Labels); err == nil {
-				// preserve the bindplane/ labels
-				agent.Labels = model.LabelsFromMerge(agent.Labels.BindPlane(), labels)
-			} else {
-				s.logger.Error("unable to parse agent labels", zap.String("labels", configuration.Manager.Labels), zap.Error(err))
-			}
-		}
-
-		// connect to update ConnectedAt, etc
-		agent.Connect(agent.Version)
-
-		// update status from RemoteConfigStatus
-		s.updateAgentStatus(agent, message.GetRemoteConfigStatus())
-
-		// save the entire configuration so we have it to report
-		agent.Configuration = configuration
-	}
-}
-
-// updateAgentStatus modifies the agent status based on the RemoteConfigStatus, if available
-func (s *opampServer) updateAgentStatus(agent *model.Agent, remoteStatus *protobufs.RemoteConfigStatus) {
-	// if we failed the apply, enter or update an error state
-	if remoteStatus.GetStatus() == protobufs.RemoteConfigStatus_FAILED {
-		s.logger.Info("got RemoteConfigStatus_FAILED", zap.String("ErrorMessage", remoteStatus.ErrorMessage))
-		agent.Status = model.Error
-		agent.ErrorMessage = remoteStatus.ErrorMessage
-		return
-	}
-	switch agent.Status {
-	case model.Error:
-		// only way to clear the error is to have a successful apply
-		if remoteStatus.GetStatus() == protobufs.RemoteConfigStatus_APPLIED {
-			agent.Status = model.Connected
-			agent.ErrorMessage = ""
-		}
-	default:
-		// either RemoteConfigStatus wasn't sent or wasn't failed
-		agent.Status = model.Connected
-		agent.ErrorMessage = ""
-	}
 }
 
 func (s *opampServer) updatedConfiguration(ctx context.Context, agentConfiguration *observiq.AgentConfiguration, updates *server.AgentUpdates) (diff observiq.AgentConfiguration, err error) {
@@ -497,17 +415,6 @@ func (s *opampServer) updatedConfiguration(ctx context.Context, agentConfigurati
 	}
 
 	return diff, nil
-}
-
-// agentCurrentConfiguration parses the AgentConfiguration from the EffectiveConfig
-func agentCurrentConfiguration(effectiveConfig *protobufs.EffectiveConfig) *observiq.RawAgentConfiguration {
-	configMap := effectiveConfig.GetConfigMap().ConfigMap
-	raw := &observiq.RawAgentConfiguration{
-		Collector: configMap[observiq.CollectorFilename].GetBody(),
-		Logging:   configMap[observiq.LoggingFilename].GetBody(),
-		Manager:   configMap[observiq.ManagerFilename].GetBody(),
-	}
-	return raw
 }
 
 // agentRemoteConfig generates the protobuf for sending this Config to an agent using the OpAMP protocol

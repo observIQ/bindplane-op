@@ -23,7 +23,7 @@ spec:
       label: Exclude File Path(s)
       description: File or directory paths to exclude.
       type: strings
-      default: [""]
+      default: []
 
     - name: log_type
       label: Log Type

@@ -15,15 +15,19 @@
 package opamp
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/observiq/bindplane-op/common"
 	"github.com/observiq/bindplane-op/internal/server"
 	"github.com/observiq/bindplane-op/internal/server/mocks"
+	"github.com/observiq/bindplane-op/internal/store"
 	"github.com/observiq/bindplane-op/model"
 	"github.com/observiq/bindplane-op/model/observiq"
 	"github.com/open-telemetry/opamp-go/protobufs"
@@ -36,6 +40,22 @@ import (
 
 func testServer(manager server.Manager) *opampServer {
 	return newServer(manager, zap.NewNop())
+}
+
+func testResource[T model.Resource](t *testing.T, name string) T {
+	return fileResource[T](t, filepath.Join("testfiles", name))
+}
+func fileResource[T model.Resource](t *testing.T, path string) T {
+	resources, err := model.ResourcesFromFile(path)
+	require.NoError(t, err)
+
+	parsed, err := model.ParseResources(resources)
+	require.NoError(t, err)
+	require.Len(t, parsed, 1)
+
+	resource, ok := parsed[0].(T)
+	require.True(t, ok)
+	return resource
 }
 
 func TestServerSendHeartbeat(t *testing.T) {
@@ -293,8 +313,85 @@ func TestServerOnConnecting(t *testing.T) {
 	}
 }
 
+func makeAgentDescription(version string) *protobufs.AgentDescription {
+	return &protobufs.AgentDescription{
+		IdentifyingAttributes: []*protobufs.KeyValue{
+			{
+				Key:   "service.version",
+				Value: &protobufs.AnyValue{Value: &protobufs.AnyValue_StringValue{StringValue: version}},
+			},
+		},
+		NonIdentifyingAttributes: []*protobufs.KeyValue{
+			{
+				Key:   "service.labels",
+				Value: &protobufs.AnyValue{Value: &protobufs.AnyValue_StringValue{StringValue: "a=b,c=d,configuration=api-test"}},
+			},
+		},
+	}
+}
+
 func TestServerOnMessage(t *testing.T) {
 	agentID := "a4013625-30f4-489e-a0ca-ef1c97d2ae3f"
+	agentCapabilities := protobufs.AgentCapabilities_ReportsEffectiveConfig |
+		protobufs.AgentCapabilities_ReportsPackageStatuses |
+		protobufs.AgentCapabilities_AcceptsRemoteConfig |
+		protobufs.AgentCapabilities_AcceptsPackages |
+		protobufs.AgentCapabilities_ReportsStatus
+
+	agentWithConfigurationRaw := &observiq.RawAgentConfiguration{
+		Collector: []byte(strings.TrimLeft(`
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+exporters:
+  otlp:
+    endpoint: otelcol:4317
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp]
+`, "\n")),
+		Manager: []byte(`labels: a=b,c=d,configuration=api-test`),
+	}
+	agentWithConfigurationRawHash := agentWithConfigurationRaw.Hash()
+
+	// setup initial state
+	logger := zap.NewNop()
+
+	testMapStore := store.NewMapStore(context.TODO(), store.Options{
+		SessionsSecret:   "supersecret-key",
+		MaxEventsToMerge: 1000,
+	}, zap.NewNop())
+	testManager, err := server.NewManager(
+		&common.Server{
+			SecretKey: "secret",
+		},
+		testMapStore,
+		logger,
+	)
+	require.NoError(t, err)
+
+	conn := &testConnection{
+		addr: testAddr{"127.0.0.1"},
+	}
+	server := testServer(testManager)
+	testManager.EnableProtocol(server)
+
+	agentDescription := makeAgentDescription("1.0")
+	agentDescription2 := makeAgentDescription("2.0")
+	agentDescription3 := makeAgentDescription("3.0")
+
+	var sequenceNum uint64
+	nextSequenceNum := func() uint64 {
+		sequenceNum++
+		return sequenceNum
+	}
+
+	// these tests are expected to run in order and may have side-affects that are tested in subsequent tests
 	tests := []struct {
 		name    string
 		message *protobufs.AgentToServer
@@ -302,9 +399,11 @@ func TestServerOnMessage(t *testing.T) {
 		verify  func(t *testing.T, server *opampServer, result *protobufs.ServerToAgent)
 	}{
 		{
-			name: "status report with no contents, should request effective config",
+			name: "status report with no contents, should request details",
 			message: &protobufs.AgentToServer{
-				InstanceUid: agentID,
+				SequenceNum:  nextSequenceNum(),
+				InstanceUid:  agentID,
+				Capabilities: agentCapabilities,
 			},
 			expect: &protobufs.ServerToAgent{
 				InstanceUid:  agentID,
@@ -313,18 +412,23 @@ func TestServerOnMessage(t *testing.T) {
 			},
 			verify: func(t *testing.T, server *opampServer, result *protobufs.ServerToAgent) {
 				require.ElementsMatch(t, []string{agentID}, server.connections.agentIDs())
+				agent, err := server.manager.Agent(context.TODO(), agentID)
+				require.NoError(t, err)
+				require.Equal(t, "Connected", agent.StatusDisplayText())
 			},
 		},
 		{
 			name: "malformed config causes error",
 			message: &protobufs.AgentToServer{
-				InstanceUid: agentID,
+				SequenceNum:  nextSequenceNum(),
+				InstanceUid:  agentID,
+				Capabilities: agentCapabilities,
 				EffectiveConfig: &protobufs.EffectiveConfig{
 					ConfigMap: &protobufs.AgentConfigMap{
 						ConfigMap: map[string]*protobufs.AgentConfigFile{
 							observiq.ManagerFilename:   {Body: []byte("[]bad yaml")},
 							observiq.CollectorFilename: {Body: []byte("collector")},
-							observiq.LoggingFilename:   {Body: []byte("logging")},
+							observiq.LoggingFilename:   {Body: []byte("")},
 						},
 					},
 				},
@@ -332,19 +436,226 @@ func TestServerOnMessage(t *testing.T) {
 			expect: &protobufs.ServerToAgent{
 				InstanceUid:  agentID,
 				Capabilities: capabilities,
+				Flags:        protobufs.ServerToAgent_ReportFullState,
 				ErrorResponse: &protobufs.ServerErrorResponse{
 					Type:         protobufs.ServerErrorResponse_Unknown,
 					ErrorMessage: "unable to parse the current agent configuration: unable to parse manager config: yaml: unmarshal errors:\n  line 1: cannot unmarshal !!seq into observiq.ManagerConfig",
 				},
 			},
 		},
+		{
+			name: "store valid config",
+			message: &protobufs.AgentToServer{
+				SequenceNum:  nextSequenceNum(),
+				InstanceUid:  agentID,
+				Capabilities: agentCapabilities,
+				EffectiveConfig: &protobufs.EffectiveConfig{
+					ConfigMap: &protobufs.AgentConfigMap{
+						ConfigMap: map[string]*protobufs.AgentConfigFile{
+							observiq.ManagerFilename:   {Body: []byte("labels: a=b,c=d,configuration=api-test")},
+							observiq.CollectorFilename: {Body: []byte("pipelines:")},
+							observiq.LoggingFilename:   {Body: []byte("")},
+						},
+					},
+				},
+				AgentDescription: agentDescription,
+			},
+			expect: &protobufs.ServerToAgent{
+				InstanceUid:  agentID,
+				Capabilities: capabilities,
+				Flags:        protobufs.ServerToAgent_ReportFullState,
+			},
+			verify: func(t *testing.T, server *opampServer, result *protobufs.ServerToAgent) {
+				agent, err := server.manager.Agent(context.TODO(), agentID)
+				require.NoError(t, err)
+				require.Equal(t, "a=b,c=d,configuration=api-test", agent.Labels.Custom().String())
+			},
+		},
+		{
+			name: "new description hash requests details",
+			message: &protobufs.AgentToServer{
+				SequenceNum:  nextSequenceNum(),
+				InstanceUid:  agentID,
+				Capabilities: agentCapabilities,
+			},
+			expect: &protobufs.ServerToAgent{
+				InstanceUid:  agentID,
+				Capabilities: capabilities,
+				Flags:        protobufs.ServerToAgent_ReportFullState,
+			},
+		},
+		{
+			name: "store new agent description details",
+			message: &protobufs.AgentToServer{
+				SequenceNum:  nextSequenceNum(),
+				InstanceUid:  agentID,
+				Capabilities: agentCapabilities,
+				EffectiveConfig: &protobufs.EffectiveConfig{
+					ConfigMap: &protobufs.AgentConfigMap{
+						ConfigMap: map[string]*protobufs.AgentConfigFile{
+							observiq.ManagerFilename:   {Body: []byte("labels: a=b,c=d,configuration=api-test")},
+							observiq.CollectorFilename: {Body: []byte("pipelines:")},
+							observiq.LoggingFilename:   {Body: []byte("")},
+						},
+					},
+				},
+				AgentDescription: agentDescription2,
+			},
+			expect: &protobufs.ServerToAgent{
+				InstanceUid:  agentID,
+				Capabilities: capabilities,
+				Flags:        protobufs.ServerToAgent_ReportFullState,
+			},
+			verify: func(t *testing.T, server *opampServer, result *protobufs.ServerToAgent) {
+				agent, err := server.manager.Agent(context.TODO(), agentID)
+				require.NoError(t, err)
+				require.Equal(t, "2.0", agent.Version)
+			},
+		},
+		{
+			name: "same description does not request details",
+			message: &protobufs.AgentToServer{
+				SequenceNum:  nextSequenceNum(),
+				InstanceUid:  agentID,
+				Capabilities: agentCapabilities,
+				EffectiveConfig: &protobufs.EffectiveConfig{
+					ConfigMap: &protobufs.AgentConfigMap{
+						ConfigMap: map[string]*protobufs.AgentConfigFile{
+							observiq.ManagerFilename:   {Body: []byte("labels: a=b,c=d,configuration=api-test")},
+							observiq.CollectorFilename: {Body: []byte("pipelines:")},
+							observiq.LoggingFilename:   {Body: []byte("")},
+						},
+					},
+				},
+				AgentDescription: agentDescription,
+			},
+			expect: &protobufs.ServerToAgent{
+				InstanceUid:  agentID,
+				Capabilities: capabilities,
+				Flags:        protobufs.ServerToAgent_ReportFullState,
+			},
+			verify: func(t *testing.T, server *opampServer, result *protobufs.ServerToAgent) {
+				// gross! inserting a new configuration here and making sure we get it in the next test
+				raw := testResource[*model.Configuration](t, "configuration-raw.yaml")
+				statuses, err := testMapStore.ApplyResources([]model.Resource{raw})
+				require.Equal(t, model.StatusCreated, statuses[0].Status)
+				require.NoError(t, err)
+			},
+		},
+		{
+			name: "another message with no changes, but new configuration",
+			message: &protobufs.AgentToServer{
+				SequenceNum:  nextSequenceNum(),
+				InstanceUid:  agentID,
+				Capabilities: agentCapabilities,
+				EffectiveConfig: &protobufs.EffectiveConfig{
+					ConfigMap: &protobufs.AgentConfigMap{
+						ConfigMap: map[string]*protobufs.AgentConfigFile{
+							observiq.ManagerFilename:   {Body: []byte("labels: a=b,c=d,configuration=api-test")},
+							observiq.CollectorFilename: {Body: []byte("pipelines:")},
+							observiq.LoggingFilename:   {Body: []byte("")},
+						},
+					},
+				},
+				AgentDescription: agentDescription,
+			},
+			expect: &protobufs.ServerToAgent{
+				InstanceUid:  agentID,
+				Capabilities: capabilities,
+				Flags:        protobufs.ServerToAgent_ReportFullState,
+				RemoteConfig: &protobufs.AgentRemoteConfig{
+					Config: &protobufs.AgentConfigMap{
+						ConfigMap: map[string]*protobufs.AgentConfigFile{
+							observiq.CollectorFilename: {
+								Body: agentWithConfigurationRaw.Collector,
+							},
+						},
+					},
+					ConfigHash: agentWithConfigurationRawHash,
+				},
+			},
+		},
+		{
+			name: "another message with no changes and matching hashes but no config to store",
+			message: &protobufs.AgentToServer{
+				SequenceNum:      nextSequenceNum(),
+				InstanceUid:      agentID,
+				Capabilities:     agentCapabilities,
+				EffectiveConfig:  &protobufs.EffectiveConfig{},
+				AgentDescription: &protobufs.AgentDescription{},
+				RemoteConfigStatus: &protobufs.RemoteConfigStatus{
+					LastRemoteConfigHash: agentWithConfigurationRawHash,
+					Status:               protobufs.RemoteConfigStatus_APPLIED,
+				},
+			},
+			expect: &protobufs.ServerToAgent{
+				InstanceUid:  agentID,
+				Capabilities: capabilities,
+				Flags:        protobufs.ServerToAgent_ReportFullState,
+			},
+		},
+		{
+			name: "another message with no changes with configuration to store",
+			message: &protobufs.AgentToServer{
+				SequenceNum:  nextSequenceNum(),
+				InstanceUid:  agentID,
+				Capabilities: agentCapabilities,
+				EffectiveConfig: &protobufs.EffectiveConfig{
+					ConfigMap: &protobufs.AgentConfigMap{
+						ConfigMap: map[string]*protobufs.AgentConfigFile{
+							observiq.CollectorFilename: {
+								Body: agentWithConfigurationRaw.Collector,
+							},
+							observiq.ManagerFilename: {
+								Body: []byte("labels: a=b,c=d,configuration=api-test"),
+							},
+						},
+					},
+				},
+				AgentDescription:   agentDescription2,
+				RemoteConfigStatus: &protobufs.RemoteConfigStatus{},
+			},
+			expect: &protobufs.ServerToAgent{
+				InstanceUid:  agentID,
+				Capabilities: capabilities,
+				Flags:        protobufs.ServerToAgent_ReportFullState,
+			},
+		},
+		{
+			name: "skipped message ignores contents and requests full information",
+			message: &protobufs.AgentToServer{
+				SequenceNum:  nextSequenceNum() + 1,
+				InstanceUid:  agentID,
+				Capabilities: agentCapabilities,
+				EffectiveConfig: &protobufs.EffectiveConfig{
+					ConfigMap: &protobufs.AgentConfigMap{
+						ConfigMap: map[string]*protobufs.AgentConfigFile{
+							observiq.CollectorFilename: {
+								Body: agentWithConfigurationRaw.Collector,
+							},
+							observiq.ManagerFilename: {
+								Body: []byte("labels: a=b,c=d,configuration=api-test"),
+							},
+						},
+					},
+				},
+				AgentDescription:   agentDescription3,
+				RemoteConfigStatus: &protobufs.RemoteConfigStatus{},
+			},
+			expect: &protobufs.ServerToAgent{
+				InstanceUid:  agentID,
+				Capabilities: capabilities,
+				Flags:        protobufs.ServerToAgent_ReportFullState,
+			},
+			verify: func(t *testing.T, server *opampServer, result *protobufs.ServerToAgent) {
+				agent, err := server.manager.Agent(context.TODO(), agentID)
+				require.NoError(t, err)
+				require.Equal(t, "2.0", agent.Version)
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			manager := &mocks.Manager{}
-			conn := &mocks.Connection{}
-			server := testServer(manager)
-
 			result := server.OnMessage(conn, test.message)
 
 			// compare messages
@@ -426,14 +737,11 @@ func TestUpdateAgentStatus(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			manager := &mocks.Manager{}
-			server := testServer(manager)
-
 			agent := &model.Agent{
 				Status:       test.initialStatus,
 				ErrorMessage: test.initialErrorMessage,
 			}
-			server.updateAgentStatus(agent, test.remoteStatus)
+			updateAgentStatus(zap.NewNop(), agent, test.remoteStatus)
 			require.Equal(t, test.expectStatus, agent.Status)
 			require.Equal(t, test.expectErrorMessage, agent.ErrorMessage)
 		})

@@ -38,7 +38,13 @@ func addAgent(s store.Store, agent *model.Agent) (*model.Agent, error) {
 }
 
 func TestQueryResolvers(t *testing.T) {
-	mapstore := store.NewMapStore(zap.NewNop(), "super-secret-key")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	mapstore := store.NewMapStore(ctx, store.Options{
+		SessionsSecret:   "super-secret-key",
+		MaxEventsToMerge: 1,
+	}, zap.NewNop())
+
 	bindplane, err := server.NewBindPlane(&common.Server{}, zaptest.NewLogger(t), mapstore, nil)
 	require.NoError(t, err)
 
@@ -92,7 +98,13 @@ func TestQueryResolvers(t *testing.T) {
 }
 
 func TestConfigForAgent(t *testing.T) {
-	mapstore := store.NewMapStore(zap.NewNop(), "super-secret-key")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	mapstore := store.NewMapStore(ctx, store.Options{
+		SessionsSecret:   "super-secret-key",
+		MaxEventsToMerge: 1,
+	}, zap.NewNop())
+
 	bindplane, err := server.NewBindPlane(&common.Server{}, zaptest.NewLogger(t), mapstore, nil)
 	require.NoError(t, err)
 
