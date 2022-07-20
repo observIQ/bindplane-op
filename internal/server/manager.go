@@ -89,7 +89,7 @@ func (m *manager) EnableProtocol(protocol Protocol) {
 
 // Start TODO(doc)
 func (m *manager) Start(ctx context.Context) {
-	updatesChannel, unsubscribe := eventbus.Subscribe(m.store.Updates())
+	updatesChannel, unsubscribe := eventbus.Subscribe(m.store.Updates(), eventbus.WithChannel(make(chan *store.Updates, 10_000)))
 	defer unsubscribe()
 
 	for {
@@ -100,7 +100,11 @@ func (m *manager) Start(ctx context.Context) {
 			return
 
 		case updates := <-updatesChannel:
-			m.logger.Info("Received configuration updates")
+			m.logger.Info("Received configuration updates",
+				zap.Int("size", updates.Size()),
+				zap.Int("Agents", len(updates.Agents)),
+				zap.Int("Configurations", len(updates.Configurations)),
+			)
 			m.handleUpdates(updates)
 
 			// TODO: determine if these need to be replaced and if so, replace them
@@ -137,6 +141,10 @@ func (p pendingAgentUpdates) agent(agent *model.Agent) pendingAgentUpdate {
 func (p pendingAgentUpdates) apply(ctx context.Context, m *manager) {
 	ctx, span := tracer.Start(ctx, "manager/apply")
 	defer span.End()
+
+	if len(p) == 0 {
+		return
+	}
 
 	// Number of workers is a quarter of the total or 10
 	// This insures for small updates we don't spin up 10 workers for 1 or 2 updates
@@ -212,6 +220,16 @@ func (m *manager) handleUpdates(updates *store.Updates) {
 		m.logger.Info("updating labels for agent", zap.String("agentID", agent.ID), zap.String("labels", agent.Labels.String()))
 		labels := agent.Labels.Custom()
 		pending.agent(agent).updates.Labels = &labels
+
+		// if the labels changed, there may be new configuration
+		if configuration, err := m.store.AgentConfiguration(agent.ID); err != nil {
+			m.logger.Error("unable to find new agent configuration", zap.String("agentID", agent.ID), zap.String("labels", agent.Labels.String()))
+		} else {
+			if configuration != nil {
+				m.logger.Info("updating configuration for agent with new labels", zap.String("agentID", agent.ID), zap.String("labels", agent.Labels.String()), zap.String("configuration.name", configuration.Name()))
+				pending.agent(agent).updates.Configuration = configuration
+			}
+		}
 	}
 
 	for _, event := range updates.Configurations {

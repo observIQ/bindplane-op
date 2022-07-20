@@ -1,0 +1,17 @@
+# TODO: This is an example but probably needs more explanation, a textarea for editing (type: text?), and some help
+# text. It may also need special support for properly indenting the user-supplied yaml.
+apiVersion: bindplane.observiq.com/v1beta
+kind: ProcessorType
+metadata:
+  name: custom
+  displayName: Custom
+spec:
+  version: 0.0.1
+  parameters:
+    - name: configuration
+      label: Configuration
+      type: string
+      required: true
+  logs+metrics+traces:
+    processors: |
+      - {{ .configuration }}

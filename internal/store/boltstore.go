@@ -42,27 +42,26 @@ const (
 
 type boltstore struct {
 	db                 *bbolt.DB
-	updates            eventbus.Source[*Updates]
+	updates            *storeUpdates
 	agentIndex         search.Index
 	configurationIndex search.Index
 	logger             *zap.Logger
 	sync.RWMutex
-
 	sessionStorage sessions.Store
 }
 
 var _ Store = (*boltstore)(nil)
 
 // NewBoltStore returns a new store boltstore struct that implements the store.Store interface.
-func NewBoltStore(db *bbolt.DB, sessionsSecret string, logger *zap.Logger) Store {
+func NewBoltStore(ctx context.Context, db *bbolt.DB, options Options, logger *zap.Logger) Store {
 	store := &boltstore{
 		db:                 db,
-		updates:            eventbus.NewSource[*Updates](),
+		updates:            newStoreUpdates(ctx, options.MaxEventsToMerge),
 		agentIndex:         search.NewInMemoryIndex("agent"),
 		configurationIndex: search.NewInMemoryIndex("configuration"),
 		logger:             logger,
 
-		sessionStorage: newBPCookieStore(sessionsSecret),
+		sessionStorage: newBPCookieStore(options.SessionsSecret),
 	}
 
 	// boltstore is not used for clusters, disconnect all agents
@@ -149,7 +148,7 @@ func (s *boltstore) AgentsIDsMatchingConfiguration(configuration *model.Configur
 }
 
 func (s *boltstore) Updates() eventbus.Source[*Updates] {
-	return s.updates
+	return s.updates.Updates()
 }
 
 // DeleteResources iterates threw a slice of resources, and removes them from storage by name.
@@ -566,6 +565,42 @@ func (s *boltstore) SourceTypes() ([]*model.SourceType, error) {
 }
 func (s *boltstore) DeleteSourceType(name string) (*model.SourceType, error) {
 	item, exists, err := deleteResourceAndNotify(s, model.KindSourceType, name, &model.SourceType{})
+	if !exists {
+		return nil, err
+	}
+	return item, err
+}
+
+func (s *boltstore) Processor(name string) (*model.Processor, error) {
+	item, exists, err := resource[*model.Processor](s, model.KindProcessor, name)
+	if !exists {
+		item = nil
+	}
+	return item, err
+}
+func (s *boltstore) Processors() ([]*model.Processor, error) {
+	return resources[*model.Processor](s, model.KindProcessor)
+}
+func (s *boltstore) DeleteProcessor(name string) (*model.Processor, error) {
+	item, exists, err := deleteResourceAndNotify(s, model.KindProcessor, name, &model.Processor{})
+	if !exists {
+		return nil, err
+	}
+	return item, err
+}
+
+func (s *boltstore) ProcessorType(name string) (*model.ProcessorType, error) {
+	item, exists, err := resource[*model.ProcessorType](s, model.KindProcessorType, name)
+	if !exists {
+		item = nil
+	}
+	return item, err
+}
+func (s *boltstore) ProcessorTypes() ([]*model.ProcessorType, error) {
+	return resources[*model.ProcessorType](s, model.KindProcessorType)
+}
+func (s *boltstore) DeleteProcessorType(name string) (*model.ProcessorType, error) {
+	item, exists, err := deleteResourceAndNotify(s, model.KindProcessorType, name, &model.ProcessorType{})
 	if !exists {
 		return nil, err
 	}

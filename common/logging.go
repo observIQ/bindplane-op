@@ -37,7 +37,7 @@ func NewLogger(config Common, level zapcore.Level) (*zap.Logger, error) {
 	if config.LogOutput == LogOutputStdout {
 		return NewStdoutLogger(level)
 	}
-	return NewFileLogger(zapcore.DebugLevel, logPath)
+	return NewFileLogger(level, logPath)
 }
 
 // NewFileLogger takes a logging level and log file path and returns a zip.Logger

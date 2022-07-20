@@ -57,6 +57,14 @@ func AddRestRoutes(router gin.IRouter, bindplane server.BindPlane) {
 	router.GET("/source-types/:name", func(c *gin.Context) { sourceType(c, bindplane) })
 	router.DELETE("/source-types/:name", func(c *gin.Context) { deleteSourceType(c, bindplane) })
 
+	router.GET("/processors", func(c *gin.Context) { processors(c, bindplane) })
+	router.GET("/processors/:name", func(c *gin.Context) { processor(c, bindplane) })
+	router.DELETE("/processors/:name", func(c *gin.Context) { deleteProcessor(c, bindplane) })
+
+	router.GET("/processor-types", func(c *gin.Context) { processorTypes(c, bindplane) })
+	router.GET("/processor-types/:name", func(c *gin.Context) { processorType(c, bindplane) })
+	router.DELETE("/processor-types/:name", func(c *gin.Context) { deleteProcessorType(c, bindplane) })
+
 	router.GET("/destinations", func(c *gin.Context) { destinations(c, bindplane) })
 	router.GET("/destinations/:name", func(c *gin.Context) { destination(c, bindplane) })
 	router.DELETE("/destinations/:name", func(c *gin.Context) { deleteDestination(c, bindplane) })
@@ -561,6 +569,102 @@ func deleteSourceType(c *gin.Context, bindplane server.BindPlane) {
 	name := c.Param("name")
 	sourceType, err := bindplane.Store().DeleteSourceType(name)
 	if okResource(c, sourceType == nil, err) {
+		c.Status(http.StatusNoContent)
+	}
+}
+
+// ----------------------------------------------------------------------
+
+// @Summary List processors
+// @Produce json
+// @Router /processors [get]
+// @Success 200 {object} model.ProcessorsResponse
+// @Failure 500 {object} ErrorResponse
+func processors(c *gin.Context, bindplane server.BindPlane) {
+	processors, err := bindplane.Store().Processors()
+	if okResponse(c, err) {
+		c.JSON(http.StatusOK, model.ProcessorsResponse{
+			Processors: processors,
+		})
+	}
+}
+
+// @Summary Get processor by name
+// @Produce json
+// @Router /processors/{name} [get]
+// @Param 	name	path	string	true "the name of the processor"
+// @Success 200 {object} model.ProcessorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+func processor(c *gin.Context, bindplane server.BindPlane) {
+	name := c.Param("name")
+	processor, err := bindplane.Store().Processor(name)
+	if okResource(c, processor == nil, err) {
+		c.JSON(http.StatusOK, model.ProcessorResponse{
+			Processor: processor,
+		})
+	}
+}
+
+// @Summary Delete processor by name
+// @Produce json
+// @Router /processors/{name} [delete]
+// @Param 	name	path	string	true "the name of the processor to delete"
+// @Success 204	"Successful Delete, no content"
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+func deleteProcessor(c *gin.Context, bindplane server.BindPlane) {
+	name := c.Param("name")
+	processor, err := bindplane.Store().DeleteProcessor(name)
+	if okResource(c, processor == nil, err) {
+		c.Status(http.StatusNoContent)
+	}
+}
+
+// ----------------------------------------------------------------------
+
+// @Summary List processor types
+// @Produce json
+// @Router /processor-types [get]
+// @Success 200 {object} model.ProcessorTypesResponse
+// @Failure 500 {object} ErrorResponse
+func processorTypes(c *gin.Context, bindplane server.BindPlane) {
+	processorTypes, err := bindplane.Store().ProcessorTypes()
+	if okResponse(c, err) {
+		c.JSON(http.StatusOK, model.ProcessorTypesResponse{
+			ProcessorTypes: processorTypes,
+		})
+	}
+}
+
+// @Summary Get processor type by name
+// @Produce json
+// @Router /processor-types/{name} [get]
+// @Param 	name	path	string	true "the name of the processor type"
+// @Success 200 {object} model.ProcessorTypeResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+func processorType(c *gin.Context, bindplane server.BindPlane) {
+	name := c.Param("name")
+	processorType, err := bindplane.Store().ProcessorType(name)
+	if okResource(c, processorType == nil, err) {
+		c.JSON(http.StatusOK, model.ProcessorTypeResponse{
+			ProcessorType: processorType,
+		})
+	}
+}
+
+// @Summary Delete processor type by name
+// @Produce json
+// @Router /processor-types/{name} [delete]
+// @Param 	name	path	string	true "the name of the processor type to delete"
+// @Success 204	"Successful Delete, no content"
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+func deleteProcessorType(c *gin.Context, bindplane server.BindPlane) {
+	name := c.Param("name")
+	processorType, err := bindplane.Store().DeleteProcessorType(name)
+	if okResource(c, processorType == nil, err) {
 		c.Status(http.StatusNoContent)
 	}
 }

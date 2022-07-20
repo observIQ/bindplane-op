@@ -155,7 +155,9 @@ export const StepTwo: React.FC = (props) => {
                 return (
                   <TableRow key={param.name}>
                     <TableCell>{label}</TableCell>
-                    <TableCell>{String(param.value)}</TableCell>
+                    <TableCell classes={{ root: styles["break-word-cell"] }}>
+                      {String(param.value)}
+                    </TableCell>
                   </TableRow>
                 );
               })}

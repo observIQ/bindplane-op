@@ -16,6 +16,6 @@ package resources
 
 import "embed"
 
-//go:embed destination-types/* source-types/*
-// Files contains the files embedded in resources/destination-types/* and resources/source-types/*
+//go:embed destination-types/* source-types/* processor-types/*
+// Files contains the files embedded in resources/destination-types/*, resources/source-types/*, and resources/processor-types/*
 var Files embed.FS
