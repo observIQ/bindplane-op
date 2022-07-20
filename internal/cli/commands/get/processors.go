@@ -22,13 +22,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// SourceTypesCommand returns the BindPlane get source-types cobra command
-func SourceTypesCommand(bindplane *cli.BindPlane) *cobra.Command {
+// ProcessorsCommand returns the BindPlane get processors cobra command
+func ProcessorsCommand(bindplane *cli.BindPlane) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "source-types [id]",
-		Aliases: []string{"source-type"},
-		Short:   "Displays the source types",
-		Long:    `A source type is a type of source that collects logs, metrics, and traces.`,
+		Use:     "processors [id]",
+		Aliases: []string{"processor"},
+		Short:   "Displays the processors",
+		Long:    `A processor transforms logs, metrics, and traces.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := bindplane.Client()
 			if err != nil {
@@ -37,25 +37,25 @@ func SourceTypesCommand(bindplane *cli.BindPlane) *cobra.Command {
 
 			if len(args) > 0 {
 				name := args[0]
-				sourcetype, err := c.SourceType(cmd.Context(), name)
+				processor, err := c.Processor(cmd.Context(), name)
 				if err != nil {
 					return err
 				}
 
-				if sourcetype == nil {
-					return fmt.Errorf("no sourcetype found with name %s", name)
+				if processor == nil {
+					return fmt.Errorf("no processor found with name %s", name)
 				}
 
-				printer.PrintResource(bindplane.Printer(), sourcetype)
+				printer.PrintResource(bindplane.Printer(), processor)
 				return nil
 			}
 
-			sourcetypes, err := c.SourceTypes(cmd.Context())
+			processors, err := c.Processors(cmd.Context())
 			if err != nil {
 				return err
 			}
 
-			printer.PrintResources(bindplane.Printer(), sourcetypes)
+			printer.PrintResources(bindplane.Printer(), processors)
 			return nil
 		},
 	}

@@ -148,6 +148,13 @@ func (p *Partial) Add(o *Partial) {
 // Partials represents a fragments of configuration for each type of telemetry.
 type Partials map[PipelineType]*Partial
 
+// Add combines the individual Logs, Metrics, and Traces Partial configurations
+func (p Partials) Add(o Partials) {
+	p[Logs].Add(o[Logs])
+	p[Metrics].Add(o[Metrics])
+	p[Traces].Add(o[Traces])
+}
+
 // ComponentIDProvider can provide ComponentIDs for component names
 type ComponentIDProvider interface {
 	ComponentID(componentName string) ComponentID

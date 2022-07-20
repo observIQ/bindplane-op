@@ -32,7 +32,7 @@ const ConfigurationsDataGridComponent: React.FC<ConfigurationsDataGridProps> =
     loading,
     configurations,
     columnFields,
-    density,
+    density = GridDensityTypes.Standard,
   }) => {
     const columns: GridColumns = (columnFields || []).map((field) => {
       switch (field) {

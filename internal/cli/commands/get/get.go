@@ -32,6 +32,8 @@ func Command(bindplane *cli.BindPlane) *cobra.Command {
 		ConfigurationsCommand(bindplane),
 		DestinationsCommand(bindplane),
 		DestinationTypesCommand(bindplane),
+		ProcessorsCommand(bindplane),
+		ProcessorTypesCommand(bindplane),
 		SourcesCommand(bindplane),
 		SourceTypesCommand(bindplane),
 	)

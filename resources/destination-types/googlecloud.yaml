@@ -71,5 +71,9 @@ spec:
               - prefix: zk
               - prefix: server
               - prefix: solr
+              - prefix: vcenter
               - prefix: couchdb
               - prefix: wildfly
+              - prefix: jboss
+              - prefix: hadoop
+              - prefix: hbase

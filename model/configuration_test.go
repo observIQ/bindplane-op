@@ -47,6 +47,8 @@ func fileResource[T Resource](t *testing.T, path string) T {
 type testResourceStore struct {
 	sources          map[string]*Source
 	sourceTypes      map[string]*SourceType
+	processors       map[string]*Processor
+	processorTypes   map[string]*ProcessorType
 	destinations     map[string]*Destination
 	destinationTypes map[string]*DestinationType
 }
@@ -55,6 +57,8 @@ func newTestResourceStore() *testResourceStore {
 	return &testResourceStore{
 		sources:          map[string]*Source{},
 		sourceTypes:      map[string]*SourceType{},
+		processors:       map[string]*Processor{},
+		processorTypes:   map[string]*ProcessorType{},
 		destinations:     map[string]*Destination{},
 		destinationTypes: map[string]*DestinationType{},
 	}
@@ -67,6 +71,12 @@ func (s *testResourceStore) Source(name string) (*Source, error) {
 }
 func (s *testResourceStore) SourceType(name string) (*SourceType, error) {
 	return s.sourceTypes[name], nil
+}
+func (s *testResourceStore) Processor(name string) (*Processor, error) {
+	return s.processors[name], nil
+}
+func (s *testResourceStore) ProcessorType(name string) (*ProcessorType, error) {
+	return s.processorTypes[name], nil
 }
 func (s *testResourceStore) Destination(name string) (*Destination, error) {
 	return s.destinations[name], nil
@@ -371,4 +381,149 @@ service:
 `, "\n")
 
 	require.Equal(t, expect, result)
+}
+
+func TestEvalConfiguration5(t *testing.T) {
+	store := newTestResourceStore()
+
+	postgresql := testResource[*SourceType](t, "sourcetype-macos.yaml")
+	store.sourceTypes[postgresql.Name()] = postgresql
+
+	googleCloudType := testResource[*DestinationType](t, "destinationtype-googlecloud.yaml")
+	store.destinationTypes[googleCloudType.Name()] = googleCloudType
+
+	googleCloud := testResource[*Destination](t, "destination-googlecloud.yaml")
+	store.destinations[googleCloud.Name()] = googleCloud
+
+	resourceAttributeTransposerType := testResource[*ProcessorType](t, "processortype-resourceattributetransposer.yaml")
+	store.processorTypes[resourceAttributeTransposerType.Name()] = resourceAttributeTransposerType
+
+	configuration := testResource[*Configuration](t, "configuration-macos-processors.yaml")
+	result, err := configuration.Render(context.TODO(), store)
+	require.NoError(t, err)
+
+	expect := strings.TrimLeft(`
+receivers:
+    hostmetrics/MacOS__source0:
+        collection_interval: 1m
+        scrapers:
+            load: null
+    plugin/MacOS__source0__journald:
+        plugin:
+            name: journald
+    plugin/MacOS__source0__macos:
+        parameters:
+            - name: enable_system_log
+              value: false
+            - name: system_log_path
+              value: /var/log/system.log
+            - name: enable_install_log
+              value: true
+            - name: install_log_path
+              value: /var/log/install.log
+            - name: start_at
+              value: end
+        plugin:
+            name: macos
+processors:
+    batch/googlecloud__googlecloud: null
+    normalizesums/googlecloud__googlecloud: null
+    resourceattributetransposer/resource-attribute-transposer__MacOS__source0__processor0:
+        operations:
+            - from: from.attribute
+              to: to.attribute
+    resourceattributetransposer/resource-attribute-transposer__MacOS__source0__processor1:
+        operations:
+            - from: from.attribute2
+              to: to.attribute2
+exporters:
+    googlecloud/googlecloud__googlecloud: null
+service:
+    pipelines:
+        logs/MacOS__source0__googlecloud:
+            receivers:
+                - plugin/MacOS__source0__macos
+                - plugin/MacOS__source0__journald
+            processors:
+                - resourceattributetransposer/resource-attribute-transposer__MacOS__source0__processor0
+                - resourceattributetransposer/resource-attribute-transposer__MacOS__source0__processor1
+                - batch/googlecloud__googlecloud
+            exporters:
+                - googlecloud/googlecloud__googlecloud
+        metrics/MacOS__source0__googlecloud:
+            receivers:
+                - hostmetrics/MacOS__source0
+            processors:
+                - resourceattributetransposer/resource-attribute-transposer__MacOS__source0__processor0
+                - resourceattributetransposer/resource-attribute-transposer__MacOS__source0__processor1
+                - normalizesums/googlecloud__googlecloud
+                - batch/googlecloud__googlecloud
+            exporters:
+                - googlecloud/googlecloud__googlecloud
+`, "\n")
+
+	require.Equal(t, expect, result)
+}
+
+func TestEvalConfigurationFailsMissingResource(t *testing.T) {
+	store := newTestResourceStore()
+
+	postgresql := testResource[*SourceType](t, "sourcetype-macos.yaml")
+	store.sourceTypes[postgresql.Name()] = postgresql
+
+	googleCloudType := testResource[*DestinationType](t, "destinationtype-googlecloud.yaml")
+	store.destinationTypes[googleCloudType.Name()] = googleCloudType
+
+	googleCloud := testResource[*Destination](t, "destination-googlecloud.yaml")
+	store.destinations[googleCloud.Name()] = googleCloud
+
+	resourceAttributeTransposerType := testResource[*ProcessorType](t, "processortype-resourceattributetransposer.yaml")
+	store.processorTypes[resourceAttributeTransposerType.Name()] = resourceAttributeTransposerType
+
+	configuration := testResource[*Configuration](t, "configuration-macos-processors.yaml")
+
+	tests := []struct {
+		name            string
+		deleteResources func()
+		expectError     string
+		expect          string
+	}{
+		{
+			name:            "deletes sourceType",
+			deleteResources: func() { delete(store.sourceTypes, postgresql.Name()) },
+			expectError:     "1 error occurred:\n\t* unknown SourceType: MacOS\n\n",
+		},
+		{
+			name:            "deletes googleCloudType",
+			deleteResources: func() { delete(store.destinationTypes, googleCloudType.Name()) },
+			expectError:     "1 error occurred:\n\t* unknown DestinationType: googlecloud\n\n",
+		},
+		{
+			name:            "deletes destination",
+			deleteResources: func() { delete(store.destinations, googleCloud.Name()) },
+			expectError:     "1 error occurred:\n\t* unknown Destination: googlecloud\n\n",
+		},
+		{
+			name:            "deletes processorType",
+			deleteResources: func() { delete(store.processorTypes, resourceAttributeTransposerType.Name()) },
+			expectError:     "2 errors occurred:\n\t* unknown ProcessorType: resource-attribute-transposer\n\t* unknown ProcessorType: resource-attribute-transposer\n\n",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			// before rendering, delete resources that we reference
+			test.deleteResources()
+
+			_, err := configuration.Render(context.TODO(), store)
+			require.Error(t, err)
+			require.Equal(t, test.expectError, err.Error())
+
+			// reset for next iteration
+			store.sourceTypes[postgresql.Name()] = postgresql
+			store.destinationTypes[googleCloudType.Name()] = googleCloudType
+			store.destinations[googleCloud.Name()] = googleCloud
+			store.processorTypes[resourceAttributeTransposerType.Name()] = resourceAttributeTransposerType
+		})
+	}
 }

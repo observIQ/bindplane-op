@@ -180,7 +180,13 @@ func TestREST(t *testing.T) {
 	svr := httptest.NewServer(router)
 	defer svr.Close()
 
-	store := store.NewMapStore(zap.NewNop(), "super-secret-key")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	store := store.NewMapStore(ctx, store.Options{
+		SessionsSecret:   "super-secret-key",
+		MaxEventsToMerge: 1,
+	}, zap.NewNop())
+
 	bindplane, err := server.NewBindPlane(&common.Server{}, zaptest.NewLogger(t), store, nil)
 	require.NoError(t, err)
 	AddRestRoutes(router, bindplane)
