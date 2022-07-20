@@ -72,3 +72,6 @@ spec:
               - prefix: server
               - prefix: solr
               - prefix: couchdb
+              - prefix: jboss
+              - prefix: hadoop
+              - prefix: hbase
