@@ -135,6 +135,18 @@ export enum EventType {
   Update = 'UPDATE'
 }
 
+export type LiveTailMessage = {
+  __typename?: 'LiveTailMessage';
+  records: Array<Scalars['Any']>;
+  type?: Maybe<LiveTailRecordType>;
+};
+
+export enum LiveTailRecordType {
+  Log = 'log',
+  Metric = 'metric',
+  Trace = 'trace'
+}
+
 export type Metadata = {
   __typename?: 'Metadata';
   description?: Maybe<Scalars['String']>;
@@ -183,6 +195,22 @@ export enum PipelineType {
   Traces = 'traces'
 }
 
+export type Processor = {
+  __typename?: 'Processor';
+  apiVersion: Scalars['String'];
+  kind: Scalars['String'];
+  metadata: Metadata;
+  spec: ParameterizedSpec;
+};
+
+export type ProcessorType = {
+  __typename?: 'ProcessorType';
+  apiVersion: Scalars['String'];
+  kind: Scalars['String'];
+  metadata: Metadata;
+  spec: ResourceTypeSpec;
+};
+
 export type Query = {
   __typename?: 'Query';
   agent?: Maybe<Agent>;
@@ -195,6 +223,10 @@ export type Query = {
   destinationTypes: Array<DestinationType>;
   destinationWithType: DestinationWithType;
   destinations: Array<Destination>;
+  processor?: Maybe<Processor>;
+  processorType?: Maybe<ProcessorType>;
+  processorTypes: Array<ProcessorType>;
+  processors: Array<Processor>;
   source?: Maybe<Source>;
   sourceType?: Maybe<SourceType>;
   sourceTypes: Array<SourceType>;
@@ -239,6 +271,16 @@ export type QueryDestinationWithTypeArgs = {
 };
 
 
+export type QueryProcessorArgs = {
+  name: Scalars['String'];
+};
+
+
+export type QueryProcessorTypeArgs = {
+  name: Scalars['String'];
+};
+
+
 export type QuerySourceArgs = {
   name: Scalars['String'];
 };
@@ -263,6 +305,7 @@ export type ResourceConfiguration = {
   __typename?: 'ResourceConfiguration';
   name?: Maybe<Scalars['String']>;
   parameters?: Maybe<Array<Parameter>>;
+  processors?: Maybe<Array<ResourceConfiguration>>;
   type?: Maybe<Scalars['String']>;
 };
 
@@ -294,6 +337,7 @@ export type Subscription = {
   __typename?: 'Subscription';
   agentChanges: Array<AgentChange>;
   configurationChanges: Array<ConfigurationChange>;
+  livetail: Array<LiveTailMessage>;
 };
 
 
@@ -306,6 +350,12 @@ export type SubscriptionAgentChangesArgs = {
 export type SubscriptionConfigurationChangesArgs = {
   query?: InputMaybe<Scalars['String']>;
   selector?: InputMaybe<Scalars['String']>;
+};
+
+
+export type SubscriptionLivetailArgs = {
+  agentIds: Array<Scalars['String']>;
+  filters: Array<Scalars['String']>;
 };
 
 export type Suggestion = {

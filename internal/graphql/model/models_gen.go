@@ -49,6 +49,11 @@ type DestinationWithType struct {
 	DestinationType *model.DestinationType `json:"destinationType"`
 }
 
+type LiveTailMessage struct {
+	Type    *LiveTailRecordType `json:"type"`
+	Records []interface{}       `json:"records"`
+}
+
 type AgentChangeType string
 
 const (
@@ -132,6 +137,49 @@ func (e *EventType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e EventType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type LiveTailRecordType string
+
+const (
+	LiveTailRecordTypeLog    LiveTailRecordType = "log"
+	LiveTailRecordTypeMetric LiveTailRecordType = "metric"
+	LiveTailRecordTypeTrace  LiveTailRecordType = "trace"
+)
+
+var AllLiveTailRecordType = []LiveTailRecordType{
+	LiveTailRecordTypeLog,
+	LiveTailRecordTypeMetric,
+	LiveTailRecordTypeTrace,
+}
+
+func (e LiveTailRecordType) IsValid() bool {
+	switch e {
+	case LiveTailRecordTypeLog, LiveTailRecordTypeMetric, LiveTailRecordTypeTrace:
+		return true
+	}
+	return false
+}
+
+func (e LiveTailRecordType) String() string {
+	return string(e)
+}
+
+func (e *LiveTailRecordType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = LiveTailRecordType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid LiveTailRecordType", str)
+	}
+	return nil
+}
+
+func (e LiveTailRecordType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

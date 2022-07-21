@@ -153,6 +153,11 @@ type ComplexityRoot struct {
 		DestinationType func(childComplexity int) int
 	}
 
+	LiveTailMessage struct {
+		Records func(childComplexity int) int
+		Type    func(childComplexity int) int
+	}
+
 	Metadata struct {
 		Description func(childComplexity int) int
 		DisplayName func(childComplexity int) int
@@ -255,6 +260,7 @@ type ComplexityRoot struct {
 	Subscription struct {
 		AgentChanges         func(childComplexity int, selector *string, query *string) int
 		ConfigurationChanges func(childComplexity int, selector *string, query *string) int
+		Livetail             func(childComplexity int, agentIds []string, filters []string) int
 	}
 
 	Suggestion struct {
@@ -327,6 +333,7 @@ type SourceTypeResolver interface {
 type SubscriptionResolver interface {
 	AgentChanges(ctx context.Context, selector *string, query *string) (<-chan []*model1.AgentChange, error)
 	ConfigurationChanges(ctx context.Context, selector *string, query *string) (<-chan []*model1.ConfigurationChange, error)
+	Livetail(ctx context.Context, agentIds []string, filters []string) (<-chan []*model1.LiveTailMessage, error)
 }
 
 type executableSchema struct {
@@ -714,6 +721,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DestinationWithType.DestinationType(childComplexity), true
+
+	case "LiveTailMessage.records":
+		if e.complexity.LiveTailMessage.Records == nil {
+			break
+		}
+
+		return e.complexity.LiveTailMessage.Records(childComplexity), true
+
+	case "LiveTailMessage.type":
+		if e.complexity.LiveTailMessage.Type == nil {
+			break
+		}
+
+		return e.complexity.LiveTailMessage.Type(childComplexity), true
 
 	case "Metadata.description":
 		if e.complexity.Metadata.Description == nil {
@@ -1235,6 +1256,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Subscription.ConfigurationChanges(childComplexity, args["selector"].(*string), args["query"].(*string)), true
 
+	case "Subscription.livetail":
+		if e.complexity.Subscription.Livetail == nil {
+			break
+		}
+
+		args, err := ec.field_Subscription_livetail_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.Livetail(childComplexity, args["agentIds"].([]string), args["filters"].([]string)), true
+
 	case "Suggestion.label":
 		if e.complexity.Suggestion.Label == nil {
 			break
@@ -1571,6 +1604,17 @@ type Components {
   destinations: [Destination!]!
 }
 
+enum LiveTailRecordType {
+  log
+  metric
+  trace
+}
+
+type LiveTailMessage {
+  type: LiveTailRecordType
+  records: [Any!]!
+}
+
 # ----------------------------------------------------------------------
 # queries
 
@@ -1609,6 +1653,7 @@ type Query {
 type Subscription {
   agentChanges(selector: String, query: String): [AgentChange!]!
   configurationChanges(selector: String, query: String): [ConfigurationChange!]!
+  livetail(agentIds: [String!]!, filters: [String!]!): [LiveTailMessage!]!
 }
 `, BuiltIn: false},
 }
@@ -1861,6 +1906,30 @@ func (ec *executionContext) field_Subscription_configurationChanges_args(ctx con
 		}
 	}
 	args["query"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Subscription_livetail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []string
+	if tmp, ok := rawArgs["agentIds"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("agentIds"))
+		arg0, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["agentIds"] = arg0
+	var arg1 []string
+	if tmp, ok := rawArgs["filters"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+		arg1, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filters"] = arg1
 	return args, nil
 }
 
@@ -4399,6 +4468,91 @@ func (ec *executionContext) fieldContext_DestinationWithType_destinationType(ctx
 				return ec.fieldContext_DestinationType_spec(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DestinationType", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LiveTailMessage_type(ctx context.Context, field graphql.CollectedField, obj *model1.LiveTailMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LiveTailMessage_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.LiveTailRecordType)
+	fc.Result = res
+	return ec.marshalOLiveTailRecordType2ᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋinternalᚋgraphqlᚋmodelᚐLiveTailRecordType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LiveTailMessage_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LiveTailMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type LiveTailRecordType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LiveTailMessage_records(ctx context.Context, field graphql.CollectedField, obj *model1.LiveTailMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LiveTailMessage_records(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Records, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]interface{})
+	fc.Result = res
+	return ec.marshalNAny2ᚕinterfaceᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LiveTailMessage_records(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LiveTailMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Any does not have child fields")
 		},
 	}
 	return fc, nil
@@ -7848,6 +8002,81 @@ func (ec *executionContext) fieldContext_Subscription_configurationChanges(ctx c
 	return fc, nil
 }
 
+func (ec *executionContext) _Subscription_livetail(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
+	fc, err := ec.fieldContext_Subscription_livetail(ctx, field)
+	if err != nil {
+		return nil
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = nil
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Subscription().Livetail(rctx, fc.Args["agentIds"].([]string), fc.Args["filters"].([]string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return nil
+	}
+	return func(ctx context.Context) graphql.Marshaler {
+		select {
+		case res, ok := <-resTmp.(<-chan []*model1.LiveTailMessage):
+			if !ok {
+				return nil
+			}
+			return graphql.WriterFunc(func(w io.Writer) {
+				w.Write([]byte{'{'})
+				graphql.MarshalString(field.Alias).MarshalGQL(w)
+				w.Write([]byte{':'})
+				ec.marshalNLiveTailMessage2ᚕᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋinternalᚋgraphqlᚋmodelᚐLiveTailMessageᚄ(ctx, field.Selections, res).MarshalGQL(w)
+				w.Write([]byte{'}'})
+			})
+		case <-ctx.Done():
+			return nil
+		}
+	}
+}
+
+func (ec *executionContext) fieldContext_Subscription_livetail(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Subscription",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "type":
+				return ec.fieldContext_LiveTailMessage_type(ctx, field)
+			case "records":
+				return ec.fieldContext_LiveTailMessage_records(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LiveTailMessage", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Subscription_livetail_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Suggestion_label(ctx context.Context, field graphql.CollectedField, obj *search.Suggestion) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Suggestion_label(ctx, field)
 	if err != nil {
@@ -10375,6 +10604,38 @@ func (ec *executionContext) _DestinationWithType(ctx context.Context, sel ast.Se
 	return out
 }
 
+var liveTailMessageImplementors = []string{"LiveTailMessage"}
+
+func (ec *executionContext) _LiveTailMessage(ctx context.Context, sel ast.SelectionSet, obj *model1.LiveTailMessage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, liveTailMessageImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LiveTailMessage")
+		case "type":
+
+			out.Values[i] = ec._LiveTailMessage_type(ctx, field, obj)
+
+		case "records":
+
+			out.Values[i] = ec._LiveTailMessage_records(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var metadataImplementors = []string{"Metadata"}
 
 func (ec *executionContext) _Metadata(ctx context.Context, sel ast.SelectionSet, obj *model.Metadata) graphql.Marshaler {
@@ -11425,6 +11686,8 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 		return ec._Subscription_agentChanges(ctx, fields[0])
 	case "configurationChanges":
 		return ec._Subscription_configurationChanges(ctx, fields[0])
+	case "livetail":
+		return ec._Subscription_livetail(ctx, fields[0])
 	default:
 		panic("unknown field " + strconv.Quote(fields[0].Name))
 	}
@@ -11915,12 +12178,12 @@ func (ec *executionContext) marshalNAgents2ᚖgithubᚗcomᚋobserviqᚋbindplan
 	return ec._Agents(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNAny2interface(ctx context.Context, v interface{}) (interface{}, error) {
+func (ec *executionContext) unmarshalNAny2interface(ctx context.Context, v interface{}) (any, error) {
 	res, err := graphql.UnmarshalAny(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAny2interface(ctx context.Context, sel ast.SelectionSet, v interface{}) graphql.Marshaler {
+func (ec *executionContext) marshalNAny2interface(ctx context.Context, sel ast.SelectionSet, v any) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -11934,6 +12197,38 @@ func (ec *executionContext) marshalNAny2interface(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNAny2ᚕinterfaceᚄ(ctx context.Context, v interface{}) ([]interface{}, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]interface{}, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNAny2interface(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNAny2ᚕinterfaceᚄ(ctx context.Context, sel ast.SelectionSet, v []interface{}) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNAny2interface(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
@@ -12251,6 +12546,60 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNLiveTailMessage2ᚕᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋinternalᚋgraphqlᚋmodelᚐLiveTailMessageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.LiveTailMessage) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNLiveTailMessage2ᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋinternalᚋgraphqlᚋmodelᚐLiveTailMessage(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNLiveTailMessage2ᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋinternalᚋgraphqlᚋmodelᚐLiveTailMessage(ctx context.Context, sel ast.SelectionSet, v *model1.LiveTailMessage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._LiveTailMessage(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNMetadata2githubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐMetadata(ctx context.Context, sel ast.SelectionSet, v model.Metadata) graphql.Marshaler {
@@ -13027,6 +13376,22 @@ func (ec *executionContext) marshalODestinationType2ᚖgithubᚗcomᚋobserviq�
 		return graphql.Null
 	}
 	return ec._DestinationType(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOLiveTailRecordType2ᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋinternalᚋgraphqlᚋmodelᚐLiveTailRecordType(ctx context.Context, v interface{}) (*model1.LiveTailRecordType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model1.LiveTailRecordType)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOLiveTailRecordType2ᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋinternalᚋgraphqlᚋmodelᚐLiveTailRecordType(ctx context.Context, sel ast.SelectionSet, v *model1.LiveTailRecordType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {

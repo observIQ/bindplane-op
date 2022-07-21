@@ -251,6 +251,17 @@ type Components {
   destinations: [Destination!]!
 }
 
+enum LiveTailRecordType {
+  log
+  metric
+  trace
+}
+
+type LiveTailMessage {
+  type: LiveTailRecordType
+  records: [Any!]!
+}
+
 # ----------------------------------------------------------------------
 # queries
 
@@ -289,4 +300,5 @@ type Query {
 type Subscription {
   agentChanges(selector: String, query: String): [AgentChange!]!
   configurationChanges(selector: String, query: String): [ConfigurationChange!]!
+  livetail(agentIds: [String!]!, filters: [String!]!): [LiveTailMessage!]!
 }
