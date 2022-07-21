@@ -7,6 +7,7 @@ import {
   Typography,
   Alert,
   AlertTitle,
+  Button,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -22,6 +23,7 @@ import { RawConfigFormValues } from "../../types/forms";
 import { withRequireLogin } from "../../contexts/RequireLogin";
 import { withNavBar } from "../../components/NavBar";
 import { AgentChangesProvider } from "../../contexts/AgentChanges";
+import { RadioIcon } from "../../components/Icons";
 
 import mixins from "../../styles/mixins.module.scss";
 
@@ -125,14 +127,30 @@ const AgentPageContent: React.FC = () => {
   return (
     <>
       <CardContainer>
-        <Typography variant="h5" classes={{ root: mixins["mb-5"] }}>
+        <Typography variant="h5" marginRight={3}>
           Agent - {data.agent.name}
         </Typography>
+
         <Grid container spacing={5}>
           <Grid item xs={12} lg={6}>
-            <Typography variant="h6" classes={{ root: mixins["mb-2"] }}>
-              Details
-            </Typography>
+            <Stack
+              direction={"row"}
+              alignItems="center"
+              classes={{ root: mixins["mb-5"] }}
+            >
+              <Typography variant="h6" marginRight={2}>
+                Details
+              </Typography>
+              <Button
+                startIcon={<RadioIcon />}
+                size="small"
+                variant="contained"
+                onClick={() => navigate(`livetail`)}
+              >
+                Live Tail
+              </Button>
+            </Stack>
+
             <AgentTable agent={data.agent} />
             {data.agent.errorMessage && (
               <Alert severity="error" classes={{ root: mixins["mt-3"] }}>
