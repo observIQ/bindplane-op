@@ -1,0 +1,47 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: SourceType
+metadata:
+  name: pgbouncer
+  displayName: PgBouncer
+  icon: /icons/sources/pgbouncer.svg
+  description: PgBouncer logs
+spec:
+  version: 0.0.1
+  supported_platforms:
+    - macos
+    - linux
+    - windows
+  parameters:
+    - name: file_path
+      label: Log Paths
+      description: Path to log file(s).
+      type: strings
+      default:
+        - /var/log/pgbouncer/pgbouncer.log
+
+    - name: start_at
+      label: Start At
+      description: Start reading file from 'beginning' or 'end'.
+      type: enum
+      validValues:
+        - beginning
+        - end
+      default: end
+      advancedConfig: true
+
+  logs:
+    receivers: |
+      - plugin/pgbouncer:
+          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/pgbouncer_logs.yaml
+          parameters:
+            file_path:
+            {{ range $fp := .file_path }}
+            - '{{ $fp }}'
+            {{end}}
+            start_at: {{ .start_at }}
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]

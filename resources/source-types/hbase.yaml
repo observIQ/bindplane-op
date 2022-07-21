@@ -1,0 +1,255 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: SourceType
+metadata:
+  name: hbase
+  displayName: HBase
+  icon: /icons/sources/hbase.svg
+  description: Apache HBase metrics and logs
+spec:
+  version: 0.0.1
+  supported_platforms:
+    - macos
+    - linux
+    - windows
+  parameters:
+    # Metric
+    - name: enable_metrics
+      label: Enable Metrics
+      description: Enable to send metrics.
+      type: bool
+      default: true
+
+    - name: collection_interval
+      label: Collection Interval
+      description: How often (seconds) to scrape for metrics.
+      type: int
+      default: 60
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: address
+      label: Address
+      description: IP address or hostname to scrape for JMX metrics.
+      type: string
+      default: localhost
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: jar_path
+      label: JMX Metrics Collection Jar Path
+      description: Full path to the JMX metrics jar.
+      type: string
+      default: "/opt/opentelemetry-java-contrib-jmx-metrics.jar"
+      advancedConfig: true
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: enable_master_jmx
+      label: Master Metrics
+      description: Enable to scrape master server's JMX port.
+      type: bool
+      default: true
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: master_jmx_port
+      label: Port
+      description: Master server's JMX Port.
+      type: int
+      default: 10101
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+        - name: enable_master_jmx
+          operator: equals
+          value: true
+
+    - name: enable_region_jmx
+      label: Region Server Metrics
+      description: Enable to scrape region server's JMX port.
+      type: bool
+      default: true
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: region_jmx_port
+      label: Port
+      description: Region server's JMX Port.
+      type: int
+      default: 10102
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+        - name: enable_region_jmx
+          operator: equals
+          value: true
+
+    # Logs
+    - name: enable_logs
+      label: Enable Logs
+      description: Enable to send logs.
+      type: bool
+      default: true
+
+    - name: enable_master_log
+      label: Master Logs
+      description: Enable to read master logs.
+      type: bool
+      default: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+    - name: master_log_path
+      label: Master File Path(s)
+      description: File paths to tail for master logs.
+      type: strings
+      default:
+        - "/usr/local/hbase*/logs/hbase*-master-*.log"
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+        - name: enable_master_log
+          operator: equals
+          value: true
+
+    - name: enable_region_log
+      label: Region Server Logs
+      description: Enable to read region server logs.
+      type: bool
+      default: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+    - name: region_log_path
+      label: Region Server File Path(s)
+      description: File paths to tail for region server logs.
+      type: strings
+      default:
+        - "/usr/local/hbase*/logs/hbase*-regionserver-*.log"
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+        - name: enable_region_log
+          operator: equals
+          value: true
+
+    - name: enable_zookeeper_log
+      label: Zookeeper Logs
+      description: Enable to read zookeeper logs.
+      type: bool
+      default: false
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+    - name: zookeeper_log_path
+      label: Zookeeper File Path(s)
+      description: File paths to tail for zookeeper logs.
+      type: strings
+      default:
+        - "/usr/local/hbase*/logs/hbase*-zookeeper-*.log"
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+        - name: enable_zookeeper_log
+          operator: equals
+          value: true
+
+    - name: start_at
+      label: Start At
+      description: Start reading file from 'beginning' or 'end'.
+      type: enum
+      validValues:
+        - beginning
+        - end
+      default: end
+      advancedConfig: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+  metrics:
+    receivers: |
+      {{ if .enable_metrics }}
+
+      {{ if .enable_master_jmx }}
+      - jmx/hbase/master:
+          jar_path: {{ .jar_path }}
+          collection_interval: {{ .collection_interval }}s
+          endpoint: {{ .address }}:{{ .master_jmx_port }}
+          target_system: hbase
+          resource_attributes:
+            hbase.master.endpoint: {{ .address }}:{{ .master_jmx_port }}
+      {{ end }}
+
+      {{ if .enable_region_jmx }}
+      - jmx/hbase/region:
+          jar_path: {{ .jar_path }}
+          collection_interval: {{ .collection_interval }}s
+          endpoint: {{ .address }}:{{ .region_jmx_port }}
+          target_system: hbase
+          resource_attributes:
+            hbase.region.endpoint: {{ .address }}:{{ .region_jmx_port }}
+      {{ end }}
+
+      {{ end }}
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]
+
+  logs:
+    receivers: |
+      {{ if .enable_logs }}
+      - plugin:
+          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/hbase_logs.yaml
+          parameters:
+            enable_master_log: {{ .enable_master_log }}
+            master_log_path:
+              {{ range $fp := .master_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+
+            enable_region_log: {{ .enable_region_log }}
+            region_log_path:
+              {{ range $fp := .region_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+
+            enable_zookeeper_log: {{ .enable_zookeeper_log }}
+            zookeeper_log_path:
+              {{ range $fp := .zookeeper_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+
+            start_at: {{ .start_at }}
+      {{ end }}
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]
