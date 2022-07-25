@@ -98,14 +98,19 @@ const LiveTailRowComponent: React.FC<{ message: Message }> = ({ message }) => {
       case LiveTailRecordType.Logs:
         const logRecord = message.records[0] as LogRecord;
         return (
-          <Typography fontFamily="monospace">{logRecord.severity}</Typography>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Chip label={"info"} size={"small"} />
+            <Typography fontFamily="monospace" fontSize={12}>
+              {logRecord.body}
+            </Typography>
+          </Stack>
         );
       case LiveTailRecordType.Metrics:
         const metricRecord = message.records[0] as MetricRecord;
         return (
           <Stack direction="row" spacing={1}>
             <Chip label={metricRecord.name} size={"small"} />
-            <Typography fontFamily="monospace">
+            <Typography fontFamily="monospace" fontSize={12}>
               {metricRecord.value} {metricRecord.unit}
             </Typography>
           </Stack>
@@ -121,12 +126,14 @@ const LiveTailRowComponent: React.FC<{ message: Message }> = ({ message }) => {
       onClick={() => setOpen((prev) => !prev)}
       classes={{ root: styles.card }}
     >
-      <Stack direction="row">
+      <Stack direction="row" alignItems="center">
         <div className={styles.ch}>
           <ChevronDown className={styles.chevron} />
         </div>
         <div className={styles.dt}>
-          {formatLogDate(new Date(message.records[0].timestamp))}
+          <Typography fontFamily="monospace" fontSize={12} marginLeft={0.2}>
+            {formatLogDate(new Date(message.records[0].timestamp))}
+          </Typography>
         </div>
 
         <div className={styles.summary}>{renderSummary(message)}</div>

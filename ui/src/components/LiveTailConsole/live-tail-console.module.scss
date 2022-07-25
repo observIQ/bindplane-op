@@ -88,11 +88,13 @@
 .card {
   border: none;
   border-bottom: 1px solid colors.$gray;
+
+  padding: 3px;
 }
 
 .chevron {
   width: 15px;
-  margin: 0 2px;
+  margin: 2px 0 0 2px;
 
   cursor: pointer;
 }
