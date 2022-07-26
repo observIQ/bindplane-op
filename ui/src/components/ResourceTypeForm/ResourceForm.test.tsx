@@ -183,4 +183,35 @@ describe("ResourceForm component", () => {
 
     expect(screen.getByTestId("resource-form-save")).toBeDisabled();
   });
+
+  it("strings type parameter validation", async () => {
+    const label = "p1 label";
+    const definitions: ParameterDefinition[] = [
+      {
+        name: "p1",
+        label: label,
+        type: ParameterType.Strings,
+        required: true,
+        description: "",
+      },
+    ];
+
+    render(
+      <ResourceConfigForm
+        onSave={() => {}}
+        kind="destination"
+        title={"Title"}
+        description={ResourceType1.metadata.description!}
+        parameterDefinitions={definitions}
+      />
+    );
+
+    expect(screen.getByTestId("resource-form-save")).toBeDisabled();
+
+    const input = screen.getByLabelText(`${label} *`);
+    fireEvent.change(input, { target: { value: "/tmp.file.log" } });
+    fireEvent.keyDown(input, { key: "Enter", code: "Enter", charCode: 13 });
+
+    expect(screen.getByTestId("resource-form-save")).not.toBeDisabled();
+  });
 });
