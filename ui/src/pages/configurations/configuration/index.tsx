@@ -18,10 +18,10 @@ import { ConfigurationSection } from "./ConfigurationSection";
 import { SourcesSection } from "./SourcesSection";
 import { DestinationsSection } from "./DestinationsSection";
 import { useSnackbar } from "notistack";
-
-import styles from "./configuration-page.module.scss";
 import { withRequireLogin } from "../../../contexts/RequireLogin";
 import { withNavBar } from "../../../components/NavBar";
+
+import styles from "./configuration-page.module.scss";
 
 gql`
   query GetConfiguration($name: String!) {
