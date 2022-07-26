@@ -482,3 +482,21 @@ func (rc *ResourceConfiguration) indexFields(resourceName string, resourceTypeNa
 	index(resourceName, rc.Name)
 	index(resourceTypeName, rc.Type)
 }
+
+// Duplicate copies the value of the current configuration and returns
+// a duplicate with the new name.  It should be identical except for the
+// Metadata.Name, Metadata.ID, and Spec.Selector fields.
+func (c *Configuration) Duplicate(name string) *Configuration {
+	new := &Configuration{}
+	*new = *c
+
+	// Change the metadata values
+	new.Metadata.Name = name
+	new.Metadata.ID = name
+
+	// Replace the configuration matchLabel if present
+
+	matchLabels := new.Spec.Selector.MatchLabels
+	matchLabels["configuration"] = name
+	return new
+}

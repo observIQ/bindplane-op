@@ -638,6 +638,55 @@ func TestREST(t *testing.T) {
 		assert.NotContains(t, configurations, testConfiguration1)
 	})
 
+	t.Run("PUT /configurations/:name/duplicate", func(t *testing.T) {
+		resetStore(t, s)
+		originalName := "original"
+		newName := "newName"
+		thirdName := "third"
+
+		original := testConfiguration(originalName)
+		third := testConfiguration(thirdName)
+		_, err := bindplane.Store().ApplyResources([]model.Resource{original, third})
+		require.NoError(t, err)
+
+		t.Run("404 Not Found", func(t *testing.T) {
+			endpoint := "/configurations/does-not-exist/duplicate"
+
+			resp, err := client.R().SetBody(&model.PutDuplicateConfigRequest{Name: newName}).Put(endpoint)
+			require.NoError(t, err)
+
+			require.Equal(t, http.StatusNotFound, resp.StatusCode())
+		})
+
+		t.Run("400 Bad Request", func(t *testing.T) {
+			endpoint := fmt.Sprintf("/configurations/%s/duplicate", originalName)
+			resp, err := client.R().SetBody(`{"""`).Put(endpoint)
+			require.NoError(t, err)
+
+			require.Equal(t, http.StatusBadRequest, resp.StatusCode())
+
+		})
+
+		t.Run("409 Conflict", func(t *testing.T) {
+			endpoint := fmt.Sprintf("/configurations/%s/duplicate", originalName)
+			resp, err := client.R().SetBody(&model.PutDuplicateConfigRequest{Name: thirdName}).Put(endpoint)
+			require.NoError(t, err)
+
+			require.Equal(t, http.StatusConflict, resp.StatusCode())
+		})
+
+		t.Run("201 Created", func(t *testing.T) {
+			endpoint := fmt.Sprintf("/configurations/%s/duplicate", originalName)
+			result := &model.PutDuplicateConfigResponse{}
+
+			resp, err := client.R().SetBody(&model.PutDuplicateConfigRequest{Name: newName}).SetResult(result).Put(endpoint)
+			require.NoError(t, err)
+
+			require.Equal(t, http.StatusCreated, resp.StatusCode())
+			require.Equal(t, result.Name, newName)
+		})
+	})
+
 	t.Run("POST /delete Status 200 Accepted", func(t *testing.T) {
 		tests := []struct {
 			description   string

@@ -527,3 +527,26 @@ func TestEvalConfigurationFailsMissingResource(t *testing.T) {
 		})
 	}
 }
+
+func TestDuplicate(t *testing.T) {
+	duplicateName := "duplicate-config"
+
+	configuration := testResource[*Configuration](t, "configuration-macos-googlecloud.yaml")
+	require.NotNil(t, configuration)
+
+	new := configuration.Duplicate(duplicateName)
+	require.NotNil(t, new)
+
+	t.Run("equal sources, destinations", func(t *testing.T) {
+		require.Equal(t, configuration.Spec.Sources, new.Spec.Sources)
+		require.Equal(t, configuration.Spec.Destinations, new.Spec.Destinations)
+	})
+
+	t.Run("replace name, id, and match labels", func(t *testing.T) {
+		require.Equal(t, new.Metadata.Name, duplicateName)
+		require.Equal(t, new.Metadata.ID, duplicateName)
+
+		require.Contains(t, new.Spec.Selector.MatchLabels, "configuration")
+		require.Equal(t, new.Spec.Selector.MatchLabels["configuration"], duplicateName)
+	})
+}
