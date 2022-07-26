@@ -785,6 +785,38 @@ paths:
           schema:
             $ref: '#/definitions/rest.ErrorResponse'
       summary: Get configuration by name
+  /configurations/{name}/duplicate:
+    put:
+      parameters:
+      - description: the name of the configuration to duplicate
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: the desired name of the duplicate configuration
+        in: body
+        name: name
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successful Duplication, created
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/rest.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/rest.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rest.ErrorResponse'
+      summary: Duplicate an existing configuration
   /delete:
     post:
       description: |-

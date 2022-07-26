@@ -523,6 +523,55 @@ const docTemplate = `{
                 }
             }
         },
+        "/configurations/{name}/duplicate": {
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Duplicate an existing configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the name of the configuration to duplicate",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "the desired name of the duplicate configuration",
+                        "name": "name",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successful Duplication, created"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/rest.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/rest.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rest.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/delete": {
             "post": {
                 "description": "/delete endpoint will try to parse resources\nand delete them from the store.  Additionally\nit will send reconfigure tasks to affected agents.",
