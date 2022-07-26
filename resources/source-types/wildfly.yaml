@@ -1,44 +1,23 @@
 apiVersion: bindplane.observiq.com/v1beta
 kind: SourceType
 metadata:
-  name: apache_http
-  displayName: Apache HTTP
-  icon: /icons/sources/apache_http.svg
-  description: Apache HTTP metrics scraper and log collector
+  name: wildfly
+  displayName: WildFly
+  icon: /icons/sources/wildfly.svg
+  description: Apache WildFly metrics and logs
 spec:
   version: 0.0.1
   supported_platforms:
+    - macos
     - linux
     - windows
-    - macos
   parameters:
-    # Metrics
+    # Metric
     - name: enable_metrics
       label: Enable Metrics
       description: Enable to send metrics.
       type: bool
       default: true
-
-    - name: hostname
-      label: Hostname
-      description: The hostname or IP address of the Apache HTTP system.
-      type: string
-      default: localhost
-      required: true
-      relevantIf:
-        - name: enable_metrics
-          operator: equals
-          value: true
-
-    - name: port
-      label: Port
-      description: The TCP port of the Apache HTTP system.
-      type: int
-      default: 3000
-      relevantIf:
-        - name: enable_metrics
-          operator: equals
-          value: true
 
     - name: collection_interval
       label: Collection Interval
@@ -49,146 +28,113 @@ spec:
         - name: enable_metrics
           operator: equals
           value: true
-      advancedConfig: true
 
-    - name: enable_tls
-      label: Enable TLS
-      description: Whether or not to use TLS when connecting to the Apache HTTP server.
-      type: bool
-      default: false
-      advancedConfig: true
-      relevantIf:
-        - name: enable_metrics
-          operator: equals
-          value: true
-
-    - name: strict_tls_verify
-      label: Strict TLS Certificate Verification
-      description: Enable to require TLS certificate verification.
-      type: bool
-      default: false
-      advancedConfig: true
-      relevantIf:
-        - name: enable_tls
-          operator: equals
-          value: true
-        - name: enable_metrics
-          operator: equals
-          value: true
-
-    - name: ca_file
-      label: TLS Certificate Authority File
-      description: Certificate authority used to validate TLS certificates. Not required if the collector's operating system already trusts the certificate authority.
+    - name: address
+      label: Address
+      description: IP address or hostname to scrape for JMX metrics.
       type: string
-      required: false
-      default: ""
+      default: localhost
       relevantIf:
-        - name: enable_tls
-          operator: equals
-          value: true
-        - name: strict_tls_verify
-          operator: equals
-          value: true
         - name: enable_metrics
           operator: equals
           value: true
-      advancedConfig: true
 
-    - name: mutual_tls
-      label: Mutual TLS Authentication
-      description: Enable to require TLS mutual authentication.
-      type: bool
-      default: false
+    - name: port
+      label: Port
+      description: Port to scrape for JMX metrics.
+      type: int
+      default: 9012
       relevantIf:
-        - name: strict_tls_verify
-          operator: equals
-          value: true
         - name: enable_metrics
           operator: equals
           value: true
-        - name: enable_tls
-          operator: equals
-          value: true
-      advancedConfig: true
 
-    - name: cert_file
-      label: Mutual TLS Client Certificate File
-      description: A TLS certificate used for client authentication, if mutual TLS is enabled.
+    - name: jar_path
+      label: JMX Metrics Collection Jar Path
+      description: Full path to the JMX metrics jar.
       type: string
-      required: true
-      default: ""
+      default: "/opt/opentelemetry-java-contrib-jmx-metrics.jar"
+      advancedConfig: true
       relevantIf:
-        - name: strict_tls_verify
-          operator: equals
-          value: true
-        - name: mutual_tls
-          operator: equals
-          value: true
         - name: enable_metrics
           operator: equals
           value: true
-        - name: enable_tls
-          operator: equals
-          value: true
-      advancedConfig: true
 
-    - name: key_file
-      label: Mutual TLS Client Private Key File
-      description: A TLS private key used for client authentication, if mutual TLS is enabled.
-      type: string
-      required: true
-      default: ""
-      relevantIf:
-        - name: strict_tls_verify
-          operator: equals
-          value: true
-        - name: mutual_tls
-          operator: equals
-          value: true
-        - name: enable_metrics
-          operator: equals
-          value: true
-        - name: enable_tls
-          operator: equals
-          value: true
-      advancedConfig: true
-
-    # Logging
+    # Logs
     - name: enable_logs
       label: Enable Logs
-      description: Enable to collect Apache HTTP logs.
+      description: Enable to send logs.
       type: bool
       default: true
 
+    - name: standalone_file_path
+      label: Standalone Server File Path(s)
+      description: File paths to tail for standalone server logs.
+      type: strings
+      default:
+        - /opt/wildfly/standalone/log/server.log
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+    - name: enable_domain_server
+      label: Domain Server Logs
+      description: Enable to read domain server logs.
+      type: bool
+      default: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+    - name: domain_server_path
+      label: Domain Server File Path(s)
+      description: File paths to tail for domain server logs.
+      type: strings
+      default:
+        - /opt/wildfly/standalone/log/server.log
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+        - name: enable_domain_server
+          operator: equals
+          value: true
+
+    - name: enable_domain_controller
+      label: Domain Controller Logs
+      description: Enable to read domain controller logs.
+      type: bool
+      default: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+    - name: domain_controller_path
+      label: Domain Controller File Path(s)
+      description: File paths to tail for domain controller logs.
+      type: strings
+      default:
+        - /opt/wildfly/standalone/log/server.log
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+        - name: enable_domain_controller
+          operator: equals
+          value: true
+
     - name: start_at
       label: Start At
-      description: Start reading logs from 'beginning' or 'end'.
+      description: Start reading file from 'beginning' or 'end'.
       type: enum
       validValues:
         - beginning
         - end
       default: end
       advancedConfig: true
-      relevantIf:
-        - name: enable_logs
-          operator: equals
-          value: true
-
-    - name: access_log_path
-      label: Access Log File Path(s)
-      description: Access Log File paths to tail for logs.
-      type: strings
-      default: ["/var/log/apache2/access.log"]
-      relevantIf:
-        - name: enable_logs
-          operator: equals
-          value: true
-
-    - name: error_log_path
-      label: Error Log File Path(s)
-      description: Error Log File paths to tail for logs.
-      type: strings
-      default: ["/var/log/apache2/error.log"]
       relevantIf:
         - name: enable_logs
           operator: equals
@@ -209,67 +155,47 @@ spec:
   metrics:
     receivers: |
       {{ if .enable_metrics }}
-      - apache:
+      - jmx:
+          jar_path: {{ .jar_path }}
           collection_interval: {{ .collection_interval }}s
-
-          {{ if .enable_tls }}
-          endpoint: https://{{ .hostname }}:{{ .port }}/server-status?auto
-          {{ else }}
-          endpoint: http://{{ .hostname }}:{{ .port }}/server-status?auto
-          {{ end }}
-
-          {{ if .enable_tls }}
-          tls:
-            insecure: false
-            {{ if .strict_tls_verify }}
-            insecure_skip_verify: false
-            {{ if .ca_file }}
-            ca_file: {{ .ca_file }}
-            {{ end }}
-            {{ else }}
-            insecure_skip_verify: true
-            {{ end }}
-            {{ if .mutual_tls }}
-            cert_file: "{{ .cert_file }}"
-            key_file: "{{ .key_file }}"
-            {{ end }}
-          {{ else }}
-          tls:
-            insecure: true
-          {{ end }}
+          endpoint: {{ .address }}:{{ .port }}
+          target_system: wildfly
+          resource_attributes:
+            wildfly.endpoint: {{ .address }}:{{ .port }}
       {{ end }}
 
     processors: |
-      {{ if .enable_metrics }}
       - resourcedetection:
           detectors: ["system"]
           system:
             hostname_sources: ["os"]
-      {{ end }}
 
   logs:
     receivers: |
       {{ if .enable_logs }}
-      - plugin/apachehttp:
-          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/apache_http_logs.yaml
+      - plugin:
+          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/wildfly_logs.yaml
           parameters:
+            standalone_file_path:
+              {{ range $fp := .standalone_file_path }}
+              - '{{ $fp }}'
+              {{ end }}
+            enable_domain_server: {{ .enable_domain_server }}
+            domain_server_path:
+              {{ range $fp := .domain_server_path }}
+              - '{{ $fp }}'
+              {{ end }}
+            enable_domain_controller: {{ .enable_domain_controller }}
+            domain_controller_path:
+              {{ range $fp := .domain_controller_path }}
+              - '{{ $fp }}'
+              {{ end }}
             start_at: {{ .start_at }}
-            enable_access_log: true
-            enable_error_log: true
-            access_log_path:
-              {{ range $fp := .access_log_path }}
-              - '{{ $fp }}'
-              {{ end }}
-            error_log_path:
-              {{ range $fp := .error_log_path }}
-              - '{{ $fp }}'
-              {{ end }}
             timezone: {{ .timezone }}
       {{ end }}
+
     processors: |
-      {{ if .enable_logs }}
       - resourcedetection:
           detectors: ["system"]
           system:
             hostname_sources: ["os"]
-      {{ end }}
