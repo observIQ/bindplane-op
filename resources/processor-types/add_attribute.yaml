@@ -1,0 +1,32 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: ProcessorType
+metadata:
+  name: add_attribute
+  displayName: Add Attribute
+spec:
+  version: 0.0.1
+  parameters:
+    - name: key
+      label: Key
+      type: string
+      required: true
+    - name: value
+      label: Value
+      type: string
+      required: true
+    - name: action
+      label: Action
+      type: enum
+      description: 'insert: Add attribute if it does not exist. update: Update existing value. upsert: Insert or update.'
+      default: upsert
+      validValues:
+        - insert
+        - update
+        - upsert
+  logs+metrics+traces:
+    processors: |
+      - attributes:
+          actions:
+            - key: {{ .key }}
+              action: {{ .action }}
+              value: '{{ .value }}'

@@ -1,0 +1,18 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: ProcessorType
+metadata:
+  name: delete_resource
+  displayName: Delete Resource
+spec:
+  version: 0.0.1
+  parameters:
+    - name: key
+      label: Key
+      type: string
+      required: true
+  logs+metrics+traces:
+    processors: |
+      - resource:
+          attributes:
+          - key: {{ .key }}
+            action: delete

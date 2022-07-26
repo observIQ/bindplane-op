@@ -1,0 +1,18 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: ProcessorType
+metadata:
+  name: delete_attribute
+  displayName: Delete Attribute
+spec:
+  version: 0.0.1
+  parameters:
+    - name: key
+      label: Key
+      type: string
+      required: true
+  logs+metrics+traces:
+    processors: |
+      - attributes:
+          actions:
+            - key: {{ .key }}
+              action: delete
