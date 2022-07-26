@@ -1,0 +1,111 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: DestinationType
+metadata:
+  name: jaeger
+  displayName: Jaeger
+  icon: /icons/destinations/jaeger.svg
+spec:
+  parameters:
+    - name: hostname
+      label: Hostname
+      description: Hostname or IP address of the Jaeger server.
+      type: string
+      default: ""
+      required: true
+
+    - name: port
+      label: Port
+      description: Port (gRPC) of the Jaeger server.
+      type: int
+      default: 14250
+
+    - name: enable_tls
+      label: Enable TLS
+      description: Whether or not to use TLS.
+      type: bool
+      default: false
+      advancedConfig: true
+
+    - name: insecure_skip_verify
+      label: Skip TLS Certificate Verification
+      description: Enable to skip TLS certificate verification.
+      type: bool
+      default: false
+      relevantIf:
+        - name: enable_tls
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    - name: ca_file
+      label: TLS Certificate Authority File
+      description: Certificate authority used to validate TLS certificates.
+      type: string
+      required: false
+      default: ""
+      relevantIf:
+        - name: enable_tls
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    - name: mutual_tls
+      label: Mutual TLS
+      description: Whether or not to use mutual TLS authentication.
+      type: bool
+      default: false
+      relevantIf:
+        - name: enable_tls
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    - name: cert_file
+      label: Mutual TLS Client Certificate File
+      description: A TLS certificate used for client authentication.
+      type: string
+      required: false
+      default: ""
+      relevantIf:
+        - name: enable_tls
+          operator: equals
+          value: true
+        - name: mutual_tls
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    - name: key_file
+      label: Mutual TLS Client Private Key File
+      description: A TLS private key used for client authentication.
+      type: string
+      required: false
+      default: ""
+      relevantIf:
+        - name: enable_tls
+          operator: equals
+          value: true
+        - name: mutual_tls
+          operator: equals
+          value: true
+      advancedConfig: true
+
+  traces:
+    exporters: |
+      - jaeger:
+          endpoint: {{ .hostname }}{{ .port }}
+          tls:
+          {{ if .enable_tls }}
+            insecure: false
+            insecure_skip_verify: {{ .insecure_skip_verify }}
+            ca_file: "{{ .ca_file }}"
+            {{ if .mutual_tls }}
+            cert_file: "{{ .cert_file }}"
+            key_file: "{{ .key_file }}"
+            {{ end }}
+          {{ else }}
+            insecure: true
+          {{ end }}
+
+    processors: |
+      - batch:
