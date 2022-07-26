@@ -315,16 +315,16 @@ func (s *opampServer) UpdateAgent(ctx context.Context, agent *model.Agent, updat
 
 	if updates.Version != "" {
 		s.logger.Info("sending agent update to version", zap.String("version", updates.Version))
+		// Dynamically figure out file based on OS
+		downloadableFile := determineDownloadableFile(strings.ToLower(agent.OperatingSystem))
 		serverToAgent.PackagesAvailable = &protobufs.PackagesAvailable{
 			AllPackagesHash: []byte(updates.Version),
 			Packages: map[string]*protobufs.PackageAvailable{
 				"": {
 					Type:    protobufs.PackageAvailable_TopLevelPackage,
 					Version: updates.Version,
-					File: &protobufs.DownloadableFile{
-						DownloadUrl: "",
-					},
-					Hash: []byte(updates.Version),
+					File:    downloadableFile,
+					Hash:    []byte(updates.Version),
 				},
 			},
 		}
@@ -339,6 +339,26 @@ func (s *opampServer) UpdateAgent(ctx context.Context, agent *model.Agent, updat
 	}
 
 	return s.send(context.Background(), conn, serverToAgent)
+}
+
+func determineDownloadableFile(operatingSystem string) *protobufs.DownloadableFile {
+	switch {
+	case strings.Contains(operatingSystem, "mac"): // Mac
+		return &protobufs.DownloadableFile{
+			DownloadUrl: "",
+			ContentHash: []byte{},
+		}
+	case strings.Contains(operatingSystem, "windows"): // Windows
+		return &protobufs.DownloadableFile{
+			DownloadUrl: "",
+			ContentHash: []byte{},
+		}
+	default: // LINUX
+		return &protobufs.DownloadableFile{
+			DownloadUrl: "",
+			ContentHash: []byte{},
+		}
+	}
 }
 
 // SendHeartbeat sends a heartbeat to the agent to keep the websocket open
