@@ -1,0 +1,45 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: SourceType
+metadata:
+  name: windowsdhcp
+  displayName: Windows DHCP Server
+  icon: /icons/sources/windows.svg
+  description: Windows DHCP Server log parser
+spec:
+  version: 0.0.1
+  supported_platforms:
+    - windows
+  parameters:
+    - name: file_path
+      label: File Path(s)
+      description: File or directory paths to tail for logs.
+      type: strings
+      default: []
+      required: true
+
+    - name: start_at
+      label: Start At
+      description: Start reading file from 'beginning' or 'end'.
+      type: enum
+      validValues:
+        - beginning
+        - end
+      default: end
+      advancedConfig: true
+
+  logs:
+    receivers: |
+      - plugin:
+          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/windows_dhcp.yaml
+          parameters:
+            file_path:
+              {{ range $fp := .file_path }}
+              - '{{ $fp }}'
+              {{ end }}
+            start_at: {{ .start_at }}
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]

@@ -3,7 +3,7 @@ kind: SourceType
 metadata:
   name: windowsevents
   displayName: Windows Events
-  icon: /icons/sources/windows_event.svg
+  icon: /icons/sources/windows.svg
   description: Windows Events (logs)
 spec:
   version: 0.0.1
