@@ -218,16 +218,22 @@ func (s *ResourceTypeSpec) validate(errs validation.Errors) {
 		} else {
 			// for template validation, just provide a reasonable default based on the type
 			switch p.Type {
-			case stringType:
-				params[p.Name] = ""
 			case boolType:
 				params[p.Name] = false
-			case intType:
-				params[p.Name] = 0
-			case stringsType:
-				params[p.Name] = []string{}
 			case enumType:
 				params[p.Name] = "" // p.ValidValues[0] // cannot guarantee this is valid and "" is fine
+			case enumsType:
+				params[p.Name] = []string{}
+			case intType:
+				params[p.Name] = 0
+			case mapType:
+				params[p.Name] = make(map[string]string)
+			case stringType:
+				params[p.Name] = ""
+			case stringsType:
+				params[p.Name] = []string{}
+			case yamlType:
+				params[p.Name] = ""
 			}
 		}
 	}
