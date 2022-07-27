@@ -51,11 +51,11 @@ dev:
 
 .PHONY: test
 test: prep
-	go test ./... -race -cover
+	go test ./... -race -cover -timeout 60s
 
 .PHONY: test-with-cover
 test-with-cover: prep
-	BINDPLANE_TEST_IMAGE="observiq/bindplane-amd64:$(GIT_SHA)" go-acc --tags=integration --output=coverage.out --ignore=generated --ignore=mocks ./...
+	BINDPLANE_TEST_IMAGE="observiq/bindplane-amd64:$(GIT_SHA)" go-acc --timeout 60s --tags=integration --output=coverage.out --ignore=generated --ignore=mocks ./...
 
 show-coverage: test-with-cover
 	# Show coverage as HTML in the default browser.
