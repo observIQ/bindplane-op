@@ -543,9 +543,13 @@ func TestDuplicate(t *testing.T) {
 	})
 
 	t.Run("replace name, id, and match labels", func(t *testing.T) {
+		// Set the duplicate name
 		require.Equal(t, new.Metadata.Name, duplicateName)
-		require.Equal(t, new.Metadata.ID, duplicateName)
 
+		// Set a new ID
+		require.NotEqual(t, new.Metadata.ID, configuration.Metadata.ID)
+
+		// Set the configuration matchLabel
 		require.Contains(t, new.Spec.Selector.MatchLabels, "configuration")
 		require.Equal(t, new.Spec.Selector.MatchLabels["configuration"], duplicateName)
 	})
