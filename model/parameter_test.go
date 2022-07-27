@@ -109,19 +109,19 @@ func TestValidateDefault(t *testing.T) {
 			},
 		},
 		{
-			"ValidMultiEnumDefaultEmpty",
+			"ValidEnumsDefaultEmpty",
 			false,
 			ParameterDefinition{
-				Type:        "multi-enum",
+				Type:        "enums",
 				ValidValues: []string{"foo", "bar", "baz", "blah"},
 				Default:     []any{},
 			},
 		},
 		{
-			"ValidMultiEnumDefaultAll",
+			"ValidEnumsDefaultAll",
 			false,
 			ParameterDefinition{
-				Type:        "multi-enum",
+				Type:        "enums",
 				ValidValues: []string{"foo", "bar", "baz", "blah"},
 				Default:     []any{"foo", "bar", "baz", "blah"},
 			},
@@ -355,10 +355,10 @@ eleven:
 `,
 		},
 		{
-			"ValidMultiEnum",
+			"ValidEnums",
 			false,
 			ParameterDefinition{
-				Type:        "multi-enum",
+				Type:        "enums",
 				ValidValues: []string{"one", "two", "three", "four"},
 			},
 			[]any{
@@ -366,10 +366,10 @@ eleven:
 			},
 		},
 		{
-			"InvalidMultiEnum",
+			"InvalidEnums",
 			true,
 			ParameterDefinition{
-				Type:        "multi-enum",
+				Type:        "enums",
 				ValidValues: []string{"one", "two", "three", "four"},
 			},
 			[]any{

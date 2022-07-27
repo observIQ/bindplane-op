@@ -1,5 +1,200 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`EnumsParameter renders correctly 1`] = `
+Array [
+  <label
+    className="MuiInputLabel-root MuiInputLabel-animated MuiFormLabel-root MuiFormLabel-colorPrimary css-9npbnl-MuiFormLabel-root-MuiInputLabel-root"
+  >
+    Label
+  </label>,
+  <p
+    className="MuiFormHelperText-root css-1d1r5q-MuiFormHelperText-root"
+  >
+    description
+  </p>,
+  <div
+    className="css-nen11g-MuiStack-root"
+  >
+    <label
+      className="MuiFormControlLabel-root MuiFormControlLabel-labelPlacementEnd css-j204z7-MuiFormControlLabel-root"
+    >
+      <span
+        className="MuiSwitch-root MuiSwitch-sizeSmall css-1ycxvqq-MuiSwitch-root"
+      >
+        <span
+          className="MuiSwitch-switchBase MuiSwitch-colorPrimary MuiButtonBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary PrivateSwitchBase-root css-5ryogn-MuiButtonBase-root-MuiSwitch-switchBase"
+          onBlur={[Function]}
+          onContextMenu={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={null}
+        >
+          <input
+            className="MuiSwitch-input PrivateSwitchBase-input css-1m9pwf3"
+            onChange={[Function]}
+            type="checkbox"
+          />
+          <span
+            className="MuiSwitch-thumb css-jsexje-MuiSwitch-thumb"
+          />
+          <span
+            className="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </span>
+        <span
+          className="MuiSwitch-track css-1yjjitx-MuiSwitch-track"
+        />
+      </span>
+      <span
+        className="MuiTypography-root MuiTypography-body1 MuiFormControlLabel-label css-ahj2mt-MuiTypography-root"
+      >
+        one
+      </span>
+    </label>
+    <label
+      className="MuiFormControlLabel-root MuiFormControlLabel-labelPlacementEnd css-j204z7-MuiFormControlLabel-root"
+    >
+      <span
+        className="MuiSwitch-root MuiSwitch-sizeSmall css-1ycxvqq-MuiSwitch-root"
+      >
+        <span
+          className="MuiSwitch-switchBase MuiSwitch-colorPrimary MuiButtonBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary PrivateSwitchBase-root css-5ryogn-MuiButtonBase-root-MuiSwitch-switchBase"
+          onBlur={[Function]}
+          onContextMenu={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={null}
+        >
+          <input
+            className="MuiSwitch-input PrivateSwitchBase-input css-1m9pwf3"
+            onChange={[Function]}
+            type="checkbox"
+          />
+          <span
+            className="MuiSwitch-thumb css-jsexje-MuiSwitch-thumb"
+          />
+          <span
+            className="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </span>
+        <span
+          className="MuiSwitch-track css-1yjjitx-MuiSwitch-track"
+        />
+      </span>
+      <span
+        className="MuiTypography-root MuiTypography-body1 MuiFormControlLabel-label css-ahj2mt-MuiTypography-root"
+      >
+        two
+      </span>
+    </label>
+    <label
+      className="MuiFormControlLabel-root MuiFormControlLabel-labelPlacementEnd css-j204z7-MuiFormControlLabel-root"
+    >
+      <span
+        className="MuiSwitch-root MuiSwitch-sizeSmall css-1ycxvqq-MuiSwitch-root"
+      >
+        <span
+          className="MuiSwitch-switchBase MuiSwitch-colorPrimary MuiButtonBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary PrivateSwitchBase-root css-5ryogn-MuiButtonBase-root-MuiSwitch-switchBase"
+          onBlur={[Function]}
+          onContextMenu={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={null}
+        >
+          <input
+            className="MuiSwitch-input PrivateSwitchBase-input css-1m9pwf3"
+            onChange={[Function]}
+            type="checkbox"
+          />
+          <span
+            className="MuiSwitch-thumb css-jsexje-MuiSwitch-thumb"
+          />
+          <span
+            className="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </span>
+        <span
+          className="MuiSwitch-track css-1yjjitx-MuiSwitch-track"
+        />
+      </span>
+      <span
+        className="MuiTypography-root MuiTypography-body1 MuiFormControlLabel-label css-ahj2mt-MuiTypography-root"
+      >
+        three
+      </span>
+    </label>
+    <label
+      className="MuiFormControlLabel-root MuiFormControlLabel-labelPlacementEnd css-j204z7-MuiFormControlLabel-root"
+    >
+      <span
+        className="MuiSwitch-root MuiSwitch-sizeSmall css-1ycxvqq-MuiSwitch-root"
+      >
+        <span
+          className="MuiSwitch-switchBase MuiSwitch-colorPrimary MuiButtonBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary PrivateSwitchBase-root css-5ryogn-MuiButtonBase-root-MuiSwitch-switchBase"
+          onBlur={[Function]}
+          onContextMenu={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={null}
+        >
+          <input
+            className="MuiSwitch-input PrivateSwitchBase-input css-1m9pwf3"
+            onChange={[Function]}
+            type="checkbox"
+          />
+          <span
+            className="MuiSwitch-thumb css-jsexje-MuiSwitch-thumb"
+          />
+          <span
+            className="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </span>
+        <span
+          className="MuiSwitch-track css-1yjjitx-MuiSwitch-track"
+        />
+      </span>
+      <span
+        className="MuiTypography-root MuiTypography-body1 MuiFormControlLabel-label css-ahj2mt-MuiTypography-root"
+      >
+        four
+      </span>
+    </label>
+  </div>,
+]
+`;
+
 exports[`MapParamInput renders correctly 1`] = `
 <div>
   <label

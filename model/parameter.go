@@ -28,14 +28,14 @@ import (
 )
 
 const (
-	stringType    = "string"
-	boolType      = "bool"
-	intType       = "int"
-	stringsType   = "strings"
-	enumType      = "enum"
-	multiEnumType = "multi-enum"
-	yamlType      = "yaml"
-	mapType       = "map"
+	stringType  = "string"
+	boolType    = "bool"
+	intType     = "int"
+	stringsType = "strings"
+	enumType    = "enum"
+	enumsType   = "enums"
+	yamlType    = "yaml"
+	mapType     = "map"
 )
 
 // ParameterDefinition is a basic description of a definition's parameter. This implementation comes directly from
@@ -112,7 +112,7 @@ func (p ParameterDefinition) validateType() error {
 		)
 	}
 	switch p.Type {
-	case stringType, intType, boolType, stringsType, enumType, multiEnumType, mapType, yamlType: // ok
+	case stringType, intType, boolType, stringsType, enumType, enumsType, mapType, yamlType: // ok
 	default:
 		return errors.NewError(
 			fmt.Sprintf("invalid type '%s' for '%s'", p.Type, p.Name),
@@ -128,13 +128,13 @@ func (p ParameterDefinition) validateValidValues() error {
 		if len(p.ValidValues) > 0 {
 			return errors.NewError(
 				fmt.Sprintf("validValues is undefined for parameter of type '%s'", p.Type),
-				"remove 'validValues' field or change type to 'enum' or 'multi-enum",
+				"remove 'validValues' field or change type to 'enum' or 'enums",
 			)
 		}
-	case enumType, multiEnumType:
+	case enumType, enumsType:
 		if len(p.ValidValues) == 0 {
 			return errors.NewError(
-				"parameter of type 'enum' or 'multi-enum' must have 'validValues' specified",
+				"parameter of type 'enum' or 'enums' must have 'validValues' specified",
 				"specify an array that includes one or more valid values",
 			)
 		}
@@ -172,8 +172,8 @@ func (p ParameterDefinition) validateValueType(fieldType parameterFieldType, val
 		return p.validateStringArrayValue(fieldType, value)
 	case enumType:
 		return p.validateEnumValue(fieldType, value)
-	case multiEnumType:
-		return p.validateMultiEnumValue(fieldType, value)
+	case enumsType:
+		return p.validateEnumsValue(fieldType, value)
 	case mapType:
 		return p.validateMapValue(fieldType, value)
 	case yamlType:
@@ -281,11 +281,11 @@ func (p ParameterDefinition) validateEnumValue(fieldType parameterFieldType, val
 	)
 }
 
-func (p ParameterDefinition) validateMultiEnumValue(fieldType parameterFieldType, value any) error {
+func (p ParameterDefinition) validateEnumsValue(fieldType parameterFieldType, value any) error {
 	def, ok := value.([]any)
 	if !ok {
 		return errors.NewError(
-			fmt.Sprintf("%s value for multiple enumerated parameter '%s'", fieldType, p.Name),
+			fmt.Sprintf("%s value for enums parameter '%s'", fieldType, p.Name),
 			fmt.Sprintf("ensure that the %s value is a string array", fieldType),
 		)
 	}

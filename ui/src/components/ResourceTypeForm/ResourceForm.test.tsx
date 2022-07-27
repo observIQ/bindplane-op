@@ -269,20 +269,20 @@ describe("MapParamInput", () => {
   });
 });
 
-describe("MultiEnumParameter", () => {
+describe("EnumsParameter", () => {
   it("renders correctly", () => {
-    const multiEnumParameter: ParameterDefinition = {
+    const enumsParameter: ParameterDefinition = {
       required: true,
       label: "Label",
       description: "description",
-      type: ParameterType.MultiEnum,
+      type: ParameterType.Enums,
       default: {},
       validValues: ["one", "two", "three", "four"],
-      name: "multi_enum_type_param",
+      name: "enums_type_param",
     };
 
     const tree = renderer.create(
-      <ParameterInput definition={multiEnumParameter} />
+      <ParameterInput definition={enumsParameter} />
     );
     expect(tree).toMatchSnapshot();
   });

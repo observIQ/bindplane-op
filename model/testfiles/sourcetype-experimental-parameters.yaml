@@ -10,9 +10,9 @@ spec:
   supportedPlatforms:
     - macos
   parameters:
-    - name: multi_enum_type_param
-      label: Multi Enum Param
-      type: multi-enum
+    - name: enums_type_param
+      label: Enums Param
+      type: enums
       description: The first of its kind.
       validValues:
         - foo

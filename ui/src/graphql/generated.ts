@@ -166,9 +166,9 @@ export type ParameterDefinition = {
 export enum ParameterType {
   Bool = 'bool',
   Enum = 'enum',
+  Enums = 'enums',
   Int = 'int',
   Map = 'map',
-  MultiEnum = 'multiEnum',
   String = 'string',
   Strings = 'strings',
   Yaml = 'yaml'

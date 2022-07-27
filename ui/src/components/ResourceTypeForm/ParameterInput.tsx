@@ -45,6 +45,8 @@ export const ParameterInput: React.FC<ParamInputProps<any>> = (props) => {
       return <StringsInput classes={classes} {...props} />;
     case ParameterType.Enum:
       return <EnumParamInput classes={classes} {...props} />;
+    case ParameterType.Enums:
+      return <EnumsParamInput classes={classes} {...props} />;
     case ParameterType.Bool:
       return <BoolParamInput classes={classes} {...props} />;
     case ParameterType.Int:
@@ -53,8 +55,6 @@ export const ParameterInput: React.FC<ParamInputProps<any>> = (props) => {
       return <MapParamInput classes={classes} {...props} />;
     case ParameterType.Yaml:
       return <YamlParamInput classes={classes} {...props} />;
-    case ParameterType.MultiEnum:
-      return <MultiEnumParamInput classes={classes} {...props} />;
   }
 };
 
@@ -116,7 +116,7 @@ export const EnumParamInput: React.FC<ParamInputProps<string>> = ({
   );
 };
 
-export const MultiEnumParamInput: React.FC<ParamInputProps<string[]>> = ({
+export const EnumsParamInput: React.FC<ParamInputProps<string[]>> = ({
   classes,
   definition,
   value,
