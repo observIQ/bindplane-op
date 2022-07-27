@@ -15,9 +15,9 @@ import {
   useValidationContext,
   ValidationContextProvider,
 } from "./ValidationContext";
+import { validateStringsField } from "./validation-functions";
 
 import mixins from "../../styles/mixins.module.scss";
-import { validateStringsField } from "./validation-functions";
 
 interface ResourceFormProps {
   // Display name for the resource

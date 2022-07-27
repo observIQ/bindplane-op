@@ -14,7 +14,6 @@ import {
 import { satisfiesRelevantIf } from "./satisfiesRelevantIf";
 import { ResourceType1, ResourceType2 } from "./__test__/dummyResources";
 import renderer from "react-test-renderer";
-import { type } from "os";
 
 describe("satisfiesRelevantIf", () => {
   const formValues: { [key: string]: any } = {
