@@ -41,10 +41,6 @@ const requestLink = split(
 // authErrorLink will log a user out if a graphql query or
 // subscription returns with a 401 unauthorized.
 const authErrorLink = onError(({ operation }) => {
-  if (process.env["NODE_ENV"] === "test") {
-    return;
-  }
-
   const context = operation.getContext();
 
   if (context.response.status === 401) {
