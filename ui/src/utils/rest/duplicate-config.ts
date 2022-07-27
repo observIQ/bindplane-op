@@ -1,5 +1,4 @@
 import { DuplicateConfigPayload } from "../../types/rest";
-
 export async function duplicateConfig({
   existingName,
   newName,
@@ -12,7 +11,7 @@ export async function duplicateConfig({
   };
   try {
     const resp = await fetch(`/v1/configurations/${existingName}/duplicate`, {
-      method: "PUT",
+      method: "POST",
       body: JSON.stringify(payload),
     });
 

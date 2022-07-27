@@ -10,7 +10,7 @@ describe("duplicateConfig", () => {
     let endpointCalled = false;
     let payload: any;
     nock("http://localhost:80")
-      .put(endpoint, (body) => {
+      .post(endpoint, (body) => {
         endpointCalled = true;
         payload = body;
         return true;
@@ -27,7 +27,7 @@ describe("duplicateConfig", () => {
 
   it("created", async () => {
     nock("http://localhost:80")
-      .put("/v1/configurations/name/duplicate", (body) => {
+      .post("/v1/configurations/name/duplicate", (body) => {
         return true;
       })
       .reply(201, {
@@ -39,7 +39,7 @@ describe("duplicateConfig", () => {
   });
   it("conflict", async () => {
     nock("http://localhost:80")
-      .put("/v1/configurations/name/duplicate", (body) => {
+      .post("/v1/configurations/name/duplicate", (body) => {
         return true;
       })
       .reply(409, {});
@@ -49,7 +49,7 @@ describe("duplicateConfig", () => {
   });
   it("error", async () => {
     nock("http://localhost:80")
-      .put("/v1/configurations/name/duplicate", (body) => {
+      .post("/v1/configurations/name/duplicate", (body) => {
         return true;
       })
       .reply(500, {});
