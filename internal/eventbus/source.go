@@ -236,9 +236,10 @@ func (s *source[T]) SubscribeUntilDone(ctx context.Context, subscriber Subscribe
 // Send the event to all of the subscribers
 func (s *source[T]) Send(event T) {
 	s.mtx.RLock()
-	defer s.mtx.RUnlock()
+	subscribers := s.subscribers
+	s.mtx.RUnlock()
 
-	for sub := range s.subscribers {
+	for sub := range subscribers {
 		sub.Receive(event)
 	}
 }
