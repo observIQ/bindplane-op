@@ -74,6 +74,8 @@ var _ Source[any] = (*source[any])(nil)
 
 type subscription[T any] struct {
 	channel chan T
+	ctx     context.Context
+	cancel  context.CancelFunc
 }
 
 func newSubscription[T any](options []SubscriptionOption[T]) Subscriber[T] {
@@ -85,13 +87,20 @@ func newSubscription[T any](options []SubscriptionOption[T]) Subscriber[T] {
 	if channel == nil {
 		channel = make(chan T, subscriberChannelBufferSize)
 	}
+	ctx, cancel := context.WithCancel(context.Background())
 	return &subscription[T]{
 		channel: channel,
+		ctx:     ctx,
+		cancel:  cancel,
 	}
 }
 
 func (s *subscription[T]) Receive(event T) {
-	s.channel <- event
+	select {
+	case <-s.ctx.Done():
+		close(s.channel)
+	case s.channel <- event:
+	}
 }
 
 func (s *subscription[T]) Channel() <-chan T {
@@ -99,7 +108,7 @@ func (s *subscription[T]) Channel() <-chan T {
 }
 
 func (s *subscription[T]) Close() {
-	close(s.channel)
+	s.cancel()
 }
 
 var _ Subscriber[int] = (*subscription[int])(nil)
@@ -235,13 +244,19 @@ func (s *source[T]) SubscribeUntilDone(ctx context.Context, subscriber Subscribe
 
 // Send the event to all of the subscribers
 func (s *source[T]) Send(event T) {
-	s.mtx.RLock()
-	subscribers := s.subscribers
-	s.mtx.RUnlock()
-
-	for sub := range subscribers {
+	for _, sub := range s.subscriberList() {
 		sub.Receive(event)
 	}
+}
+
+func (s *source[T]) subscriberList() []Subscriber[T] {
+	s.mtx.RLock()
+	defer s.mtx.RUnlock()
+	subscribers := make([]Subscriber[T], 0, len(s.subscribers))
+	for sub := range s.subscribers {
+		subscribers = append(subscribers, sub)
+	}
+	return subscribers
 }
 
 // Subscribers returns the current number of subscribers
