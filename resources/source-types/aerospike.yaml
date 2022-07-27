@@ -4,7 +4,7 @@ metadata:
   name: aerospike
   displayName: Aerospike
   icon: /icons/sources/aerospike.svg
-  description: Aerospike metrics scraper and log collector
+  description: Aerospike Database metrics scraper and log collector
 spec:
   version: 0.0.1
   supported_platforms:
