@@ -31,8 +31,8 @@ type Source struct {
 
 var _ parameterizedResource = (*Source)(nil)
 
-// ValidateWithStore checks that the source is valid, returning an error if it is not. It uses the store to retreive the
-// source type so that parameter values can be validated against the parameter defintions.
+// ValidateWithStore checks that the source is valid, returning an error if it is not. It uses the store to retrieve the
+// source type so that parameter values can be validated against the parameter definitions.
 func (s *Source) ValidateWithStore(store ResourceStore) error {
 	errors := validation.NewErrors()
 
@@ -88,7 +88,9 @@ func NewSourceWithSpec(name string, spec ParameterizedSpec) *Source {
 func FindSource(source *ResourceConfiguration, defaultName string, store ResourceStore) (*Source, error) {
 	if source.Name == "" {
 		// inline source
-		return NewSource(defaultName, source.Type, source.Parameters), nil
+		src := NewSource(defaultName, source.Type, source.Parameters)
+		src.Spec.Processors = source.Processors
+		return src, nil
 	}
 	// find the source and override parameters
 	src, err := store.Source(source.Name)

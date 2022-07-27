@@ -86,6 +86,26 @@ type SourceTypeResponse struct {
 	SourceType *SourceType `json:"sourceType"`
 }
 
+// ProcessorsResponse is the REST API response to GET /v1/processors
+type ProcessorsResponse struct {
+	Processors []*Processor `json:"processors"`
+}
+
+// ProcessorResponse is the REST API response to GET /v1/processors/:name
+type ProcessorResponse struct {
+	Processor *Processor `json:"processor"`
+}
+
+// ProcessorTypesResponse is the REST API response to GET /v1/processorTypes
+type ProcessorTypesResponse struct {
+	ProcessorTypes []*ProcessorType `json:"processorTypes"`
+}
+
+// ProcessorTypeResponse is the REST API response to GET /v1/processorType/:name
+type ProcessorTypeResponse struct {
+	ProcessorType *ProcessorType `json:"processorType"`
+}
+
 // DestinationsResponse is the REST API response to GET /v1/destinations
 type DestinationsResponse struct {
 	Destinations []*Destination `json:"destinations"`

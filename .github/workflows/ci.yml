@@ -222,44 +222,6 @@ jobs:
           key: go-pkg-mod-${{ runner.os }}-${{ hashFiles('**/go.mod', '**/go.sum') }}
       - run: make test
 
-
-  # Upload test coverage.
-  codecov:
-    runs-on: "ubuntu-20.04"
-    needs:
-      - setup-environment
-    steps:
-      - name: Check out source code
-        uses: actions/checkout@v3
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.18
-      - name: Setup Go Environment
-        run: |
-          echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
-          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-      - name: Cache Go
-        id: module-cache
-        uses: actions/cache@v3
-        with:
-          path: /home/runner/go/pkg/mod
-          key: go-pkg-mod-${{ runner.os }}-${{ hashFiles('**/go.mod', '**/go.sum') }}
-      - name: Cache Tools
-        id: tool-cache
-        uses: actions/cache@v3
-        with:
-          path: /home/runner/go/bin
-          key: tooling-${{ runner.os }}-${{ hashFiles('./internal/tools/go.mod') }}
-      - name: Run Unit Tests With Coverage
-        run: make test-with-cover
-      - name: Upload coverage report
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage.out
-          fail_ci_if_error: true
-          verbose: true
-
   # Run Goreleaser to build binaries, packages, and container images.
   build:
     runs-on: "ubuntu-20.04"
@@ -271,7 +233,6 @@ jobs:
       - secure
       - ui-test
       - vet
-      - codecov
     steps:
       - name: Check out source code
         uses: actions/checkout@v3
@@ -343,6 +304,50 @@ jobs:
           path: dist/bindplane_**/*
           retention-days: 1
 
+  # Upload test coverage.
+  codecov:
+    runs-on: "ubuntu-20.04"
+    needs:
+      - build
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - name: Setup Go Environment
+        run: |
+          echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+      - name: Cache Go
+        id: module-cache
+        uses: actions/cache@v3
+        with:
+          path: /home/runner/go/pkg/mod
+          key: go-pkg-mod-${{ runner.os }}-${{ hashFiles('**/go.mod', '**/go.sum') }}
+      - name: Cache Tools
+        id: tool-cache
+        uses: actions/cache@v3
+        with:
+          path: /home/runner/go/bin
+          key: tooling-${{ runner.os }}-${{ hashFiles('./internal/tools/go.mod') }}
+      - name: Set Image Tag
+        run: echo "GITHUB_SHA_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      - name: Cache Container Image
+        uses: observiq/action-docker-layer-caching@main
+        with:
+          skip-save: true
+          filter: reference=observiq/bindplane-amd64:${{ env.GITHUB_SHA_SHORT }}
+      - name: Run Unit Tests With Coverage
+        run: make test-with-cover
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.out
+          fail_ci_if_error: true
+          verbose: true
+
   # Scan Go binaries for incomptable licenses.
   scan-go-licenses:
     runs-on: "ubuntu-20.04"
@@ -379,6 +384,7 @@ jobs:
     runs-on: "ubuntu-20.04"
     needs:
       - scan-go-licenses
+      - codecov
     steps:
       - uses: actions/download-artifact@v3
         with:
@@ -393,6 +399,7 @@ jobs:
     runs-on: "ubuntu-20.04"
     needs:
       - scan-go-licenses
+      - codecov
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
@@ -419,6 +426,7 @@ jobs:
     runs-on: "ubuntu-20.04"
     needs:
       - scan-go-licenses
+      - codecov
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3

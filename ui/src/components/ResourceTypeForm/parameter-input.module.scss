@@ -1,3 +1,10 @@
+@use '../../styles/typography';
+
 .indent {
   margin-left: 48px;
+}
+
+.chip {
+  font-family: typography.$font-family-monospace;
+  max-width: 400px;
 }

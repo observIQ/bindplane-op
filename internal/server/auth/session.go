@@ -29,7 +29,17 @@ func CheckSession(server server.BindPlane) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session, err := server.Store().UserSessions().Get(c.Request, sessions.CookieName)
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			// Clear the cookie, this can happen when sessions-secrets change
+			// and we see a cookie with the previous secret is read.
+			session.Options.MaxAge = 0
+
+			err := session.Save(c.Request, c.Writer)
+			if err != nil {
+				c.AbortWithError(http.StatusInternalServerError, err)
+				return
+			}
+
+			c.AbortWithError(http.StatusUnauthorized, err)
 			return
 		}
 

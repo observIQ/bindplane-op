@@ -179,6 +179,21 @@ func TestSourceValidate(t *testing.T) {
 			expectValidateError:          "",
 			expectValidateWithStoreError: "3 errors occurred:\n\t* parameter value for 'install_log_path' must be a string\n\t* parameter value for 'start_at' must be one of [beginning end]\n\t* parameter unknown not defined in type MacOS\n\n",
 		},
+		{
+			testfile:                     "source-bad-processor-type.yaml",
+			expectValidateError:          "",
+			expectValidateWithStoreError: "1 error occurred:\n\t* unknown ProcessorType: not_valid\n\n",
+		},
+		{
+			testfile:                     "source-bad-processor-name.yaml",
+			expectValidateError:          "",
+			expectValidateWithStoreError: "1 error occurred:\n\t* unknown Processor: not_found\n\n",
+		},
+		{
+			testfile:                     "source-bad-processor-parameter-values.yaml",
+			expectValidateError:          "",
+			expectValidateWithStoreError: "1 error occurred:\n\t* unknown ProcessorType: resource-attribute-transposer\n\n",
+		},
 	}
 
 	store := newTestResourceStore()
@@ -188,10 +203,10 @@ func TestSourceValidate(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.testfile, func(t *testing.T) {
-			config := validateResource[*Source](t, test.testfile)
+			src := validateResource[*Source](t, test.testfile)
 
 			// test normal Validate() used by all resources
-			err := config.Validate()
+			err := src.Validate()
 			if test.expectValidateError == "" {
 				require.NoError(t, err)
 			} else {
@@ -200,7 +215,7 @@ func TestSourceValidate(t *testing.T) {
 			}
 
 			// test special ValidateWithStore which can validate sources and destinations
-			err = config.ValidateWithStore(store)
+			err = src.ValidateWithStore(store)
 			if test.expectValidateWithStoreError == "" {
 				require.NoError(t, err)
 			} else {

@@ -1,0 +1,48 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: SourceType
+metadata:
+  name: udp
+  displayName: UDP Logs
+  icon: /icons/sources/network.svg
+  description: Receive logs over UDP
+spec:
+  version: 0.0.1
+  supported_platforms:
+    - macos
+    - linux
+    - windows
+  parameters:
+    - name: listen_port
+      label: Listen Port
+      description: Port to listen on.
+      type: int
+      required: true
+
+    - name: listen_ip
+      label: Listen Address
+      description: IP Address to listen on.
+      type: string
+      default: "0.0.0.0"
+      advancedConfig: true
+
+    - name: log_type
+      label: Log Type
+      description: Arbitrary for attribute 'log_type'. Useful for filtering between many udp sources.
+      type: string
+      default: udp 
+
+  logs:
+    receivers: |
+      - plugin:
+          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/udp_logs.yaml
+          parameters:
+            listen_port: {{ .listen_port }}
+            listen_ip: {{ .listen_ip }}
+            log_type: {{ .log_type }}
+            add_attributes: true
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]

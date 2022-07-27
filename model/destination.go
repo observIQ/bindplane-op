@@ -32,7 +32,7 @@ type Destination struct {
 var _ parameterizedResource = (*Destination)(nil)
 
 // ValidateWithStore checks that the destination is valid, returning an error if it is not. It uses the store to
-// retreive the destination type so that parameter values can be validated against the parameter defintions.
+// retrieve the destination type so that parameter values can be validated against the parameter definitions.
 func (d *Destination) ValidateWithStore(store ResourceStore) error {
 	errors := validation.NewErrors()
 

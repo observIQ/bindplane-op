@@ -1,0 +1,24 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: ProcessorType
+metadata:
+  name: resource-attribute-transposer
+  displayName: Resource Attribute Transposer
+spec:
+  version: 0.0.1
+  supportedPlatforms:
+    - macos
+  parameters:
+    - name: from
+      label: From
+      type: string
+      required: true
+    - name: to
+      label: To
+      type: string
+      required: true
+  logs+metrics+traces:
+    processors: |
+      - resourceattributetransposer:
+          operations:
+            - from: {{ .from }}
+              to: {{ .to }}

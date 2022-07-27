@@ -23,7 +23,7 @@ spec:
       label: Exclude File Path(s)
       description: File or directory paths to exclude.
       type: strings
-      default: [""]
+      default: []
 
     - name: log_type
       label: Log Type
@@ -90,11 +90,13 @@ spec:
             file_path:
               {{ range $fp := .file_path }}
               - '{{ $fp }}'
-              {{end}}
+              {{ end }}
+            {{ if .exclude_file_path }}
             exclude_file_path:
               {{ range $fp := .exclude_file_path }}
               - '{{ $fp }}'
               {{end}}
+            {{ end }}
             multiline_line_start_pattern: '{{ .multiline_line_start_pattern }}'
             encoding: {{ .encoding }}
             parse_format: {{ .parse_format }}

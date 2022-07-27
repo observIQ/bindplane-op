@@ -1,0 +1,16 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: Source
+metadata:
+  name: bar-xy
+spec:
+  type: MacOS
+  parameters:
+    - name: enable_system_log
+      value: false
+  processors:
+    - type: resource-attribute-transposer
+      parameters:
+        - name: from
+          value: x
+        - name: to
+          value: y
