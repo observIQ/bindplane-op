@@ -175,7 +175,6 @@ func (p ParameterDefinition) validateValueType(fieldType parameterFieldType, val
 	case multiEnumType:
 		return p.validateMultiEnumValue(fieldType, value)
 	case mapType:
-		// TODO
 		return p.validateMapValue(fieldType, value)
 	case yamlType:
 		return p.validateYamlValue(fieldType, value)
