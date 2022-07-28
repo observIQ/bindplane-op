@@ -3,6 +3,7 @@ kind: DestinationType
 metadata:
   name: Kafka
   displayName: Kafka
+  # Kafka sourcetype uses this icon
   icon: /icons/destinations/kafka.svg
 spec:
   parameters:
@@ -269,7 +270,6 @@ spec:
             {{ end }}
           protocol_version: {{ .protocol_version }}
           topic: {{ .metric_topic }}
-          encoding: otlp_proto
           metadata:
             # Retry broker connections with a backoff instead of
             # failing on startup.
@@ -315,7 +315,6 @@ spec:
             {{ end }}
           protocol_version: {{ .protocol_version }}
           topic: {{ .log_topic }}
-          encoding: otlp_proto
           metadata:
             # Retry broker connections with a backoff instead of
             # failing on startup.
@@ -361,7 +360,6 @@ spec:
             {{ end }}
           protocol_version: {{ .protocol_version }}
           topic: {{ .trace_topic }}
-          encoding: otlp_proto
           metadata:
             # Retry broker connections with a backoff instead of
             # failing on startup.

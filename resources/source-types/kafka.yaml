@@ -132,7 +132,6 @@ spec:
         - SCRAM-SHA-512
         - PLAIN
       required: true 
-      default: "SCRAM-SHA-256"
       relevantIf:
         - name: enable_auth
           operator: equals
