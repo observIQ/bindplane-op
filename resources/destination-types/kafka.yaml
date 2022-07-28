@@ -75,6 +75,87 @@ spec:
           operator: equals
           value: true
 
+    - name: enable_auth
+      label: Enable Authentication
+      type: bool
+      default: false
+      advancedConfig: true
+
+    - name: auth_type
+      label: Auth Type
+      type: enum
+      validValues:
+        - basic
+        - sasl
+        # TODO: Should be tested before implemented into the destination type
+        #- tls
+        - kerberos
+      default: basic
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true    
+
+    - name: basic_username
+      label: Username
+      type: string
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: basic    
+
+    - name: basic_password
+      label: Password
+      type: string
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: basic    
+
+    - name: sasl_username
+      label: Username
+      type: string
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: sasl    
+
+    - name: sasl_password
+      label: Password
+      type: string
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: sasl    
+
+    - name: sasl_mechanism
+      label: Mechanism
+      type: enum
+      validValues:
+        - SCRAM-SHA-256
+        - SCRAM-SHA-512
+        - PLAIN
+      required: true 
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: sasl    
+
   metrics:
     exporters: |
       {{ if .enable_metrics }}
@@ -91,6 +172,21 @@ spec:
             # failing on startup.
             full: false
           timeout: {{ .timeout }}s
+          {{ if .enable_auth }}
+          auth:
+            {{ if eq .auth_type "basic" }}
+            plain_text:
+              username: "{{ .basic_username }}"
+              username: "{{ .basic_password }}"
+            {{ else if eq .auth_type "sasl" }}
+              username: "{{ .sasl_username }}"
+              username: "{{ .sasl_password }}"
+              mechanism: {{ .sasl_mechanism }}
+            {{ else if eq .auth_type "kerberos" }}
+              service_name: {{ .service_name }}
+              realm: {{ .realm }}
+            {{ end }}
+          {{ end }}
       {{ end }}
     processors: |
       - batch:
