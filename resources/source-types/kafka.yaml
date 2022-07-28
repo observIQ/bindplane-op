@@ -301,11 +301,11 @@ spec:
             {{ if eq .auth_type "basic" }}
             plain_text:
               username: "{{ .basic_username }}"
-              username: "{{ .basic_password }}"
+              password: "{{ .basic_password }}"
             {{ else if eq .auth_type "sasl" }}
             sasl:
               username: "{{ .sasl_username }}"
-              username: "{{ .sasl_password }}"
+              password: "{{ .sasl_password }}"
               mechanism: {{ .sasl_mechanism }}
             {{ else if eq .auth_type "kerberos" }}
             kerberos:
@@ -352,11 +352,11 @@ spec:
             {{ if eq .auth_type "basic" }}
             plain_text:
               username: "{{ .basic_username }}"
-              username: "{{ .basic_password }}"
+              password: "{{ .basic_password }}"
             {{ else if eq .auth_type "sasl" }}
             sasl:
               username: "{{ .sasl_username }}"
-              username: "{{ .sasl_password }}"
+              password: "{{ .sasl_password }}"
               mechanism: {{ .sasl_mechanism }}
             {{ else if eq .auth_type "kerberos" }}
             kerberos:
