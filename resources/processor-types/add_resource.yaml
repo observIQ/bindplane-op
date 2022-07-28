@@ -6,14 +6,11 @@ metadata:
 spec:
   version: 0.0.1
   parameters:
-    - name: key
-      label: Key
-      type: string
+    - name: resources
+      label: Map Type Param
+      type: map
       required: true
-    - name: value
-      label: Value
-      type: string
-      required: true
+
     - name: action
       label: Action
       type: enum
@@ -23,10 +20,54 @@ spec:
         - insert
         - update
         - upsert
-  logs+metrics+traces:
+
+    - name: enable_metrics
+      label: Enable Metrics
+      type: bool
+      default: true
+
+    - name: enable_logs
+      label: Enable Logs
+      type: bool
+      default: true
+
+    - name: enable_traces
+      label: Enable Traces
+      type: bool
+      default: true
+
+  metrics:
     processors: |
+      {{ if .enable_metrics }}
       - resource:
           attributes:
-            - key: {{ .key }}
-              action: {{ .action }}
-              value: '{{ .value }}'
+            {{ range $k, $v := .resources }}
+            - key: '{{ $k }}'
+              value: '{{ $v }}'
+              action: upsert
+            {{ end }}
+      {{ end }}
+
+  logs:
+    processors: |
+      {{ if .enable_logs }}
+      - resource:
+          attributes:
+            {{ range $k, $v := .resources }}
+            - key: '{{ $k }}'
+              value: '{{ $v }}'
+              action: upsert
+            {{ end }}
+      {{ end }}
+
+  traces:
+    processors: |
+      {{ if .enable_traces }}
+      - resource:
+          attributes:
+            {{ range $k, $v := .resources }}
+            - key: '{{ $k }}'
+              value: '{{ $v }}'
+              action: upsert
+            {{ end }}
+      {{ end }}
