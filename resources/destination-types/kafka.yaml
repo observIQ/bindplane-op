@@ -1,8 +1,9 @@
 apiVersion: bindplane.observiq.com/v1beta
 kind: DestinationType
 metadata:
-  name: Kafka
+  name: kafka_otlp_destination
   displayName: Kafka
+  description: Send OpenTelemetry Protocol (OTLP) metrics, logs, and traces to Kafka.
   # Kafka sourcetype uses this icon
   icon: /icons/destinations/kafka.svg
 spec:
@@ -15,7 +16,6 @@ spec:
         - "2.0.0"
         - "1.0.0"
       default: "2.0.0"
-      required: true
 
     - name: brokers
       label: Brokers
@@ -85,7 +85,6 @@ spec:
     - name: auth_type
       label: Auth Type
       type: enum
-      required: true 
       validValues:
         - basic
         - sasl
@@ -101,7 +100,8 @@ spec:
     - name: basic_username
       label: Username
       type: string
-      required: true 
+      required: true
+      default: ""
       relevantIf:
         - name: enable_auth
           operator: equals
@@ -114,6 +114,7 @@ spec:
       label: Password
       type: string
       required: true 
+      default: ""
       relevantIf:
         - name: enable_auth
           operator: equals
@@ -126,6 +127,7 @@ spec:
       label: Username
       type: string
       required: true 
+      default: ""
       relevantIf:
         - name: enable_auth
           operator: equals
@@ -138,6 +140,7 @@ spec:
       label: Password
       type: string
       required: true 
+      default: ""
       relevantIf:
         - name: enable_auth
           operator: equals
@@ -153,7 +156,7 @@ spec:
         - SCRAM-SHA-256
         - SCRAM-SHA-512
         - PLAIN
-      required: true 
+      default: SCRAM-SHA-256
       relevantIf:
         - name: enable_auth
           operator: equals
@@ -165,7 +168,8 @@ spec:
     - name: kerberos_service_name
       label: Service Name
       type: string
-      required: true 
+      required: true
+      default: ""
       relevantIf:
         - name: enable_auth
           operator: equals
@@ -178,6 +182,7 @@ spec:
       label: Realm
       type: string
       required: true 
+      default: ""
       relevantIf:
         - name: enable_auth
           operator: equals
@@ -234,6 +239,7 @@ spec:
       label: Username
       type: string
       required: true 
+      default: ""
       relevantIf:
         - name: enable_auth
           operator: equals
@@ -249,6 +255,7 @@ spec:
       label: Password
       type: string
       required: true 
+      default: ""
       relevantIf:
         - name: enable_auth
           operator: equals
@@ -263,7 +270,7 @@ spec:
   metrics:
     exporters: |
       {{ if .enable_metrics }}
-      - kafka:
+      - kafka/metrics:
           brokers:
             {{ range $b := .brokers }}
             - {{ $b }}
@@ -308,7 +315,7 @@ spec:
   logs:
     exporters: |
       {{ if .enable_logs }}
-      - kafka:
+      - kafka/logs:
           brokers:
             {{ range $b := .brokers }}
             - {{ $b }}
@@ -353,7 +360,7 @@ spec:
   traces:
     exporters: |
       {{ if .enable_traces }}
-      - kafka:
+      - kafka/traces:
           brokers:
             {{ range $b := .brokers }}
             - {{ $b }}
