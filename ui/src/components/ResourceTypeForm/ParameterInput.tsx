@@ -1,7 +1,9 @@
 import {
   Autocomplete,
   Chip,
+  FormControl,
   FormControlLabel,
+  FormHelperText,
   Switch,
   TextField,
 } from "@mui/material";
@@ -11,6 +13,7 @@ import { ParameterDefinition, ParameterType } from "../../graphql/generated";
 import { validateNameField } from "../../utils/forms/validate-name-field";
 import { useValidationContext } from "./ValidationContext";
 import { classes as classesUtil } from "../../utils/styles";
+import { validateStringsField } from "./validation-functions";
 
 import styles from "./parameter-input.module.scss";
 
@@ -107,6 +110,7 @@ export const StringsInput: React.FC<ParamInputProps> = ({
   onValueChange,
 }) => {
   const [inputValue, setInputValue] = useState("");
+  const { setError, touched, errors, touch } = useValidationContext();
 
   // handleChipClick edits the selected chips value.
   function handleChipClick(ix: number) {
@@ -126,42 +130,66 @@ export const StringsInput: React.FC<ParamInputProps> = ({
   // Make sure we "enter" the value if a user leaves the
   // input without hitting enter
   function handleBlur() {
+    touch(definition.name);
     if (!isEmpty(inputValue)) {
-      setInputValue("");
-      onValueChange && onValueChange([...value, inputValue]);
+      handleValueChange([...value, inputValue]);
     }
   }
 
+  function handleValueChange(newValue: string[]) {
+    onValueChange && onValueChange(newValue);
+
+    setError(
+      definition.name,
+      validateStringsField(newValue, definition.required)
+    );
+  }
+
+  const label = definition.required
+    ? `${definition.label} *`
+    : `${definition.label}`;
+
   return (
-    <Autocomplete
-      options={[]}
-      multiple
-      disableClearable
-      freeSolo
-      classes={classes}
-      // value and onChange pertain to the string[] value of the input
-      value={value}
-      onChange={(e, v: string[]) => onValueChange && onValueChange(v)}
-      // inputValue and onInputChange refer to the latest string value being entered
-      inputValue={inputValue}
-      onInputChange={(e, newValue) => setInputValue(newValue)}
-      onBlur={handleBlur}
-      renderTags={(value: readonly string[], getTagProps) =>
-        value.map((option: string, index: number) => (
-          <Chip
-            size="small"
-            variant="outlined"
-            label={option}
-            {...getTagProps({ index })}
-            classes={{ label: styles.chip }}
-            onClick={() => handleChipClick(index)}
+    <FormControl fullWidth>
+      <Autocomplete
+        options={[]}
+        multiple
+        disableClearable
+        freeSolo
+        classes={classes}
+        // value and onChange pertain to the string[] value of the input
+        value={value ?? []}
+        onChange={(e, v: string[]) => handleValueChange(v)}
+        // inputValue and onInputChange refer to the latest string value being entered
+        inputValue={inputValue}
+        onInputChange={(e, newValue) => setInputValue(newValue)}
+        onBlur={handleBlur}
+        renderTags={(value: readonly string[], getTagProps) =>
+          value.map((option: string, index: number) => (
+            <Chip
+              size="small"
+              variant="outlined"
+              label={option}
+              {...getTagProps({ index })}
+              classes={{ label: styles.chip }}
+              onClick={() => handleChipClick(index)}
+            />
+          ))
+        }
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label={label}
+            size={"small"}
+            helperText={definition.description}
+            id={definition.name}
           />
-        ))
-      }
-      renderInput={(params) => (
-        <TextField {...params} label={definition.label} size={"small"} />
+        )}
+      />
+      {touched[definition.name] && errors[definition.name] && (
+        <FormHelperText error={true}>{errors[definition.name]}</FormHelperText>
       )}
-    />
+    </FormControl>
   );
 };
 
