@@ -948,6 +948,11 @@ func runIndividualDeleteTests(t *testing.T, store Store) {
 }
 
 func verifyAgentsRemove(t *testing.T, done chan bool, Updates <-chan *Updates, expectRemoves []string) {
+	var val struct{}
+	removesRemaining := map[string]struct{}{}
+	for _, r := range expectRemoves {
+		removesRemaining[r] = val
+	}
 	for {
 		select {
 		case <-time.After(5 * time.Second):
@@ -972,17 +977,16 @@ func verifyAgentsRemove(t *testing.T, done chan bool, Updates <-chan *Updates, e
 				continue
 			}
 
-			// get all their ids and assert equal
-			ids := make([]string, 0, len(agentUpdates))
-
 			for _, update := range updates.Agents {
-				assert.Equal(t, update.Type, EventTypeRemove)
-				ids = append(ids, update.Item.ID)
+				if update.Type == EventTypeRemove {
+					delete(removesRemaining, update.Item.ID)
+				}
 			}
 
-			assert.ElementsMatch(t, expectRemoves, ids)
-			done <- true
-			return
+			if len(removesRemaining) == 0 {
+				done <- true
+				return
+			}
 		}
 	}
 }
