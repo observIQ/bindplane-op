@@ -1,0 +1,116 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: DestinationType
+metadata:
+  name: signalfx
+  displayName: Splunk Observability Cloud
+  description: Send metrics, traces, and logs to Splunk Observability Cloud (SignalFX).
+  icon: /icons/destinations/splunk.svg
+spec:
+  parameters:
+    - name: token
+      label: Token
+      description: Token used to authenticate with the Splunk (SignalFX) metric, trace, and log APIs
+      type: string
+      required: true
+      default: ""
+
+    - name: enable_metrics
+      label: Enable Metrics
+      type: bool
+      default: true
+
+    - name: api_endpoint
+      label: Metrics API Endpoint
+      description: The Splunk API URL
+      type: string
+      default: https://api.us1.signalfx.com
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: ingest_endpoint
+      label: Metrics Ingest Endpoint
+      description: The Splunk metrics ingest URL
+      type: string
+      default: https://ingest.us1.signalfx.com
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: enable_logs
+      label: Enable Logs
+      type: bool
+      default: true
+
+    - name: log_endpoint
+      label: Log Endpoint
+      description: The Splunk HEC log ingest endpoint URL
+      type: string
+      default: https://ingest.us1.signalfx.com/v1/log
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+    - name: enable_traces
+      label: Enable Traces
+      type: bool
+      default: true
+
+    - name: trace_endpoint
+      label: Trace Endpoint
+      description: The Splunk trace ingest URL
+      type: string
+      default: https://ingest.us1.signalfx.com/v2/trace
+      relevantIf:
+        - name: enable_traces
+          operator: equals
+          value: true
+
+  metrics:
+    exporters: |
+      {{ if .enable_metrics }}
+      - signalfx:
+          access_token: '{{ .token }}'
+          api_url: {{ .api_endpoint }}
+          ingest_url: {{ .ingest_endpoint }}
+          sync_host_metadata: true
+      {{ end }}
+    processors: |
+      - resourcedetection:
+          detectors: [gce, ecs, ec2, azure, system]
+          override: true
+
+      - batch:
+
+  logs:
+    exporters: |
+      {{ if .enable_logs }}
+      - splunk_hec:
+          token: '{{ .token }}'
+          endpoint: {{ .log_endpoint }}
+          source: otel
+          sourcetype: otel
+      {{ end }}
+    processors: |
+      - resourcedetection:
+          detectors: [gce, ecs, ec2, azure, system]
+          override: true
+
+      - batch:
+
+  traces:
+    exporters: |
+      {{ if .enable_traces }}
+      - sapm:
+          access_token: '{{ .token }}'
+          endpoint: {{ .trace_endpoint }}
+      {{ end }}
+    processors: |
+      - resourcedetection:
+          detectors: [gce, ecs, ec2, azure, system]
+          override: true
+
+      - batch:
