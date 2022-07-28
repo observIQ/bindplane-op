@@ -335,6 +335,15 @@ baz:
 - one
 - two
 `,
+		}, {
+			"ValidYaml",
+			false,
+			ParameterDefinition{
+				Type: "yaml",
+			},
+			`- one
+- two
+`,
 		},
 		{
 			"InvalidYaml",
@@ -353,6 +362,14 @@ eleven:
 	- twelve: thirteen
 	fourteen: 15
 `,
+		},
+		{
+			"InvalidYaml",
+			true,
+			ParameterDefinition{
+				Type: "yaml",
+			},
+			`{{{}}}`,
 		},
 		{
 			"ValidEnums",

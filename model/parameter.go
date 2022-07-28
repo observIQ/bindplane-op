@@ -15,7 +15,6 @@
 package model
 
 import (
-	"bytes"
 	"fmt"
 	"go/token"
 	"reflect"
@@ -323,9 +322,8 @@ func (p ParameterDefinition) validateYamlValue(fieldType parameterFieldType, val
 		)
 	}
 
-	decoder := yaml.NewDecoder(bytes.NewBufferString(str))
-	into := make(map[string]any)
-	return decoder.Decode(into)
+	var into any
+	return yaml.Unmarshal([]byte(str), &into)
 }
 
 func (p ParameterDefinition) validateMapValue(fieldType parameterFieldType, value any) error {
