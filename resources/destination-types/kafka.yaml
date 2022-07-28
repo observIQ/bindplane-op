@@ -1,0 +1,137 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: DestinationType
+metadata:
+  name: Kafka
+  displayName: Kafka
+  icon: /icons/destinations/kafka.svg
+spec:
+  parameters:
+    - name: protocol_version
+      label: Protocol Version
+      description: Kafka protocol version.
+      type: enum
+      validValues:
+        - "2.0.0"
+        - "1.0.0"
+      default: "2.0.0"
+      required: true
+
+    - name: brokers
+      label: Brokers
+      description: List of Kafka brokers to connect to when sending metrics, traces and logs.
+      type: strings
+      default: 
+        - localhost:9092
+      required: true
+
+    - name: timeout
+      label: Timeout (seconds)
+      description: Timeout (seconds) for every attempt to send data to the backend.
+      type: int
+      default: 5
+
+    - name: enable_metrics
+      label: Enable Metrics
+      type: bool
+      default: true
+
+    - name: metric_topic
+      label: Metric Topic
+      description: The name of the topic to export metrics to.
+      type: string
+      default: otlp_metrics
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: enable_logs
+      label: Enable Logs
+      type: bool
+      default: true
+
+    - name: log_topic
+      label: Log Topic
+      description: The name of the topic to export logs to.
+      type: string
+      default: otlp_logs
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+    - name: enable_traces
+      label: Enable Traces
+      type: bool
+      default: true
+
+    - name: trace_topic
+      label: Trace Topic
+      description: The name of the topic to export traces to.
+      type: string
+      default: otlp_spans
+      relevantIf:
+        - name: enable_traces
+          operator: equals
+          value: true
+
+  metrics:
+    exporters: |
+      {{ if .enable_metrics }}
+      - kafka:
+          brokers:
+            {{ range $b := .brokers }}
+            - {{ $b }}
+            {{ end }}
+          protocol_version: {{ .protocol_version }}
+          topic: {{ .metric_topic }}
+          encoding: otlp_proto
+          metadata:
+            # Retry broker connections with a backoff instead of
+            # failing on startup.
+            full: false
+          timeout: {{ .timeout }}s
+      {{ end }}
+    processors: |
+      - batch:
+
+  logs:
+    exporters: |
+      {{ if .enable_logs }}
+      - kafka:
+          brokers:
+            {{ range $b := .brokers }}
+            - {{ $b }}
+            {{ end }}
+          protocol_version: {{ .protocol_version }}
+          topic: {{ .log_topic }}
+          encoding: otlp_proto
+          metadata:
+            # Retry broker connections with a backoff instead of
+            # failing on startup.
+            full: false
+          timeout: {{ .timeout }}s
+      {{ end }}
+    processors: |
+      - batch:
+
+  traces:
+    exporters: |
+      {{ if .enable_traces }}
+      - kafka:
+          brokers:
+            {{ range $b := .brokers }}
+            - {{ $b }}
+            {{ end }}
+          protocol_version: {{ .protocol_version }}
+          topic: {{ .trace_topic }}
+          encoding: otlp_proto
+          metadata:
+            # Retry broker connections with a backoff instead of
+            # failing on startup.
+            full: false
+          timeout: {{ .timeout }}s
+      {{ end }}
+    processors: |
+      - batch:
+
