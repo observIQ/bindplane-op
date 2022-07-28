@@ -84,6 +84,7 @@ spec:
     - name: auth_type
       label: Auth Type
       type: enum
+      required: true 
       validValues:
         - basic
         - sasl
@@ -99,6 +100,7 @@ spec:
     - name: basic_username
       label: Username
       type: string
+      required: true 
       relevantIf:
         - name: enable_auth
           operator: equals
@@ -110,6 +112,7 @@ spec:
     - name: basic_password
       label: Password
       type: string
+      required: true 
       relevantIf:
         - name: enable_auth
           operator: equals
@@ -121,6 +124,7 @@ spec:
     - name: sasl_username
       label: Username
       type: string
+      required: true 
       relevantIf:
         - name: enable_auth
           operator: equals
@@ -132,6 +136,7 @@ spec:
     - name: sasl_password
       label: Password
       type: string
+      required: true 
       relevantIf:
         - name: enable_auth
           operator: equals
@@ -156,6 +161,104 @@ spec:
           operator: equals
           value: sasl    
 
+    - name: kerberos_service_name
+      label: Service Name
+      type: string
+      required: true 
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: kerberos    
+
+    - name: kerberos_realm
+      label: Realm
+      type: string
+      required: true 
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: kerberos    
+
+    - name: kerberos_config_file
+      label: Config File
+      type: string
+      default: /etc/krb5.conf
+      required: true 
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: kerberos
+
+    - name: kerberos_auth_type
+      label: Kerberos Auth Type
+      type: enum
+      validValues:
+        - keytab
+        - basic
+      default: keytab
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: kerberos    
+
+    - name: kerberos_keytab_file
+      label: Keytab File
+      type: string
+      required: true 
+      default: /etc/security/kafka.keytab
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: kerberos
+        - name: kerberos_auth_type
+          operator: equals
+          value: keytab    
+
+    - name: kerberos_username
+      label: Username
+      type: string
+      required: true 
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: kerberos    
+        - name: kerberos_auth_type
+          operator: equals
+          value: basic    
+
+    - name: kerberos_password
+      label: Password
+      type: string
+      required: true 
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: kerberos    
+        - name: kerberos_auth_type
+          operator: equals
+          value: basic    
+
   metrics:
     exporters: |
       {{ if .enable_metrics }}
@@ -179,12 +282,23 @@ spec:
               username: "{{ .basic_username }}"
               username: "{{ .basic_password }}"
             {{ else if eq .auth_type "sasl" }}
+            sasl:
               username: "{{ .sasl_username }}"
               username: "{{ .sasl_password }}"
               mechanism: {{ .sasl_mechanism }}
             {{ else if eq .auth_type "kerberos" }}
-              service_name: {{ .service_name }}
-              realm: {{ .realm }}
+            kerberos:
+              service_name: {{ .kerberos_service_name }}
+              realm: {{ .kerberos_realm }}
+              {{ if eq .kerberos_auth_type "keytab "}}
+              use_keytab: true
+              keytab_file: {{ .kerberos_keytab_file }}
+              {{ else }}
+              use_keytab: false
+              username: {{ .kerberos_username }}
+              password: {{ .kerberos_password }}
+              {{ end }}
+              config_file: {{ .kerberos_config_file }}
             {{ end }}
           {{ end }}
       {{ end }}
@@ -207,6 +321,32 @@ spec:
             # failing on startup.
             full: false
           timeout: {{ .timeout }}s
+          {{ if .enable_auth }}
+          auth:
+            {{ if eq .auth_type "basic" }}
+            plain_text:
+              username: "{{ .basic_username }}"
+              username: "{{ .basic_password }}"
+            {{ else if eq .auth_type "sasl" }}
+            sasl:
+              username: "{{ .sasl_username }}"
+              username: "{{ .sasl_password }}"
+              mechanism: {{ .sasl_mechanism }}
+            {{ else if eq .auth_type "kerberos" }}
+            kerberos:
+              service_name: {{ .kerberos_service_name }}
+              realm: {{ .kerberos_realm }}
+              {{ if eq .kerberos_auth_type "keytab "}}
+              use_keytab: true
+              keytab_file: {{ .kerberos_keytab_file }}
+              {{ else }}
+              use_keytab: false
+              username: {{ .kerberos_username }}
+              password: {{ .kerberos_password }}
+              {{ end }}
+              config_file: {{ .kerberos_config_file }}
+            {{ end }}
+          {{ end }}
       {{ end }}
     processors: |
       - batch:
@@ -227,6 +367,32 @@ spec:
             # failing on startup.
             full: false
           timeout: {{ .timeout }}s
+          {{ if .enable_auth }}
+          auth:
+            {{ if eq .auth_type "basic" }}
+            plain_text:
+              username: "{{ .basic_username }}"
+              username: "{{ .basic_password }}"
+            {{ else if eq .auth_type "sasl" }}
+            sasl:
+              username: "{{ .sasl_username }}"
+              username: "{{ .sasl_password }}"
+              mechanism: {{ .sasl_mechanism }}
+            {{ else if eq .auth_type "kerberos" }}
+            kerberos:
+              service_name: {{ .kerberos_service_name }}
+              realm: {{ .kerberos_realm }}
+              {{ if eq .kerberos_auth_type "keytab "}}
+              use_keytab: true
+              keytab_file: {{ .kerberos_keytab_file }}
+              {{ else }}
+              use_keytab: false
+              username: {{ .kerberos_username }}
+              password: {{ .kerberos_password }}
+              {{ end }}
+              config_file: {{ .kerberos_config_file }}
+            {{ end }}
+          {{ end }}
       {{ end }}
     processors: |
       - batch:
