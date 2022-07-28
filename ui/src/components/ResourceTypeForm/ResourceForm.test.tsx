@@ -221,9 +221,59 @@ describe("ResourceForm component", () => {
 
     expect(screen.getByTestId("resource-form-save")).not.toBeDisabled();
   });
+
+  describe("map type parameter validation", () => {
+    const mapParameter: ParameterDefinition = {
+      required: true,
+      label: "Label",
+      description: "description",
+      type: ParameterType.Map,
+      name: "map_type_param",
+    };
+
+    it("disables save button initially if required", () => {
+      render(
+        <ResourceConfigForm
+          onSave={() => {}}
+          kind="destination"
+          title={"Title"}
+          description={ResourceType1.metadata.description!}
+          parameterDefinitions={[mapParameter]}
+        />
+      );
+
+      expect(screen.getByTestId("resource-form-save")).toBeDisabled();
+    });
+
+    it("enables save button when one non empty key is specified", () => {
+      render(
+        <ResourceConfigForm
+          onSave={() => {}}
+          kind="destination"
+          title={"Title"}
+          description={ResourceType1.metadata.description!}
+          parameterDefinitions={[mapParameter]}
+        />
+      );
+
+      const firstKey = screen.getAllByRole("textbox")[0];
+      fireEvent.change(firstKey, { target: { value: "blah" } });
+      fireEvent.blur(firstKey);
+
+      expect(screen.getByTestId("resource-form-save")).not.toBeDisabled();
+    });
+  });
 });
 
 describe("MapParamInput", () => {
+  const mapParameter: ParameterDefinition = {
+    required: true,
+    label: "Label",
+    description: "description",
+    type: ParameterType.Map,
+    name: "map_type_param",
+  };
+
   it("valueToTupleArray", () => {
     const tests = [
       {
@@ -239,6 +289,10 @@ describe("MapParamInput", () => {
       },
       {
         value: null,
+        expect: [["", ""]],
+      },
+      {
+        value: {},
         expect: [["", ""]],
       },
     ];
@@ -286,16 +340,54 @@ describe("MapParamInput", () => {
   });
 
   it("renders correctly", () => {
-    const mapParameter: ParameterDefinition = {
-      required: true,
-      label: "Label",
-      description: "description",
-      type: ParameterType.Map,
-      default: {},
-      name: "map_type_param",
-    };
     const tree = renderer.create(<ParameterInput definition={mapParameter} />);
     expect(tree).toMatchSnapshot();
+  });
+
+  it("renders map values", () => {
+    const value: Record<string, string> = {
+      one: "two",
+      three: "four",
+      five: "six",
+    };
+    render(<ParameterInput definition={mapParameter} value={value} />);
+    screen.getByDisplayValue("one");
+    screen.getByDisplayValue("two");
+    screen.getByDisplayValue("three");
+    screen.getByDisplayValue("four");
+    screen.getByDisplayValue("five");
+    screen.getByDisplayValue("six");
+  });
+
+  it("can add key value pairs", () => {
+    render(<ParameterInput definition={mapParameter} />);
+
+    screen.getByText("New Row").click();
+    screen.getByText("New Row").click();
+
+    // We should have three rows
+    screen.getByTestId(`${mapParameter.name}-0-0-input`);
+    screen.getByTestId(`${mapParameter.name}-1-0-input`);
+    screen.getByTestId(`${mapParameter.name}-2-0-input`);
+  });
+
+  it("can delete key value pairs", () => {
+    render(<ParameterInput definition={mapParameter} />);
+
+    screen.getByText("New Row").click();
+    screen.getByText("New Row").click();
+
+    // We should have three rows
+    screen.getByTestId(`${mapParameter.name}-0-0-input`);
+    screen.getByTestId(`${mapParameter.name}-1-0-input`);
+    screen.getByTestId(`${mapParameter.name}-2-0-input`);
+
+    // Delete one
+    screen.getByTestId(`${mapParameter.name}-1-remove-button`).click();
+
+    // We should have two rows
+    screen.getByTestId(`${mapParameter.name}-0-0-input`);
+    screen.getByTestId(`${mapParameter.name}-1-0-input`);
   });
 });
 

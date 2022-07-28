@@ -15,7 +15,7 @@ import {
   useValidationContext,
   ValidationContextProvider,
 } from "./ValidationContext";
-import { validateStringsField } from "./validation-functions";
+import { validateStringsField, validateMapField } from "./validation-functions";
 
 import mixins from "../../styles/mixins.module.scss";
 
@@ -51,14 +51,13 @@ interface ResourceFormProps {
   onBack?: () => void;
 }
 
-interface ComponentProps extends ResourceFormProps {
+interface ComponentProps extends Omit<ResourceFormProps, "parameters"> {
   initValues: Record<string, any>;
 }
 
 const ResourceConfigurationFormComponent: React.FC<ComponentProps> = ({
   title,
   description,
-  parameters,
   parameterDefinitions,
   includeNameField,
   existingResourceNames,
@@ -189,6 +188,12 @@ export const ResourceConfigForm: React.FC<ResourceFormProps> = (props) => {
     switch (definition.type) {
       case ParameterType.Strings:
         initErrors[definition.name] = validateStringsField(
+          defaults[definition.name],
+          definition.required
+        );
+        break;
+      case ParameterType.Map:
+        initErrors[definition.name] = validateMapField(
           defaults[definition.name],
           definition.required
         );

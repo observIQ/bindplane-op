@@ -1,11 +1,13 @@
 import {
   Autocomplete,
+  Box,
   Button,
   Chip,
   FormControl,
   FormControlLabel,
   FormHelperText,
   Grid,
+  IconButton,
   InputLabel,
   OutlinedInput,
   Stack,
@@ -20,8 +22,8 @@ import { validateNameField } from "../../utils/forms/validate-name-field";
 import { useValidationContext } from "./ValidationContext";
 import { classes as classesUtil } from "../../utils/styles";
 import { YamlEditor } from "../YamlEditor";
-import { PlusCircleIcon } from "../Icons";
-import { validateStringsField } from "./validation-functions";
+import { PlusCircleIcon, TrashIcon } from "../Icons";
+import { validateMapField, validateStringsField } from "./validation-functions";
 
 import styles from "./parameter-input.module.scss";
 
@@ -215,6 +217,8 @@ export const MapParamInput: React.FC<ParamInputProps<Record<string, string>>> =
     const initValue = valueToTupleArray(value);
     const [controlValue, setControlValue] = useState<Tuple[]>(initValue);
 
+    const { errors, setError, touched, touch } = useValidationContext();
+
     const onChangeInput = useMemo(() => {
       return function (
         e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
@@ -227,88 +231,117 @@ export const MapParamInput: React.FC<ParamInputProps<Record<string, string>>> =
           return newVal;
         });
       };
-    }, [setControlValue]);
+    }, []);
 
     function handleBlur() {
+      if (!touched[definition.name]) {
+        touch(definition.name);
+      }
+
       const mapValue = tupleArrayToMap(controlValue);
       onValueChange && onValueChange(mapValue);
+      setError(
+        definition.name,
+        validateMapField(mapValue, definition.required)
+      );
+    }
+
+    function handleDeleteRow(rowIndex: number) {
+      const newControlValue = removeRow(controlValue, rowIndex);
+      setControlValue(newControlValue);
+
+      const mapValue = tupleArrayToMap(newControlValue);
+      onValueChange && onValueChange(mapValue);
+
+      setError(
+        definition.name,
+        validateMapField(mapValue, definition.required)
+      );
     }
 
     return (
       <>
-        <div>
-          <label aria-required={definition.required} htmlFor={definition.name}>
-            {definition.label}
-            {definition.required && " *"}
-          </label>
+        <label aria-required={definition.required} htmlFor={definition.name}>
+          {definition.label}
+          {definition.required && " *"}
+        </label>
 
-          <FormHelperText>{definition.description}</FormHelperText>
+        {touched[definition.name] && errors[definition.name] && (
+          <FormHelperText key={"error-text"} error>
+            {errors[definition.name]}
+          </FormHelperText>
+        )}
 
-          <Grid container spacing={1}>
-            <Grid item xs={6}>
-              <Typography fontWeight={600}>Key</Typography>
-            </Grid>
-            <Grid item xs={6}>
-              <Typography fontWeight={600}>Value</Typography>
-            </Grid>
+        <FormHelperText key={"description-text"}>
+          {definition.description}
+        </FormHelperText>
+
+        <Grid container spacing={1} marginY={1}>
+          <Grid item xs={6}>
+            <Typography marginLeft={4} fontWeight={600}>
+              Key
+            </Typography>
           </Grid>
-          <Grid container spacing={1}>
-            {controlValue.map(([k, v], rowIndex) => {
-              if (rowIndex === controlValue.length - 1) {
-                return null;
-              }
-              return (
-                <>
-                  <Grid key={`${definition.name}-${rowIndex}-0`} item xs={6}>
-                    <OutlinedInput
-                      key={`${definition.name}-${rowIndex}-0-input`}
-                      size="small"
-                      type="text"
-                      value={k}
-                      onChange={(e) => onChangeInput(e, rowIndex, 0)}
-                      onBlur={handleBlur}
-                    />
-                  </Grid>
-                  <Grid key={`${definition.name}-${rowIndex}-1`} item xs={6}>
-                    <OutlinedInput
-                      key={`${definition.name}-${rowIndex}-1-input`}
-                      size="small"
-                      type="text"
-                      value={v}
-                      onChange={(e) => onChangeInput(e, rowIndex, 1)}
-                      onBlur={handleBlur}
-                    />
-                  </Grid>
-                </>
-              );
-            })}
-            <Grid item xs={6}>
-              <OutlinedInput
-                size="small"
-                type="text"
-                value={controlValue[controlValue.length - 1][0]}
-                onChange={(e) => onChangeInput(e, controlValue.length - 1, 0)}
-                onBlur={handleBlur}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <OutlinedInput
-                size="small"
-                type="text"
-                value={controlValue[controlValue.length - 1][1]}
-                onChange={(e) => onChangeInput(e, controlValue.length - 1, 1)}
-                onBlur={handleBlur}
-              />
-            </Grid>
+          <Grid item xs={6}>
+            <Typography marginLeft={2} fontWeight={600}>
+              Value
+            </Typography>
           </Grid>
+        </Grid>
 
+        <Stack spacing={1}>
+          {controlValue.map(([k, v], rowIndex) => {
+            return (
+              <Stack
+                key={`${definition.name}-row-${rowIndex}`}
+                direction="row"
+                spacing={1}
+              >
+                <OutlinedInput
+                  key={`${definition.name}-${rowIndex}-0-input`}
+                  data-testid={`${definition.name}-${rowIndex}-0-input`}
+                  size="small"
+                  type="text"
+                  value={k}
+                  onChange={(e) => onChangeInput(e, rowIndex, 0)}
+                  onBlur={handleBlur}
+                />
+
+                <OutlinedInput
+                  key={`${definition.name}-${rowIndex}-1-input`}
+                  data-testid={`${definition.name}-${rowIndex}-1-input`}
+                  size="small"
+                  type="text"
+                  value={v}
+                  onChange={(e) => onChangeInput(e, rowIndex, 1)}
+                  onBlur={handleBlur}
+                />
+
+                <IconButton
+                  key={`${definition.name}-${rowIndex}-remove-button`}
+                  size={"small"}
+                  onClick={() => handleDeleteRow(rowIndex)}
+                  data-testid={`${definition.name}-${rowIndex}-remove-button`}
+                >
+                  <TrashIcon
+                    key={`${definition.name}-${rowIndex}-remove-icon`}
+                    width={18}
+                  />
+                </IconButton>
+                {/* </Grid> */}
+              </Stack>
+            );
+          })}
+        </Stack>
+
+        <Box marginLeft={1} marginTop={1}>
           <Button
             startIcon={<PlusCircleIcon />}
             onClick={() => setControlValue((prev) => addRow(prev))}
           >
-            Add
+            New Row
           </Button>
-        </div>
+        </Box>
       </>
     );
   };
@@ -535,5 +568,11 @@ export function tupleArrayToMap(tuples: Tuple[]): Record<string, string> {
 function addRow(tuples: Tuple[]): Tuple[] {
   const newTuples = [...tuples];
   newTuples.push(["", ""]);
+  return newTuples;
+}
+
+function removeRow(tuples: Tuple[], removeIndex: number): Tuple[] {
+  const newTuples = [...tuples];
+  newTuples.splice(removeIndex, 1);
   return newTuples;
 }
