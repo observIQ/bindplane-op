@@ -401,4 +401,3 @@ spec:
       {{ end }}
     processors: |
       - batch:
-
