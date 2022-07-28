@@ -15,7 +15,6 @@ spec:
     # Metric
     - name: enable_metrics
       label: Enable Metrics
-      description: Enable to send metrics.
       type: bool
       default: true
 
@@ -43,7 +42,7 @@ spec:
       label: Port
       description: Port to scrape for JMX metrics.
       type: int
-      default: 9012
+      default: 9999
       relevantIf:
         - name: enable_metrics
           operator: equals
@@ -61,46 +60,141 @@ spec:
           value: true
 
     # Logs
-    # - name: enable_logs
-    #   label: Enable Logs
-    #   description: Enable to send logs.
-    #   type: bool
-    #   default: true
+    - name: enable_logs
+      label: Enable Logs
+      type: bool
+      default: true
 
-    # - name: file_path
-    #   label: File Path(s)
-    #   description: File or directory paths to tail for logs.
-    #   type: strings
-    #   default:
-    #     - /var/solr/logs/solr.log
-    #   relevantIf:
-    #     - name: enable_logs
-    #       operator: equals
-    #       value: true
+    - name: start_at
+      label: Start At
+      description: Start reading file from 'beginning' or 'end'.
+      type: enum
+      validValues:
+        - beginning
+        - end
+      default: end
+      advancedConfig: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
 
-    # - name: start_at
-    #   label: Start At
-    #   description: Start reading file from 'beginning' or 'end'.
-    #   type: enum
-    #   validValues:
-    #     - beginning
-    #     - end
-    #   default: end
-    #   advancedConfig: true
-    #   relevantIf:
-    #     - name: enable_logs
-    #       operator: equals
-    #       value: true
+    - name: enable_server_log
+      label: Server Logs
+      type: bool
+      default: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
 
+    - name: server_log_path
+      label: Server File Path(s)
+      description: File paths to tail for server logs.
+      type: strings
+      default:
+        - /home/kafka/kafka/logs/server.log
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+        - name: enable_server_log
+          operator: equals
+          value: true
+
+    - name: enable_controller_log
+      label: Controller Logs
+      type: bool
+      default: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+    - name: controller_log_path
+      label: Controller File Path(s)
+      description: File paths to tail for controller logs.
+      type: strings
+      default:
+        - /home/kafka/kafka/logs/controller.log
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+        - name: enable_controller_log
+          operator: equals
+          value: true
+
+    - name: enable_state_change_log
+      label: State Change Logs
+      type: bool
+      default: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+    - name: state_change_log_path
+      label: Stage Change File Path(s)
+      description: File paths to tail for stage change logs.
+      type: strings
+      default:
+        - /home/kafka/kafka/logs/state-change.log
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+        - name: enable_state_change_log
+          operator: equals
+          value: true
+
+    - name: enable_log_cleaner_log
+      label: Log Cleaner Logs
+      type: bool
+      default: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+    - name: log_cleaner_log_path
+      label: Log Cleaner File Path(s)
+      description: File paths to tail for log cleaner logs.
+      type: strings
+      default:
+        - /home/kafka/kafka/logs/state-cleaner.log
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+        - name: enable_log_cleaner_log
+          operator: equals
+          value: true
 
   metrics:
     receivers: |
       {{ if .enable_metrics }}
-      - jmx:
+      - jmx/broker:
           jar_path: {{ .jar_path }}
           collection_interval: {{ .collection_interval }}s
           endpoint: {{ .address }}:{{ .port }}
           target_system: kafka
+          resource_attributes:
+            kafka.endpoint: {{ .address }}:{{ .port }}
+
+      - jmx/consumer:
+          jar_path: {{ .jar_path }}
+          collection_interval: {{ .collection_interval }}s
+          endpoint: {{ .address }}:{{ .port }}
+          target_system: kafka-consumer
+          resource_attributes:
+            kafka.endpoint: {{ .address }}:{{ .port }}
+
+      - jmx/producer:
+          jar_path: {{ .jar_path }}
+          collection_interval: {{ .collection_interval }}s
+          endpoint: {{ .address }}:{{ .port }}
+          target_system: kafka-producer
           resource_attributes:
             kafka.endpoint: {{ .address }}:{{ .port }}
       {{ end }}
@@ -111,21 +205,41 @@ spec:
           system:
             hostname_sources: ["os"]
 
-  # logs:
-  #   receivers: |
-  #     {{ if .enable_logs }}
-  #     - plugin:
-  #         path: $OIQ_OTEL_COLLECTOR_HOME/plugins/kafka_logs.yaml
-  #         parameters:
-  #           file_log_path:
-  #             {{ range $fp := .file_path }}
-  #             - '{{ $fp }}'
-  #             {{ end }}
-  #           start_at: {{ .start_at }}
-  #     {{ end }}
+  logs:
+    receivers: |
+      {{ if .enable_logs }}
+      - plugin:
+          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/kafka_logs.yaml
+          parameters:
+            start_at: {{ .start_at }}
 
-  #   processors: |
-  #     - resourcedetection:
-  #         detectors: ["system"]
-  #         system:
-  #           hostname_sources: ["os"]
+            enable_server_log: {{ .enable_server_log }}
+            server_log_path:
+              {{ range $fp := .server_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+
+            enable_controller_log: {{ .enable_controller_log }}
+            controller_log_path:
+              {{ range $fp := .controller_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+
+            enable_state_change_log: {{ .enable_state_change_log }}
+            state_change_log_path:
+              {{ range $fp := .state_change_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+
+            enable_log_cleaner_log: {{ .enable_log_cleaner_log }}
+            log_cleaner_log_path:
+              {{ range $fp := .log_cleaner_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+      {{ end }}
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]
