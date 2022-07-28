@@ -2,8 +2,8 @@ apiVersion: bindplane.observiq.com/v1beta
 kind: SourceType
 metadata:
   name: kafka_cluster
-  displayName: Kafka Cluster Metrics
-  description: Kafka metrics scraper, collects metrics from Kafka brokers.
+  displayName: Kafka Cluster
+  description: Kafka cluster metrics scraper, collects metrics from Kafka brokers.
   icon: /icons/sources/kafka.svg
 spec:
   version: 0.0.1
