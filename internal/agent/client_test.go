@@ -44,7 +44,7 @@ func TestLatestVersion(t *testing.T) {
 	version, err := client.LatestVersion()
 	require.NoError(t, err)
 	require.Equal(t, "2.0.6", version.Version)
-	require.Equal(t, "https://storage.googleapis.com/observiq-cloud/observiq-agent/2.0.6/darwin-arm64/manager/observiq-agent-manager.tar.gz", version.Downloads["darwin-arm64"][managerURL])
+	require.Equal(t, "https://storage.googleapis.com/observiq-cloud/observiq-agent/2.0.6/darwin-arm64/installer/observiq-agent-installer.sh", version.Downloads["darwin-arm64"][Installer])
 }
 
 func TestVersion(t *testing.T) {
@@ -55,5 +55,5 @@ func TestVersion(t *testing.T) {
 	version, err := client.Version("2.0.6")
 	require.NoError(t, err)
 	require.Equal(t, "2.0.6", version.Version)
-	require.Equal(t, "https://storage.googleapis.com/observiq-cloud/observiq-agent/2.0.6/darwin-arm64/manager/observiq-agent-manager.tar.gz", version.Downloads["darwin-arm64"][managerURL])
+	require.Equal(t, "https://storage.googleapis.com/observiq-cloud/observiq-agent/2.0.6/darwin-arm64/installer/observiq-agent-installer.sh", version.Downloads["darwin-arm64"][Installer])
 }

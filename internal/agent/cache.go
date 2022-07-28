@@ -144,28 +144,27 @@ func (c *cache) SaveVersion(version *Version) {
 }
 
 func (c *cache) Artifact(artifactType ArtifactType, version *Version, platform string) CacheArtifact {
-	artifactKey := downloadsArtifactKey(artifactType)
-	path := c.artifactPath(artifactKey, version, platform)
+	path := c.artifactPath(artifactType, version, platform)
 	if path == "" {
 		return nopCacheArtifact{}
 	}
 	return cacheArtifact{path: path}
 }
 
-func (c *cache) artifactPath(artifactKey string, version *Version, platform string) string {
-	name := artifactName(artifactKey, version, platform)
+func (c *cache) artifactPath(artifactType ArtifactType, version *Version, platform string) string {
+	name := artifactName(artifactType, version, platform)
 	if name == "" {
 		return ""
 	}
 	return filepath.Join(c.cacheDirectory, version.Version, platform, name)
 }
 
-func artifactName(artifactKey string, version *Version, platform string) string {
+func artifactName(artifactType ArtifactType, version *Version, platform string) string {
 	urls, ok := version.Downloads[platform]
 	if !ok {
 		return ""
 	}
-	value, ok := urls[artifactKey]
+	value, ok := urls[artifactType]
 	if !ok {
 		return ""
 	}

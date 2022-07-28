@@ -70,7 +70,7 @@ func TestCacheSaveArtifact(t *testing.T) {
 	version := testCache.Version("2.0.5")
 	platform := "linux-arm64"
 	defer func() {
-		path := testCache.artifactPath(installerURL, version, platform)
+		path := testCache.artifactPath(Installer, version, platform)
 		parent, _ := filepath.Split(path)
 		err := os.RemoveAll(parent)
 		require.NoError(t, err)
@@ -94,12 +94,12 @@ func TestCacheSaveArtifact(t *testing.T) {
 func TestCacheArtifactPath(t *testing.T) {
 	version := testCache.Version("2.0.5")
 	tests := []struct {
-		artifactKey string
+		artifactKey ArtifactType
 		platform    string
 		path        string
 	}{
 		{
-			artifactKey: installerURL,
+			artifactKey: Installer,
 			platform:    "linux-arm64",
 			path:        "testdata/cache/2.0.5/linux-arm64/observiq-agent-installer.txt",
 		},
@@ -109,7 +109,7 @@ func TestCacheArtifactPath(t *testing.T) {
 			path:        "",
 		},
 		{
-			artifactKey: installerURL,
+			artifactKey: Installer,
 			platform:    "bad-platform",
 			path:        "",
 		},

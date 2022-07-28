@@ -14,13 +14,6 @@
 
 package agent
 
-// artifact keys
-const (
-	downloadURL  = "download"
-	installerURL = "installer"
-	managerURL   = "manager"
-)
-
 // latest can be used in requests instead of an actual version
 const (
 	VersionLatest = "latest"
@@ -33,20 +26,10 @@ type Version struct {
 	// Public is true if this version has been publicly released
 	Public bool `json:"public"`
 	// Downloads is a map from platform => artifactKey => url
-	Downloads map[string]map[string]string `json:"downloads"`
-}
-
-func downloadsArtifactKey(artifactType ArtifactType) string {
-	switch artifactType {
-	case Download:
-		return downloadURL
-	case Manager:
-		return managerURL
-	}
-	return installerURL
+	Downloads map[string]map[ArtifactType]string `json:"downloads"`
 }
 
 // ArtifactURL returns the download URL of the specified artifact type on the specified platform
 func (v *Version) ArtifactURL(artifactType ArtifactType, platform string) string {
-	return v.Downloads[platform][downloadsArtifactKey(artifactType)]
+	return v.Downloads[platform][artifactType]
 }

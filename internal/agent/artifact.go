@@ -22,8 +22,7 @@ type ArtifactType string
 // ArtifactType is either a download, installer, or manager
 const (
 	Download  ArtifactType = "download"
-	Installer              = "installer"
-	Manager                = "manager"
+	Installer ArtifactType = "installer"
 )
 
 // Artifact TODO(doc)

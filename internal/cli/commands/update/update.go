@@ -23,8 +23,9 @@ import (
 // Command returns the iris update cobra command
 func Command(bindplane *cli.BindPlane) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update",
-		Short: "Update an existing agent",
+		Use:     "update",
+		Aliases: []string{"upgrade"},
+		Short:   "Update an existing agent",
 	}
 
 	cmd.AddCommand(
