@@ -1,23 +1,30 @@
 apiVersion: bindplane.observiq.com/v1beta
 kind: DestinationType
 metadata:
-  name: jaeger
-  displayName: Jaeger
-  icon: /icons/destinations/jaeger.svg
+  name: zipkin
+  displayName: Zipkin
+  icon: /icons/destinations/zipkin.svg
 spec:
   parameters:
     - name: hostname
       label: Hostname
-      description: Hostname or IP address of the Jaeger server.
+      description: Hostname or IP address of the Zipkin server.
       type: string
       default: ""
       required: true
 
     - name: port
       label: Port
-      description: Port (gRPC) of the Jaeger server.
+      description: Port (gRPC) of the Zipkin server.
       type: int
-      default: 14250
+      default: 9411
+
+    - name: path
+      label: Path
+      description: API path to send traces to.
+      type: string
+      default: "/api/v2/spans"
+      required: true
 
     - name: enable_tls
       label: Enable TLS
@@ -39,7 +46,7 @@ spec:
 
     - name: ca_file
       label: TLS Certificate Authority File
-      description: Certificate authority used to validate TLS certificates.
+      description: Certificate authority file used to validate TLS certificates. Required only if the underlying operating system does not trust Zipkin's certificate.
       type: string
       required: false
       default: ""
@@ -47,6 +54,9 @@ spec:
         - name: enable_tls
           operator: equals
           value: true
+        - name: insecure_skip_verify
+          operator: equals
+          value: false
       advancedConfig: true
 
     - name: mutual_tls
@@ -92,8 +102,12 @@ spec:
 
   traces:
     exporters: |
-      - jaeger:
-          endpoint: {{ .hostname }}:{{ .port }}
+      - zipkin:
+          {{ if .enable_tls }}
+          endpoint: https://{{ .hostname }}:{{ .port }}{{ .path }}
+          {{ else }}
+          endpoint: http://{{ .hostname }}:{{ .port }}{{ .path }}
+          {{ end }}
           tls:
           {{ if .enable_tls }}
             insecure: false
