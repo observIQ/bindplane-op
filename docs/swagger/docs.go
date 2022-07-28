@@ -524,7 +524,7 @@ const docTemplate = `{
             }
         },
         "/configurations/{name}/duplicate": {
-            "put": {
+            "post": {
                 "produces": [
                     "application/json"
                 ],

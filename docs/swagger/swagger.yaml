@@ -786,7 +786,7 @@ paths:
             $ref: '#/definitions/rest.ErrorResponse'
       summary: Get configuration by name
   /configurations/{name}/duplicate:
-    put:
+    post:
       parameters:
       - description: the name of the configuration to duplicate
         in: path
