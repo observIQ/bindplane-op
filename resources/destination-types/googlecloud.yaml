@@ -78,3 +78,4 @@ spec:
               - prefix: hadoop
               - prefix: hbase
               - prefix: sqlserver
+              - prefix: kafka
