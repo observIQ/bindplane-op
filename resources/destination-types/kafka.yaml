@@ -8,7 +8,7 @@ spec:
   parameters:
     - name: protocol_version
       label: Protocol Version
-      description: Kafka protocol version.
+      description: Protocol version.
       type: enum
       validValues:
         - "2.0.0"
@@ -18,7 +18,7 @@ spec:
 
     - name: brokers
       label: Brokers
-      description: List of Kafka brokers to connect to when sending metrics, traces and logs.
+      description: List of brokers to connect to when sending metrics, traces and logs.
       type: strings
       default: 
         - localhost:9092
