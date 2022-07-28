@@ -6,9 +6,9 @@ metadata:
 spec:
   version: 0.0.1
   parameters:
-    - name: key
-      label: Key
-      type: string
+    - name: attributes
+      label: Attribute Keys
+      type: strings
       required: true
 
     - name: enable_metrics
@@ -31,8 +31,10 @@ spec:
       {{ if .enable_metrics }}
       - attributes:
           actions:
-            - key: '{{ .key }}'
+            {{ range $k := .attributes }}
+            - key: '{{ $k }}'
               action: delete
+            {{ end }}
       {{ end }}
 
   logs:
@@ -40,8 +42,10 @@ spec:
       {{ if .enable_logs }}
       - attributes:
           actions:
-            - key: '{{ .key }}'
+            {{ range $k := .attributes }}
+            - key: '{{ $k }}'
               action: delete
+            {{ end }}
       {{ end }}
 
   traces:
@@ -49,6 +53,8 @@ spec:
       {{ if .enable_traces }}
       - attributes:
           actions:
-            - key: '{{ .key }}'
+            {{ range $k := .attributes }}
+            - key: '{{ $k }}'
               action: delete
+            {{ end }}
       {{ end }}

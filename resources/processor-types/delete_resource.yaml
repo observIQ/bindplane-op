@@ -6,9 +6,9 @@ metadata:
 spec:
   version: 0.0.1
   parameters:
-    - name: key
-      label: Key
-      type: string
+    - name: resources
+      label: Resource Keys
+      type: strings
       required: true
 
     - name: enable_metrics
@@ -31,8 +31,10 @@ spec:
       {{ if .enable_metrics }}
       - resource:
           attributes:
-          - key: {{ .key }}
-            action: delete
+            {{ range $k := .resources }}
+            - key: '{{ $k }}'
+              action: delete
+            {{ end }}
       {{ end }}
 
   logs:
@@ -40,8 +42,10 @@ spec:
       {{ if .enable_logs }}
       - resource:
           attributes:
-          - key: {{ .key }}
-            action: delete
+            {{ range $k := .resources }}
+            - key: '{{ $k }}'
+              action: delete
+            {{ end }}
       {{ end }}
 
   traces:
@@ -49,6 +53,8 @@ spec:
       {{ if .enable_traces }}
       - resource:
           attributes:
-          - key: {{ .key }}
-            action: delete
+            {{ range $k := .resources }}
+            - key: '{{ $k }}'
+              action: delete
+            {{ end }}
       {{ end }}
