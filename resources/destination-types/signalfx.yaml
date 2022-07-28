@@ -14,68 +14,41 @@ spec:
       required: true
       default: ""
 
+    # https://status.signalfx.com/
+    - name: realm
+      label: API Realm (region)
+      description: The Splunk API realm (region) to use when sending metrics, traces, and logs
+      type: enum
+      validValues:
+        - us0
+        - us1
+        - us2
+        - eu0
+        - jp0
+      default: us0
+
     - name: enable_metrics
       label: Enable Metrics
       type: bool
       default: true
-
-    - name: api_endpoint
-      label: Metrics API Endpoint
-      description: The Splunk API URL
-      type: string
-      default: https://api.us1.signalfx.com
-      relevantIf:
-        - name: enable_metrics
-          operator: equals
-          value: true
-
-    - name: ingest_endpoint
-      label: Metrics Ingest Endpoint
-      description: The Splunk metrics ingest URL
-      type: string
-      default: https://ingest.us1.signalfx.com
-      relevantIf:
-        - name: enable_metrics
-          operator: equals
-          value: true
 
     - name: enable_logs
       label: Enable Logs
       type: bool
       default: true
 
-    - name: log_endpoint
-      label: Log Endpoint
-      description: The Splunk HEC log ingest endpoint URL
-      type: string
-      default: https://ingest.us1.signalfx.com/v1/log
-      relevantIf:
-        - name: enable_logs
-          operator: equals
-          value: true
-
     - name: enable_traces
       label: Enable Traces
       type: bool
       default: true
-
-    - name: trace_endpoint
-      label: Trace Endpoint
-      description: The Splunk trace ingest URL
-      type: string
-      default: https://ingest.us1.signalfx.com/v2/trace
-      relevantIf:
-        - name: enable_traces
-          operator: equals
-          value: true
 
   metrics:
     exporters: |
       {{ if .enable_metrics }}
       - signalfx:
           access_token: '{{ .token }}'
-          api_url: {{ .api_endpoint }}
-          ingest_url: {{ .ingest_endpoint }}
+          api_url: https://api.{{ .realm }}.signalfx.com
+          ingest_url: https://ingest.{{ .realm }}.signalfx.com
           sync_host_metadata: true
       {{ end }}
     processors: |
@@ -90,7 +63,7 @@ spec:
       {{ if .enable_logs }}
       - splunk_hec:
           token: '{{ .token }}'
-          endpoint: {{ .log_endpoint }}
+          endpoint: https://ingest.{{ .realm }}.signalfx.com/v1/log
           source: otel
           sourcetype: otel
       {{ end }}
@@ -106,7 +79,7 @@ spec:
       {{ if .enable_traces }}
       - sapm:
           access_token: '{{ .token }}'
-          endpoint: {{ .trace_endpoint }}
+          endpoint: https://ingest.{{ .realm }}.signalfx.com/v2/trace
       {{ end }}
     processors: |
       - resourcedetection:
