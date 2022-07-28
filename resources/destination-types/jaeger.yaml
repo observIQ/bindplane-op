@@ -93,7 +93,7 @@ spec:
   traces:
     exporters: |
       - jaeger:
-          endpoint: {{ .hostname }}{{ .port }}
+          endpoint: {{ .hostname }}:{{ .port }}
           tls:
           {{ if .enable_tls }}
             insecure: false
