@@ -9,9 +9,11 @@ import { useEffect } from "react";
 
 import styles from "./yaml-editor.module.scss";
 
-interface YamlEditorProps {
+interface YamlEditorProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   readOnly?: boolean;
   limitHeight?: boolean;
+  minHeight?: number;
   inputRef?: React.RefObject<HTMLTextAreaElement>;
   onValueChange?: (e: ChangeEvent<HTMLTextAreaElement>) => void;
   value: string;
@@ -23,6 +25,7 @@ export const YamlEditor: React.FC<YamlEditorProps> = ({
   readOnly,
   value,
   onValueChange,
+  ...rest
 }) => {
   // We are only using light theme right now.  This overrides the styling if a user
   // has dark mode as a browser preference.
@@ -49,6 +52,7 @@ export const YamlEditor: React.FC<YamlEditorProps> = ({
   return (
     <div>
       <CodeEditor
+        {...rest}
         data-testid="yaml-editor"
         className={classes(classNames)}
         readOnly={readOnly}

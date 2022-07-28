@@ -1,13 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import { ConfigurationsTable } from ".";
 import { MemoryRouter } from "react-router-dom";
-import nock from "nock";
-import { ApolloProvider } from "@apollo/client";
-import APOLLO_CLIENT from "../../../apollo-client";
 import {
   Configuration,
+  ConfigurationChangesDocument,
+  GetConfigurationTableDocument,
   GetConfigurationTableQuery,
 } from "../../../graphql/generated";
+import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 
 const TEST_CONFIGS: Pick<Configuration, "metadata">[] = [
   {
@@ -42,24 +42,40 @@ const QUERY_RESULT: GetConfigurationTableQuery = {
   },
 };
 
-beforeEach(() => {
-  nock("http://localhost:80")
-    .post("/v1/graphql", (body) => {
-      return body.operationName === "GetConfigurationTable";
-    })
-    .once()
-    .reply(200, {
-      data: QUERY_RESULT,
-    });
-});
+const mocks: MockedResponse<Record<string, any>>[] = [
+  {
+    request: {
+      query: GetConfigurationTableDocument,
+      variables: {
+        query: "",
+      },
+    },
+    result: () => {
+      return { data: QUERY_RESULT };
+    },
+  },
+  {
+    request: {
+      query: ConfigurationChangesDocument,
+      variables: {
+        query: "",
+      },
+    },
+    result: () => {
+      return {
+        data: { configurationChanges: [] },
+      };
+    },
+  },
+];
 
 describe("ConfigurationsTable", () => {
   it("renders rows of configurations", async () => {
     render(
       <MemoryRouter>
-        <ApolloProvider client={APOLLO_CLIENT}>
+        <MockedProvider mocks={mocks} addTypename={false}>
           <ConfigurationsTable />
-        </ApolloProvider>
+        </MockedProvider>
       </MemoryRouter>
     );
 
@@ -72,9 +88,9 @@ describe("ConfigurationsTable", () => {
   it("shows delete button after selecting row", async () => {
     render(
       <MemoryRouter>
-        <ApolloProvider client={APOLLO_CLIENT}>
+        <MockedProvider mocks={mocks} addTypename={false}>
           <ConfigurationsTable />
-        </ApolloProvider>
+        </MockedProvider>
       </MemoryRouter>
     );
 
@@ -92,9 +108,9 @@ describe("ConfigurationsTable", () => {
   it("opens the delete dialog after clicking delete", async () => {
     render(
       <MemoryRouter>
-        <ApolloProvider client={APOLLO_CLIENT}>
+        <MockedProvider mocks={mocks} addTypename={false}>
           <ConfigurationsTable />
-        </ApolloProvider>
+        </MockedProvider>
       </MemoryRouter>
     );
 

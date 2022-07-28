@@ -16,10 +16,11 @@ import {
   useGetConfigurationNamesQuery,
 } from "../../graphql/generated";
 import { InstallCommandResponse } from "../../types/rest";
-
-import mixins from "../../styles/mixins.module.scss";
 import { withRequireLogin } from "../../contexts/RequireLogin";
 import { withNavBar } from "../../components/NavBar";
+import { PlatformSelect } from "../../components/PlatformSelect";
+
+import mixins from "../../styles/mixins.module.scss";
 
 gql`
   query GetConfigurationNames {
@@ -35,33 +36,13 @@ gql`
 `;
 
 enum Platform {
-  LINUX_AMD64 = "linux-amd64",
-  DARWIN_AMD64 = "darwin-amd64",
-  DARWIN_ARM64 = "darwin-arm64",
-  WINDOWS_AMD64 = "windows-amd64",
+  Linux = "linux",
+  macOS = "macos",
+  Windows = "windows",
 }
 
-const platforms: { name: string; value: Platform }[] = [
-  {
-    name: "Linux",
-    value: Platform.LINUX_AMD64,
-  },
-  {
-    name: "macOS (Intel)",
-    value: Platform.DARWIN_AMD64,
-  },
-  {
-    name: "macOS (Apple M1)",
-    value: Platform.DARWIN_ARM64,
-  },
-  {
-    name: "Windows",
-    value: Platform.WINDOWS_AMD64,
-  },
-];
-
 const InstallPageContent: React.FC = () => {
-  const [platform, setPlatform] = useState<Platform>(Platform.LINUX_AMD64);
+  const [platform, setPlatform] = useState<string>("linux");
   const [installCommand, setCommand] = useState("");
   const [configs, setConfigs] = useState<string[]>([]);
   const [selectedConfig, setSelectedConfig] = useState<string>("");
@@ -107,25 +88,10 @@ const InstallPageContent: React.FC = () => {
         component="form"
         className={`${mixins["form-width"]} ${mixins["mb-3"]}`}
       >
-        <FormControl fullWidth margin="normal">
-          <InputLabel id="platform-label">Choose OS</InputLabel>
-
-          <Select
-            labelId="platform-label"
-            id="platform"
-            label="Choose OS"
-            onChange={(e: SelectChangeEvent<string>) => {
-              setPlatform(e.target.value as Platform);
-            }}
-            value={platform}
-          >
-            {platforms.map((p) => (
-              <MenuItem key={p.value} value={p.value}>
-                {p.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <PlatformSelect
+          value={platform}
+          onPlatformSelected={(v) => setPlatform(v)}
+        />
 
         {configs.length > 0 && (
           <>
@@ -183,15 +149,14 @@ function installCommandUrl(params: {
 
 function filterConfigurationsByPlatform(
   configs: GetConfigurationNamesQuery["configurations"]["configurations"],
-  platform: Platform | ""
+  platform: string
 ): GetConfigurationNamesQuery["configurations"]["configurations"] {
   switch (platform) {
-    case Platform.LINUX_AMD64:
+    case Platform.Linux:
       return configs.filter((c) => c.metadata.labels.platform === "linux");
-    case Platform.DARWIN_AMD64:
-    case Platform.DARWIN_ARM64:
+    case Platform.macOS:
       return configs.filter((c) => c.metadata.labels.platform === "macos");
-    case Platform.WINDOWS_AMD64:
+    case Platform.Windows:
       return configs.filter((c) => c.metadata.labels.platform === "windows");
     default:
       return configs;

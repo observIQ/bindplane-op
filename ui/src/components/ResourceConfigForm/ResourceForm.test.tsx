@@ -5,8 +5,15 @@ import {
   ParameterType,
   RelevantIfOperatorType,
 } from "../../graphql/generated";
+import {
+  ParameterInput,
+  Tuple,
+  tupleArrayToMap,
+  valueToTupleArray,
+} from "./ParameterInput";
 import { satisfiesRelevantIf } from "./satisfiesRelevantIf";
 import { ResourceType1, ResourceType2 } from "./__test__/dummyResources";
+import renderer from "react-test-renderer";
 
 describe("satisfiesRelevantIf", () => {
   const formValues: { [key: string]: any } = {
@@ -182,5 +189,239 @@ describe("ResourceForm component", () => {
     fireEvent.change(nameField, { target: { value: "dest-" } });
 
     expect(screen.getByTestId("resource-form-save")).toBeDisabled();
+  });
+
+  it("strings type parameter validation", async () => {
+    const label = "p1 label";
+    const definitions: ParameterDefinition[] = [
+      {
+        name: "p1",
+        label: label,
+        type: ParameterType.Strings,
+        required: true,
+        description: "",
+      },
+    ];
+
+    render(
+      <ResourceConfigForm
+        onSave={() => {}}
+        kind="destination"
+        title={"Title"}
+        description={ResourceType1.metadata.description!}
+        parameterDefinitions={definitions}
+      />
+    );
+
+    expect(screen.getByTestId("resource-form-save")).toBeDisabled();
+
+    const input = screen.getByLabelText(`${label} *`);
+    fireEvent.change(input, { target: { value: "/tmp.file.log" } });
+    fireEvent.keyDown(input, { key: "Enter", code: "Enter", charCode: 13 });
+
+    expect(screen.getByTestId("resource-form-save")).not.toBeDisabled();
+  });
+
+  describe("map type parameter validation", () => {
+    const mapParameter: ParameterDefinition = {
+      required: true,
+      label: "Label",
+      description: "description",
+      type: ParameterType.Map,
+      name: "map_type_param",
+    };
+
+    it("disables save button initially if required", () => {
+      render(
+        <ResourceConfigForm
+          onSave={() => {}}
+          kind="destination"
+          title={"Title"}
+          description={ResourceType1.metadata.description!}
+          parameterDefinitions={[mapParameter]}
+        />
+      );
+
+      expect(screen.getByTestId("resource-form-save")).toBeDisabled();
+    });
+
+    it("enables save button when one non empty key is specified", () => {
+      render(
+        <ResourceConfigForm
+          onSave={() => {}}
+          kind="destination"
+          title={"Title"}
+          description={ResourceType1.metadata.description!}
+          parameterDefinitions={[mapParameter]}
+        />
+      );
+
+      const firstKey = screen.getAllByRole("textbox")[0];
+      fireEvent.change(firstKey, { target: { value: "blah" } });
+      fireEvent.blur(firstKey);
+
+      expect(screen.getByTestId("resource-form-save")).not.toBeDisabled();
+    });
+  });
+});
+
+describe("MapParamInput", () => {
+  const mapParameter: ParameterDefinition = {
+    required: true,
+    label: "Label",
+    description: "description",
+    type: ParameterType.Map,
+    name: "map_type_param",
+  };
+
+  it("valueToTupleArray", () => {
+    const tests = [
+      {
+        value: {
+          foo: "bar",
+          blah: "baz",
+        },
+        expect: [
+          ["foo", "bar"],
+          ["blah", "baz"],
+          ["", ""],
+        ],
+      },
+      {
+        value: null,
+        expect: [["", ""]],
+      },
+      {
+        value: {},
+        expect: [["", ""]],
+      },
+    ];
+
+    for (const test of tests) {
+      const got = valueToTupleArray(test.value);
+      expect(got).toEqual(test.expect);
+    }
+  });
+
+  it("tupleArrayToMap", () => {
+    const tests: { tuples: Tuple[]; expect: any }[] = [
+      {
+        tuples: [
+          ["one", "two"],
+          ["three", "four"],
+        ],
+        expect: {
+          one: "two",
+          three: "four",
+        },
+      },
+      {
+        tuples: [
+          ["", "blah"],
+          ["three", "four"],
+          ["some", "thing"],
+          ["", ""],
+        ],
+        expect: {
+          three: "four",
+          some: "thing",
+        },
+      },
+      {
+        tuples: [["", ""]],
+        expect: {},
+      },
+    ];
+
+    for (const test of tests) {
+      const got = tupleArrayToMap(test.tuples);
+      expect(got).toEqual(test.expect);
+    }
+  });
+
+  it("renders correctly", () => {
+    const tree = renderer.create(<ParameterInput definition={mapParameter} />);
+    expect(tree).toMatchSnapshot();
+  });
+
+  it("renders map values", () => {
+    const value: Record<string, string> = {
+      one: "two",
+      three: "four",
+      five: "six",
+    };
+    render(<ParameterInput definition={mapParameter} value={value} />);
+    screen.getByDisplayValue("one");
+    screen.getByDisplayValue("two");
+    screen.getByDisplayValue("three");
+    screen.getByDisplayValue("four");
+    screen.getByDisplayValue("five");
+    screen.getByDisplayValue("six");
+  });
+
+  it("can add key value pairs", () => {
+    render(<ParameterInput definition={mapParameter} />);
+
+    screen.getByText("New Row").click();
+    screen.getByText("New Row").click();
+
+    // We should have three rows
+    screen.getByTestId(`${mapParameter.name}-0-0-input`);
+    screen.getByTestId(`${mapParameter.name}-1-0-input`);
+    screen.getByTestId(`${mapParameter.name}-2-0-input`);
+  });
+
+  it("can delete key value pairs", () => {
+    render(<ParameterInput definition={mapParameter} />);
+
+    screen.getByText("New Row").click();
+    screen.getByText("New Row").click();
+
+    // We should have three rows
+    screen.getByTestId(`${mapParameter.name}-0-0-input`);
+    screen.getByTestId(`${mapParameter.name}-1-0-input`);
+    screen.getByTestId(`${mapParameter.name}-2-0-input`);
+
+    // Delete one
+    screen.getByTestId(`${mapParameter.name}-1-remove-button`).click();
+
+    // We should have two rows
+    screen.getByTestId(`${mapParameter.name}-0-0-input`);
+    screen.getByTestId(`${mapParameter.name}-1-0-input`);
+  });
+});
+
+describe("EnumsParameter", () => {
+  it("renders correctly", () => {
+    const enumsParameter: ParameterDefinition = {
+      required: true,
+      label: "Label",
+      description: "description",
+      type: ParameterType.Enums,
+      default: {},
+      validValues: ["one", "two", "three", "four"],
+      name: "enums_type_param",
+    };
+
+    const tree = renderer.create(
+      <ParameterInput definition={enumsParameter} />
+    );
+    expect(tree).toMatchSnapshot();
+  });
+});
+
+describe("YamlParameter", () => {
+  it("renders correctly", () => {
+    const yamlParameter: ParameterDefinition = {
+      required: true,
+      label: "Label",
+      description: "description",
+      type: ParameterType.Yaml,
+      default: "",
+      name: "yaml_type_param",
+    };
+
+    const tree = renderer.create(<ParameterInput definition={yamlParameter} />);
+    expect(tree).toMatchSnapshot();
   });
 });
