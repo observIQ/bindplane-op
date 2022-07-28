@@ -1,7 +1,11 @@
 import { Button, Grid, Typography, Stack } from "@mui/material";
 import { ParameterInput, ResourceNameInput } from "./ParameterInput";
 import React, { useState } from "react";
-import { Parameter, ParameterDefinition } from "../../graphql/generated";
+import {
+  Parameter,
+  ParameterDefinition,
+  ParameterType,
+} from "../../graphql/generated";
 import { isFunction } from "lodash";
 import { classes } from "../../utils/styles";
 import { satisfiesRelevantIf } from "./satisfiesRelevantIf";
@@ -13,6 +17,7 @@ import {
 } from "./ValidationContext";
 
 import mixins from "../../styles/mixins.module.scss";
+import { validateStringsField } from "./validation-functions";
 
 interface ResourceFormProps {
   // Display name for the resource
@@ -46,7 +51,11 @@ interface ResourceFormProps {
   onBack?: () => void;
 }
 
-const ResourceConfigurationFormComponent: React.FC<ResourceFormProps> = ({
+interface ComponentProps extends ResourceFormProps {
+  initValues: Record<string, any>;
+}
+
+const ResourceConfigurationFormComponent: React.FC<ComponentProps> = ({
   title,
   description,
   parameters,
@@ -57,26 +66,10 @@ const ResourceConfigurationFormComponent: React.FC<ResourceFormProps> = ({
   onDelete,
   onSave,
   onBack,
+  initValues,
 }) => {
-  // Assign defaults
-  let defaults: { name?: string; [key: string]: any } = {};
-  if (includeNameField) {
-    defaults.name = "";
-  }
-
-  for (const definition of parameterDefinitions) {
-    defaults[definition.name] = definition.default;
-  }
-
-  // Override with existing values if present
-  if (parameters != null) {
-    for (const parameter of parameters) {
-      defaults[parameter.name] = parameter.value;
-    }
-  }
-
   const [formValues, setFormValues] =
-    useState<{ [key: string]: any }>(defaults);
+    useState<{ [key: string]: any }>(initValues);
 
   const { errors } = useValidationContext();
 
@@ -173,9 +166,41 @@ const ResourceConfigurationFormComponent: React.FC<ResourceFormProps> = ({
 };
 
 export const ResourceConfigForm: React.FC<ResourceFormProps> = (props) => {
+  // Assign defaults
+  let defaults: { name?: string; [key: string]: any } = {};
+  if (props.includeNameField) {
+    defaults.name = "";
+  }
+
+  for (const definition of props.parameterDefinitions) {
+    defaults[definition.name] = definition.default;
+  }
+
+  // Override with existing values if present
+  if (props.parameters != null) {
+    for (const parameter of props.parameters) {
+      defaults[parameter.name] = parameter.value;
+    }
+  }
+
+  // Get initial errors
+  const initErrors: Record<string, string | null> = {};
+  for (const definition of props.parameterDefinitions) {
+    switch (definition.type) {
+      case ParameterType.Strings:
+        initErrors[definition.name] = validateStringsField(
+          defaults[definition.name],
+          definition.required
+        );
+        break;
+      default:
+        initErrors[definition.name] = null;
+    }
+  }
+
   return (
-    <ValidationContextProvider>
-      <ResourceConfigurationFormComponent {...props} />
+    <ValidationContextProvider initErrors={initErrors}>
+      <ResourceConfigurationFormComponent initValues={defaults} {...props} />
     </ValidationContextProvider>
   );
 };
