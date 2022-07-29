@@ -63,6 +63,35 @@ spec:
           value: true
       advancedConfig: true
 
+    - name: metric_filtering
+      label: Metric Filtering
+      type: bool
+      default: false
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    - name: disable_metrics
+      label: Disable Metrics
+      type: enums
+      validValues:
+        - rabbitmq.consumer.count
+        - rabbitmq.message.delivered
+        - rabbitmq.message.published
+        - rabbitmq.message.acknowledged
+        - rabbitmq.message.dropped
+        - rabbitmq.message.current
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+        - name: metric_filtering
+          operator: equals
+          value: true
+      advancedConfig: true
+
     # Metrics TLS Settings #
 
     - name: enable_tls
@@ -175,6 +204,15 @@ spec:
           {{ else }}
             insecure: true
           {{ end }}
+
+          {{ if .disable_metrics }}
+          metrics:
+            {{ range $m := .disable_metrics }}
+            {{ $m }}:
+              enabled: false
+            {{ end }}
+          {{ end }}
+
       {{ end }}
 
     processors: |
