@@ -1,0 +1,80 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: SourceType
+metadata:
+  name: sqlserver
+  displayName: Microsoft SQL Server
+  icon: /icons/sources/sqlserver.svg
+  description: Microsoft SQL Server metrics and logs
+spec:
+  version: 0.0.1
+  supported_platforms:
+    - windows
+  parameters:
+    # Metrics
+    #
+    - name: enable_metrics
+      label: Enable Metrics
+      description: Enable to collect metrics.
+      type: bool
+      default: true
+
+    - name: collection_interval
+      label: Collection Interval
+      description: How often (seconds) to scrape for metrics.
+      type: int
+      default: 60
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    # Logging
+    #
+    - name: enable_logs
+      label: Enable Logs
+      description: Enable to collect logs.
+      type: bool
+      default: true
+
+    - name: start_at
+      label: Start At
+      description: Start reading file from 'beginning' or 'end'.
+      type: enum
+      validValues:
+        - beginning
+        - end
+      default: end
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+      advancedConfig: true
+
+  metrics:
+    receivers: |
+      {{ if .enable_metrics }}
+      - sqlserver:
+          collection_interval: {{ .collection_interval }}s
+      {{ end }}
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]
+
+  logs:
+    receivers: |
+      {{ if .enable_logs }}
+      - plugin:
+          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/sql_server_logs.yaml
+          parameters:
+            start_at: {{ .start_at }}
+      {{ end }}
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]

@@ -1,0 +1,544 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EnumsParameter renders correctly 1`] = `
+Array [
+  <label
+    className="MuiInputLabel-root MuiInputLabel-animated MuiFormLabel-root MuiFormLabel-colorPrimary css-9npbnl-MuiFormLabel-root-MuiInputLabel-root"
+  >
+    Label
+  </label>,
+  <p
+    className="MuiFormHelperText-root css-1d1r5q-MuiFormHelperText-root"
+  >
+    description
+  </p>,
+  <div
+    className="css-nen11g-MuiStack-root"
+  >
+    <label
+      className="MuiFormControlLabel-root MuiFormControlLabel-labelPlacementEnd css-j204z7-MuiFormControlLabel-root"
+    >
+      <span
+        className="MuiSwitch-root MuiSwitch-sizeSmall css-1ycxvqq-MuiSwitch-root"
+      >
+        <span
+          className="MuiSwitch-switchBase MuiSwitch-colorPrimary MuiButtonBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary PrivateSwitchBase-root css-5ryogn-MuiButtonBase-root-MuiSwitch-switchBase"
+          onBlur={[Function]}
+          onContextMenu={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={null}
+        >
+          <input
+            className="MuiSwitch-input PrivateSwitchBase-input css-1m9pwf3"
+            onChange={[Function]}
+            type="checkbox"
+          />
+          <span
+            className="MuiSwitch-thumb css-jsexje-MuiSwitch-thumb"
+          />
+          <span
+            className="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </span>
+        <span
+          className="MuiSwitch-track css-1yjjitx-MuiSwitch-track"
+        />
+      </span>
+      <span
+        className="MuiTypography-root MuiTypography-body1 MuiFormControlLabel-label css-ahj2mt-MuiTypography-root"
+      >
+        one
+      </span>
+    </label>
+    <label
+      className="MuiFormControlLabel-root MuiFormControlLabel-labelPlacementEnd css-j204z7-MuiFormControlLabel-root"
+    >
+      <span
+        className="MuiSwitch-root MuiSwitch-sizeSmall css-1ycxvqq-MuiSwitch-root"
+      >
+        <span
+          className="MuiSwitch-switchBase MuiSwitch-colorPrimary MuiButtonBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary PrivateSwitchBase-root css-5ryogn-MuiButtonBase-root-MuiSwitch-switchBase"
+          onBlur={[Function]}
+          onContextMenu={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={null}
+        >
+          <input
+            className="MuiSwitch-input PrivateSwitchBase-input css-1m9pwf3"
+            onChange={[Function]}
+            type="checkbox"
+          />
+          <span
+            className="MuiSwitch-thumb css-jsexje-MuiSwitch-thumb"
+          />
+          <span
+            className="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </span>
+        <span
+          className="MuiSwitch-track css-1yjjitx-MuiSwitch-track"
+        />
+      </span>
+      <span
+        className="MuiTypography-root MuiTypography-body1 MuiFormControlLabel-label css-ahj2mt-MuiTypography-root"
+      >
+        two
+      </span>
+    </label>
+    <label
+      className="MuiFormControlLabel-root MuiFormControlLabel-labelPlacementEnd css-j204z7-MuiFormControlLabel-root"
+    >
+      <span
+        className="MuiSwitch-root MuiSwitch-sizeSmall css-1ycxvqq-MuiSwitch-root"
+      >
+        <span
+          className="MuiSwitch-switchBase MuiSwitch-colorPrimary MuiButtonBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary PrivateSwitchBase-root css-5ryogn-MuiButtonBase-root-MuiSwitch-switchBase"
+          onBlur={[Function]}
+          onContextMenu={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={null}
+        >
+          <input
+            className="MuiSwitch-input PrivateSwitchBase-input css-1m9pwf3"
+            onChange={[Function]}
+            type="checkbox"
+          />
+          <span
+            className="MuiSwitch-thumb css-jsexje-MuiSwitch-thumb"
+          />
+          <span
+            className="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </span>
+        <span
+          className="MuiSwitch-track css-1yjjitx-MuiSwitch-track"
+        />
+      </span>
+      <span
+        className="MuiTypography-root MuiTypography-body1 MuiFormControlLabel-label css-ahj2mt-MuiTypography-root"
+      >
+        three
+      </span>
+    </label>
+    <label
+      className="MuiFormControlLabel-root MuiFormControlLabel-labelPlacementEnd css-j204z7-MuiFormControlLabel-root"
+    >
+      <span
+        className="MuiSwitch-root MuiSwitch-sizeSmall css-1ycxvqq-MuiSwitch-root"
+      >
+        <span
+          className="MuiSwitch-switchBase MuiSwitch-colorPrimary MuiButtonBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary PrivateSwitchBase-root css-5ryogn-MuiButtonBase-root-MuiSwitch-switchBase"
+          onBlur={[Function]}
+          onContextMenu={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={null}
+        >
+          <input
+            className="MuiSwitch-input PrivateSwitchBase-input css-1m9pwf3"
+            onChange={[Function]}
+            type="checkbox"
+          />
+          <span
+            className="MuiSwitch-thumb css-jsexje-MuiSwitch-thumb"
+          />
+          <span
+            className="MuiTouchRipple-root css-8je8zh-MuiTouchRipple-root"
+          />
+        </span>
+        <span
+          className="MuiSwitch-track css-1yjjitx-MuiSwitch-track"
+        />
+      </span>
+      <span
+        className="MuiTypography-root MuiTypography-body1 MuiFormControlLabel-label css-ahj2mt-MuiTypography-root"
+      >
+        four
+      </span>
+    </label>
+  </div>,
+]
+`;
+
+exports[`MapParamInput renders correctly 1`] = `
+Array [
+  <label
+    aria-required={true}
+    htmlFor="map_type_param"
+  >
+    Label
+     *
+  </label>,
+  <p
+    className="MuiFormHelperText-root css-1d1r5q-MuiFormHelperText-root"
+  >
+    description
+  </p>,
+  <div
+    className="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-1 css-1fshczy-MuiGrid-root"
+  >
+    <div
+      className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-6 css-1osj8n2-MuiGrid-root"
+    >
+      <p
+        className="MuiTypography-root MuiTypography-body1 css-1ksu6kl-MuiTypography-root"
+      >
+        Key
+      </p>
+    </div>
+    <div
+      className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-6 css-1osj8n2-MuiGrid-root"
+    >
+      <p
+        className="MuiTypography-root MuiTypography-body1 css-13qb2yq-MuiTypography-root"
+      >
+        Value
+      </p>
+    </div>
+  </div>,
+  <div
+    className="css-1okj3ks-MuiStack-root"
+  >
+    <div
+      className="css-w4z10b-MuiStack-root"
+    >
+      <div
+        className="MuiOutlinedInput-root MuiInputBase-root MuiInputBase-colorPrimary MuiInputBase-sizeSmall css-9ddj71-MuiInputBase-root-MuiOutlinedInput-root"
+        data-testid="map_type_param-0-0-input"
+        onClick={[Function]}
+      >
+        <input
+          className="MuiOutlinedInput-input MuiInputBase-input MuiInputBase-inputSizeSmall css-1n4twyu-MuiInputBase-input-MuiOutlinedInput-input"
+          onAnimationStart={[Function]}
+          onBlur={[Function]}
+          onChange={[Function]}
+          onFocus={[Function]}
+          type="text"
+          value=""
+        />
+        <fieldset
+          aria-hidden={true}
+          className="MuiOutlinedInput-notchedOutline css-1d3z3hw-MuiOutlinedInput-notchedOutline"
+        >
+          <legend
+            className="css-hdw1oc"
+          >
+            <span
+              className="notranslate"
+            >
+              ​
+            </span>
+          </legend>
+        </fieldset>
+      </div>
+      <div
+        className="MuiOutlinedInput-root MuiInputBase-root MuiInputBase-colorPrimary MuiInputBase-sizeSmall css-9ddj71-MuiInputBase-root-MuiOutlinedInput-root"
+        data-testid="map_type_param-0-1-input"
+        onClick={[Function]}
+      >
+        <input
+          className="MuiOutlinedInput-input MuiInputBase-input MuiInputBase-inputSizeSmall css-1n4twyu-MuiInputBase-input-MuiOutlinedInput-input"
+          onAnimationStart={[Function]}
+          onBlur={[Function]}
+          onChange={[Function]}
+          onFocus={[Function]}
+          type="text"
+          value=""
+        />
+        <fieldset
+          aria-hidden={true}
+          className="MuiOutlinedInput-notchedOutline css-1d3z3hw-MuiOutlinedInput-notchedOutline"
+        >
+          <legend
+            className="css-hdw1oc"
+          >
+            <span
+              className="notranslate"
+            >
+              ​
+            </span>
+          </legend>
+        </fieldset>
+      </div>
+      <button
+        className="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-1pe4mpk-MuiButtonBase-root-MuiIconButton-root"
+        data-testid="map_type_param-0-remove-button"
+        disabled={false}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onContextMenu={[Function]}
+        onDragLeave={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        tabIndex={0}
+        type="button"
+      >
+        <svg
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+          width={18}
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <polyline
+            points="3 6 5 6 21 6"
+          />
+          <path
+            d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>,
+  <div
+    className="MuiBox-root css-1um4smj"
+  >
+    <button
+      className="MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButtonBase-root  css-1e6y48t-MuiButtonBase-root-MuiButton-root"
+      disabled={false}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onContextMenu={[Function]}
+      onDragLeave={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      tabIndex={0}
+      type="button"
+    >
+      <span
+        className="MuiButton-startIcon MuiButton-iconSizeMedium css-1d6wzja-MuiButton-startIcon"
+      >
+        <svg
+          className="feather feather-plus-circle"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+          />
+          <line
+            x1="12"
+            x2="12"
+            y1="8"
+            y2="16"
+          />
+          <line
+            x1="8"
+            x2="16"
+            y1="12"
+            y2="12"
+          />
+        </svg>
+      </span>
+      New Row
+    </button>
+  </div>,
+]
+`;
+
+exports[`YamlParameter renders correctly 1`] = `
+<div
+  className="MuiFormControl-root MuiFormControl-fullWidth css-q8hpuo-MuiFormControl-root"
+>
+  <label
+    className="MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated MuiInputLabel-outlined MuiFormLabel-root MuiFormLabel-colorPrimary Mui-required css-14s5rfu-MuiFormLabel-root-MuiInputLabel-root"
+    data-shrink={false}
+    htmlFor="yaml_type_param"
+    style={
+      Object {
+        "backgroundColor": "#fff",
+        "color": undefined,
+        "padding": undefined,
+      }
+    }
+  >
+    Label
+    <span
+      aria-hidden={true}
+      className="MuiInputLabel-asterisk MuiFormLabel-asterisk css-wgai2y-MuiFormLabel-asterisk"
+    >
+       
+      *
+    </span>
+  </label>
+  <div>
+    <div
+      className="w-tc-editor code-container expanded"
+      style={
+        Object {
+          "backgroundColor": "#fff",
+          "border": "1px solid #aaa",
+          "boxSizing": "border-box",
+          "fontFamily": "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+          "fontSize": 12,
+          "overflow": "hidden",
+          "padding": 0,
+          "position": "relative",
+          "textAlign": "left",
+        }
+      }
+    >
+      <textarea
+        autoCapitalize="off"
+        autoComplete="off"
+        autoCorrect="off"
+        className="w-tc-editor-text"
+        data-testid="yaml-editor"
+        name="yaml_type_param"
+        onBlur={[Function]}
+        onChange={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        required={true}
+        spellCheck="false"
+        style={
+          Object {
+            "MozOsxFontSmoothing": "grayscale",
+            "WebkitFontSmoothing": "antialiased",
+            "WebkitTextFillColor": "transparent",
+            "background": "none",
+            "border": 0,
+            "boxSizing": "inherit",
+            "color": "inherit",
+            "display": "inherit",
+            "fontFamily": "inherit",
+            "fontSize": "inherit",
+            "fontStyle": "inherit",
+            "fontVariantLigatures": "inherit",
+            "fontWeight": "inherit",
+            "height": "100%",
+            "left": 0,
+            "letterSpacing": "inherit",
+            "lineHeight": "inherit",
+            "margin": 0,
+            "minHeight": 200,
+            "opacity": 0.8,
+            "outline": 0,
+            "overflow": "hidden",
+            "overflowWrap": "break-word",
+            "paddingBottom": 15,
+            "paddingLeft": 15,
+            "paddingRight": 15,
+            "paddingTop": 15,
+            "position": "absolute",
+            "resize": "none",
+            "tabSize": "inherit",
+            "textIndent": "inherit",
+            "textRendering": "inherit",
+            "textTransform": "inherit",
+            "top": 0,
+            "whiteSpace": "pre-wrap",
+            "width": "100%",
+            "wordBreak": "keep-all",
+          }
+        }
+        value=""
+      />
+      <div
+        className="w-tc-editor-preview language-yaml"
+        dangerouslySetInnerHTML={
+          Object {
+            "__html": "<pre aria-hidden=\\"true\\"><code class=\\"code-highlight\\"></code><br></pre>",
+          }
+        }
+        style={
+          Object {
+            "background": "none",
+            "border": 0,
+            "boxSizing": "inherit",
+            "display": "inherit",
+            "fontFamily": "inherit",
+            "fontSize": "inherit",
+            "fontStyle": "inherit",
+            "fontVariantLigatures": "inherit",
+            "fontWeight": "inherit",
+            "letterSpacing": "inherit",
+            "lineHeight": "inherit",
+            "margin": 0,
+            "minHeight": 200,
+            "outline": 0,
+            "overflowWrap": "break-word",
+            "paddingBottom": 15,
+            "paddingLeft": 15,
+            "paddingRight": 15,
+            "paddingTop": 15,
+            "tabSize": "inherit",
+            "textIndent": "inherit",
+            "textRendering": "inherit",
+            "textTransform": "inherit",
+            "whiteSpace": "pre-wrap",
+            "wordBreak": "keep-all",
+          }
+        }
+      />
+    </div>
+  </div>
+  <p
+    className="MuiFormHelperText-root MuiFormHelperText-sizeMedium MuiFormHelperText-contained Mui-required css-1wc848c-MuiFormHelperText-root"
+  >
+    description
+  </p>
+</div>
+`;

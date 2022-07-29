@@ -1,0 +1,211 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: SourceType
+metadata:
+  name: hadoop
+  displayName: Hadoop
+  icon: /icons/sources/hadoop.svg
+  description: Apache Hadoop metrics and logs
+spec:
+  version: 0.0.1
+  supported_platforms:
+    - macos
+    - linux
+    - windows
+  parameters:
+    # Metric
+    - name: enable_metrics
+      label: Enable Metrics
+      description: Enable to send metrics.
+      type: bool
+      default: true
+
+    - name: collection_interval
+      label: Collection Interval
+      description: How often (seconds) to scrape for metrics.
+      type: int
+      default: 60
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: address
+      label: Address
+      description: IP address or hostname to scrape for JMX metrics.
+      type: string
+      default: localhost
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: port
+      label: Port
+      description: Port to scrape for JMX metrics.
+      type: int
+      default: 8004
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: jar_path
+      label: JMX Metrics Collection Jar Path
+      description: Full path to the JMX metrics jar.
+      type: string
+      default: "/opt/opentelemetry-java-contrib-jmx-metrics.jar"
+      advancedConfig: true
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    # Logs
+    - name: enable_logs
+      label: Enable Logs
+      description: Enable to send logs.
+      type: bool
+      default: true
+
+    - name: enable_datanode_logs
+      label: Datanode Logs
+      description: Enable to collect datanode logs.
+      type: bool
+      default: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+    - name: datanode_log_path
+      label: Datanode File Path(s)
+      description: File paths to tail for datanode logs.
+      type: strings
+      default:
+        - "/usr/local/hadoop/logs/hadoop-*-datanode-*.log"
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+        - name: enable_datanode_logs
+          operator: equals
+          value: true
+
+    - name: enable_resourcemgr_logs
+      label: Resource Manager Logs
+      description: Enable to collect resource manager logs.
+      type: bool
+      default: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+    - name: resourcemgr_log_path
+      label: Resource Manager File Path(s)
+      description: File paths to tail for resource manager logs.
+      type: strings
+      default:
+        - "/usr/local/hadoop/logs/hadoop-*-resourcemgr-*.log"
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+        - name: enable_resourcemgr_logs
+          operator: equals
+          value: true
+
+    - name: enable_namenode_logs
+      label: Namenode Logs
+      description: Enable to collect namenode logs.
+      type: bool
+      default: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+    - name: namenode_log_path
+      label: Namenode File Path(s)
+      description: File paths to tail for namenode logs.
+      type: strings
+      default:
+        - "/usr/local/hadoop/logs/hadoop-*-namenode-*.log"
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+        - name: enable_namenode_logs
+          operator: equals
+          value: true
+
+    - name: start_at
+      label: Start At
+      description: Start reading file from 'beginning' or 'end'.
+      type: enum
+      validValues:
+        - beginning
+        - end
+      default: end
+      advancedConfig: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+  metrics:
+    receivers: |
+      {{ if .enable_metrics }}
+      - jmx:
+          jar_path: {{ .jar_path }}
+          collection_interval: {{ .collection_interval }}s
+          endpoint: {{ .address }}:{{ .port }}
+          target_system: hadoop
+          resource_attributes:
+            hadoop.endpoint: {{ .address }}:{{ .port }}
+      {{ end }}
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]
+
+  logs:
+    receivers: |
+      {{ if .enable_logs }}
+      - plugin:
+          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/hadoop_logs.yaml
+          parameters:
+            start_at: {{ .start_at }}
+
+            enable_datanode_logs: {{ .enable_datanode_logs }}
+            {{ if .enable_datanode_logs }}
+            datanode_log_path:
+              {{ range $fp := .datanode_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+            {{ end }}
+
+            enable_resourcemgr_logs: {{ .enable_resourcemgr_logs }}
+            {{ if .enable_resourcemgr_logs }}
+            resourcemgr_log_path:
+              {{ range $fp := .resourcemgr_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+            {{ end }}
+
+            enable_namenode_logs: {{ .enable_namenode_logs }}
+            {{ if .enable_namenode_logs }}
+            namenode_log_path:
+              {{ range $fp := .namenode_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+            {{ end }}
+      {{ end }}
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]

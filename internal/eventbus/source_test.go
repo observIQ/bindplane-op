@@ -356,12 +356,12 @@ func TestEventBusRelay(t *testing.T) {
 
 			Relay(ctx, src, dst)
 
+			channel, unsubscribe := Subscribe(dst)
+			defer unsubscribe()
+
 			for _, event := range test.events {
 				src.Send(event)
 			}
-
-			channel, unsubscribe := Subscribe(dst)
-			defer unsubscribe()
 
 			for i := 0; i < len(test.events); i++ {
 				val := <-channel
@@ -394,12 +394,12 @@ func TestEventBusRelayWithFilter(t *testing.T) {
 
 			RelayWithFilter(ctx, src, func(val int) (int, bool) { return val * 2, true }, dst)
 
+			channel, unsubscribe := Subscribe(dst)
+			defer unsubscribe()
+
 			for _, event := range test.events {
 				src.Send(event)
 			}
-
-			channel, unsubscribe := Subscribe(dst)
-			defer unsubscribe()
 
 			for i := 0; i < len(test.events); i++ {
 				val := <-channel
@@ -440,12 +440,12 @@ func TestEventBusRelayWithFilterUnbounded(t *testing.T) {
 			// WithUnboundedChannel is needed to write 1000 events without reading
 			RelayWithFilter(ctx, src, func(val int) (int, bool) { return val * 2, true }, dst, WithUnboundedChannel[int](0))
 
+			channel, unsubscribe := Subscribe(dst)
+			defer unsubscribe()
+
 			for _, event := range test.events {
 				src.Send(event)
 			}
-
-			channel, unsubscribe := Subscribe(dst)
-			defer unsubscribe()
 
 			for i := 0; i < len(test.events); i++ {
 				val := <-channel

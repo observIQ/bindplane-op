@@ -14,8 +14,10 @@ import {
   Parameter,
   ResourceConfiguration,
   GetProcessorTypesQuery,
+  ParameterType,
 } from "../../graphql/generated";
 import { BPResourceConfiguration } from "../../utils/classes";
+import { validateStringsField, validateMapField } from "./validation-functions";
 
 enum Page {
   MAIN,
@@ -75,12 +77,15 @@ interface ResourceFormProps {
   onBack?: () => void;
 }
 
-const ResourceConfigurationFormComponent: React.FC<ResourceFormProps> = ({
+interface ComponentProps extends ResourceFormProps {
+  initValues: Record<string, any>;
+}
+
+const ResourceConfigurationFormComponent: React.FC<ComponentProps> = ({
   title,
   description,
   parameters,
   parameterDefinitions,
-  processors,
   enableProcessors,
   includeNameField,
   existingResourceNames,
@@ -89,14 +94,8 @@ const ResourceConfigurationFormComponent: React.FC<ResourceFormProps> = ({
   onSave,
   saveButtonLabel,
   onBack,
+  initValues,
 }) => {
-  const initValues = initFormValues(
-    parameterDefinitions,
-    parameters,
-    processors,
-    includeNameField
-  );
-
   const [formValues, setFormValues] = useState<FormValues>(initValues);
 
   // This is passed down to determine whether to enable the primary save button.
@@ -222,9 +221,39 @@ const ResourceConfigurationFormComponent: React.FC<ResourceFormProps> = ({
 };
 
 export const ResourceConfigForm: React.FC<ResourceFormProps> = (props) => {
+  const { parameterDefinitions, parameters, processors, includeNameField } =
+    props;
+  const initValues = initFormValues(
+    parameterDefinitions,
+    parameters,
+    processors,
+    includeNameField
+  );
+
+  // Get initial errors
+  const initErrors: Record<string, string | null> = {};
+  for (const definition of props.parameterDefinitions) {
+    switch (definition.type) {
+      case ParameterType.Strings:
+        initErrors[definition.name] = validateStringsField(
+          initValues[definition.name],
+          definition.required
+        );
+        break;
+      case ParameterType.Map:
+        initErrors[definition.name] = validateMapField(
+          initValues[definition.name],
+          definition.required
+        );
+        break;
+      default:
+        initErrors[definition.name] = null;
+    }
+  }
+
   return (
-    <ValidationContextProvider>
-      <ResourceConfigurationFormComponent {...props} />
+    <ValidationContextProvider initErrors={initErrors}>
+      <ResourceConfigurationFormComponent initValues={initValues} {...props} />
     </ValidationContextProvider>
   );
 };
