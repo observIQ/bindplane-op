@@ -17,10 +17,13 @@ package model
 import (
 	"fmt"
 	"go/token"
+	"reflect"
 	"strconv"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/observiq/bindplane-op/model/validation"
 	"github.com/observiq/stanza/errors"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -29,6 +32,9 @@ const (
 	intType     = "int"
 	stringsType = "strings"
 	enumType    = "enum"
+	enumsType   = "enums"
+	yamlType    = "yaml"
+	mapType     = "map"
 )
 
 // ParameterDefinition is a basic description of a definition's parameter. This implementation comes directly from
@@ -105,7 +111,7 @@ func (p ParameterDefinition) validateType() error {
 		)
 	}
 	switch p.Type {
-	case stringType, intType, boolType, stringsType, enumType: // ok
+	case stringType, intType, boolType, stringsType, enumType, enumsType, mapType, yamlType: // ok
 	default:
 		return errors.NewError(
 			fmt.Sprintf("invalid type '%s' for '%s'", p.Type, p.Name),
@@ -117,17 +123,17 @@ func (p ParameterDefinition) validateType() error {
 
 func (p ParameterDefinition) validateValidValues() error {
 	switch p.Type {
-	case stringType, intType, boolType, stringsType:
+	case stringType, intType, boolType, stringsType, yamlType, mapType:
 		if len(p.ValidValues) > 0 {
 			return errors.NewError(
 				fmt.Sprintf("validValues is undefined for parameter of type '%s'", p.Type),
-				"remove 'validValues' field or change type to 'enum'",
+				"remove 'validValues' field or change type to 'enum' or 'enums",
 			)
 		}
-	case enumType:
+	case enumType, enumsType:
 		if len(p.ValidValues) == 0 {
 			return errors.NewError(
-				"parameter of type 'enum' must have 'validValues' specified",
+				"parameter of type 'enum' or 'enums' must have 'validValues' specified",
 				"specify an array that includes one or more valid values",
 			)
 		}
@@ -165,6 +171,12 @@ func (p ParameterDefinition) validateValueType(fieldType parameterFieldType, val
 		return p.validateStringArrayValue(fieldType, value)
 	case enumType:
 		return p.validateEnumValue(fieldType, value)
+	case enumsType:
+		return p.validateEnumsValue(fieldType, value)
+	case mapType:
+		return p.validateMapValue(fieldType, value)
+	case yamlType:
+		return p.validateYamlValue(fieldType, value)
 	default:
 		return errors.NewError(
 			"invalid type for parameter",
@@ -266,4 +278,73 @@ func (p ParameterDefinition) validateEnumValue(fieldType parameterFieldType, val
 		fmt.Sprintf("%s value for '%s' must be one of %v", fieldType, p.Name, p.ValidValues),
 		fmt.Sprintf("ensure %s value is listed as a valid value", fieldType),
 	)
+}
+
+func (p ParameterDefinition) validateEnumsValue(fieldType parameterFieldType, value any) error {
+	def, ok := value.([]any)
+	if !ok {
+		return errors.NewError(
+			fmt.Sprintf("%s value for enums parameter '%s'", fieldType, p.Name),
+			fmt.Sprintf("ensure that the %s value is a string array", fieldType),
+		)
+	}
+
+	// Make sure all strings in the value are a validValue
+	err := &multierror.Error{}
+	for _, str := range def {
+		var containsValue bool
+		for _, validValue := range p.ValidValues {
+			if str == validValue {
+				containsValue = true
+				break
+			}
+		}
+
+		if !containsValue {
+			multierror.Append(err,
+				errors.NewError(
+					fmt.Sprintf("%s value for '%s' must be one of %v", fieldType, p.Name, p.ValidValues),
+					fmt.Sprintf("ensure that all values for %s are in %v", p.Name, p.ValidValues),
+				),
+			)
+		}
+	}
+
+	return err.ErrorOrNil()
+}
+
+func (p ParameterDefinition) validateYamlValue(fieldType parameterFieldType, value any) error {
+	str, ok := value.(string)
+	if !ok {
+		return errors.NewError(
+			fmt.Sprintf("expected a string for parameter %s", p.Name),
+			fmt.Sprintf("ensure that the value is a string"),
+		)
+	}
+
+	var into any
+	return yaml.Unmarshal([]byte(str), &into)
+}
+
+func (p ParameterDefinition) validateMapValue(fieldType parameterFieldType, value any) error {
+	reflectValue := reflect.ValueOf(value)
+	kind := reflectValue.Kind()
+	if kind != reflect.Map {
+		return errors.NewError(
+			fmt.Sprintf("expected type map for parameter %s but got %s", p.Name, kind),
+			"ensure parameter is map[string]string",
+		)
+	}
+
+	if m, ok := value.(map[string]any); ok {
+		for _, v := range m {
+			if k, ok := v.(string); !ok {
+				return errors.NewError(
+					fmt.Sprintf("expected type string for value for key %s in map", k),
+					fmt.Sprintf("ensure all values in map are strings"),
+				)
+			}
+		}
+	}
+	return nil
 }

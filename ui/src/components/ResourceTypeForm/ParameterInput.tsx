@@ -1,27 +1,40 @@
 import {
   Autocomplete,
+  Box,
+  Button,
   Chip,
+  FormControl,
   FormControlLabel,
+  FormHelperText,
+  Grid,
+  IconButton,
+  InputLabel,
+  OutlinedInput,
+  Stack,
   Switch,
   TextField,
+  Typography,
 } from "@mui/material";
 import { isArray, isEmpty, isFunction } from "lodash";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useMemo, useState } from "react";
 import { ParameterDefinition, ParameterType } from "../../graphql/generated";
 import { validateNameField } from "../../utils/forms/validate-name-field";
 import { useValidationContext } from "./ValidationContext";
 import { classes as classesUtil } from "../../utils/styles";
+import { YamlEditor } from "../YamlEditor";
+import { PlusCircleIcon, TrashIcon } from "../Icons";
+import { validateMapField, validateStringsField } from "./validation-functions";
 
 import styles from "./parameter-input.module.scss";
 
-interface ParamInputProps {
+interface ParamInputProps<T> {
   classes?: { [name: string]: string };
   definition: ParameterDefinition;
-  value?: any;
-  onValueChange?: (v: any) => void;
+  value?: T;
+  onValueChange?: (v: T) => void;
 }
 
-export const ParameterInput: React.FC<ParamInputProps> = (props) => {
+export const ParameterInput: React.FC<ParamInputProps<any>> = (props) => {
   let classes = props.classes;
   if (props.definition.relevantIf != null) {
     classes = Object.assign(classes || {}, {
@@ -35,14 +48,20 @@ export const ParameterInput: React.FC<ParamInputProps> = (props) => {
       return <StringsInput classes={classes} {...props} />;
     case ParameterType.Enum:
       return <EnumParamInput classes={classes} {...props} />;
+    case ParameterType.Enums:
+      return <EnumsParamInput classes={classes} {...props} />;
     case ParameterType.Bool:
       return <BoolParamInput classes={classes} {...props} />;
     case ParameterType.Int:
       return <IntParamInput classes={classes} {...props} />;
+    case ParameterType.Map:
+      return <MapParamInput classes={classes} {...props} />;
+    case ParameterType.Yaml:
+      return <YamlParamInput classes={classes} {...props} />;
   }
 };
 
-export const StringParamInput: React.FC<ParamInputProps> = ({
+export const StringParamInput: React.FC<ParamInputProps<string>> = ({
   classes,
   definition,
   value,
@@ -69,7 +88,7 @@ export const StringParamInput: React.FC<ParamInputProps> = ({
   );
 };
 
-export const EnumParamInput: React.FC<ParamInputProps> = ({
+export const EnumParamInput: React.FC<ParamInputProps<string>> = ({
   classes,
   definition,
   value,
@@ -100,13 +119,241 @@ export const EnumParamInput: React.FC<ParamInputProps> = ({
   );
 };
 
-export const StringsInput: React.FC<ParamInputProps> = ({
+export const EnumsParamInput: React.FC<ParamInputProps<string[]>> = ({
+  classes,
+  definition,
+  value,
+  onValueChange,
+}) => {
+  function handleToggleValue(
+    event: ChangeEvent<HTMLInputElement>,
+    checked: boolean,
+    toggleValue: string
+  ) {
+    const newValue = [...(value ?? [])];
+    if (checked) {
+      // Make sure that toggleValue is in new value array
+      if (!newValue.includes(toggleValue)) {
+        newValue.push(toggleValue);
+      }
+    } else {
+      // Remove the toggle value from the array
+      const atIndex = newValue.findIndex((v) => v === toggleValue);
+      if (atIndex > -1) {
+        newValue.splice(atIndex, 1);
+      }
+    }
+
+    onValueChange && onValueChange(newValue);
+  }
+
+  return (
+    <>
+      <InputLabel>{definition.label}</InputLabel>
+      <FormHelperText>{definition.description}</FormHelperText>
+      <Stack>
+        {definition.validValues!.map((vv) => (
+          <FormControlLabel
+            key={`${definition.name}-label-${vv}`}
+            control={
+              <Switch
+                key={`${definition.name}-switch-${vv}`}
+                size="small"
+                onChange={(e, c) => handleToggleValue(e, c, vv)}
+                checked={value?.includes(vv)}
+              />
+            }
+            label={vv}
+          />
+        ))}
+      </Stack>
+    </>
+  );
+};
+
+export const YamlParamInput: React.FC<ParamInputProps<string>> = ({
+  classes,
+  definition,
+  value,
+  onValueChange,
+}) => {
+  const [isFocused, setFocused] = useState(false);
+
+  const shrinkLabel = isFocused || !isEmpty(value);
+
+  function handleValueChange(e: ChangeEvent<HTMLTextAreaElement>) {
+    isFunction(onValueChange) && onValueChange(e.target.value);
+  }
+
+  return (
+    <FormControl fullWidth classes={classes} required={definition.required}>
+      <InputLabel
+        shrink={shrinkLabel}
+        htmlFor={definition.name}
+        style={{
+          backgroundColor: "#fff",
+          color: shrinkLabel ? "#4abaeb" : undefined,
+          padding: shrinkLabel ? "0 10px 0 5px" : undefined,
+        }}
+      >
+        {definition.label}
+      </InputLabel>
+      <YamlEditor
+        required={definition.required}
+        name={definition.name}
+        value={value ?? ""}
+        onValueChange={handleValueChange}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        minHeight={200}
+      />
+      <FormHelperText>{definition.description}</FormHelperText>
+    </FormControl>
+  );
+};
+
+export const MapParamInput: React.FC<ParamInputProps<Record<string, string>>> =
+  ({ classes, definition, value, onValueChange }) => {
+    const initValue = valueToTupleArray(value);
+    const [controlValue, setControlValue] = useState<Tuple[]>(initValue);
+
+    const { errors, setError, touched, touch } = useValidationContext();
+
+    const onChangeInput = useMemo(() => {
+      return function (
+        e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+        row: number,
+        index: number
+      ) {
+        setControlValue((prev) => {
+          const newVal = [...prev];
+          newVal[row][index] = e.target.value;
+          return newVal;
+        });
+      };
+    }, []);
+
+    function handleBlur() {
+      if (!touched[definition.name]) {
+        touch(definition.name);
+      }
+
+      const mapValue = tupleArrayToMap(controlValue);
+      onValueChange && onValueChange(mapValue);
+      setError(
+        definition.name,
+        validateMapField(mapValue, definition.required)
+      );
+    }
+
+    function handleDeleteRow(rowIndex: number) {
+      const newControlValue = removeRow(controlValue, rowIndex);
+      setControlValue(newControlValue);
+
+      const mapValue = tupleArrayToMap(newControlValue);
+      onValueChange && onValueChange(mapValue);
+
+      setError(
+        definition.name,
+        validateMapField(mapValue, definition.required)
+      );
+    }
+
+    return (
+      <>
+        <label aria-required={definition.required} htmlFor={definition.name}>
+          {definition.label}
+          {definition.required && " *"}
+        </label>
+
+        {touched[definition.name] && errors[definition.name] && (
+          <FormHelperText key={"error-text"} error>
+            {errors[definition.name]}
+          </FormHelperText>
+        )}
+
+        <FormHelperText key={"description-text"}>
+          {definition.description}
+        </FormHelperText>
+
+        <Grid container spacing={1} marginY={1}>
+          <Grid item xs={6}>
+            <Typography marginLeft={4} fontWeight={600}>
+              Key
+            </Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <Typography marginLeft={2} fontWeight={600}>
+              Value
+            </Typography>
+          </Grid>
+        </Grid>
+
+        <Stack spacing={1}>
+          {controlValue.map(([k, v], rowIndex) => {
+            return (
+              <Stack
+                key={`${definition.name}-row-${rowIndex}`}
+                direction="row"
+                spacing={1}
+              >
+                <OutlinedInput
+                  key={`${definition.name}-${rowIndex}-0-input`}
+                  data-testid={`${definition.name}-${rowIndex}-0-input`}
+                  size="small"
+                  type="text"
+                  value={k}
+                  onChange={(e) => onChangeInput(e, rowIndex, 0)}
+                  onBlur={handleBlur}
+                />
+
+                <OutlinedInput
+                  key={`${definition.name}-${rowIndex}-1-input`}
+                  data-testid={`${definition.name}-${rowIndex}-1-input`}
+                  size="small"
+                  type="text"
+                  value={v}
+                  onChange={(e) => onChangeInput(e, rowIndex, 1)}
+                  onBlur={handleBlur}
+                />
+
+                <IconButton
+                  key={`${definition.name}-${rowIndex}-remove-button`}
+                  size={"small"}
+                  onClick={() => handleDeleteRow(rowIndex)}
+                  data-testid={`${definition.name}-${rowIndex}-remove-button`}
+                >
+                  <TrashIcon
+                    key={`${definition.name}-${rowIndex}-remove-icon`}
+                    width={18}
+                  />
+                </IconButton>
+                {/* </Grid> */}
+              </Stack>
+            );
+          })}
+        </Stack>
+
+        <Box marginLeft={1} marginTop={1}>
+          <Button
+            startIcon={<PlusCircleIcon />}
+            onClick={() => setControlValue((prev) => addRow(prev))}
+          >
+            New Row
+          </Button>
+        </Box>
+      </>
+    );
+  };
+
+export const StringsInput: React.FC<ParamInputProps<string[]>> = ({
   classes,
   definition,
   value,
   onValueChange,
 }) => {
   const [inputValue, setInputValue] = useState("");
+  const { setError, touched, errors, touch } = useValidationContext();
 
   // handleChipClick edits the selected chips value.
   function handleChipClick(ix: number) {
@@ -126,46 +373,70 @@ export const StringsInput: React.FC<ParamInputProps> = ({
   // Make sure we "enter" the value if a user leaves the
   // input without hitting enter
   function handleBlur() {
+    touch(definition.name);
     if (!isEmpty(inputValue)) {
-      setInputValue("");
-      onValueChange && onValueChange([...value, inputValue]);
+      handleValueChange([...(value ?? []), inputValue]);
     }
   }
 
+  function handleValueChange(newValue: string[]) {
+    onValueChange && onValueChange(newValue);
+
+    setError(
+      definition.name,
+      validateStringsField(newValue, definition.required)
+    );
+  }
+
+  const label = definition.required
+    ? `${definition.label} *`
+    : `${definition.label}`;
+
   return (
-    <Autocomplete
-      options={[]}
-      multiple
-      disableClearable
-      freeSolo
-      classes={classes}
-      // value and onChange pertain to the string[] value of the input
-      value={value}
-      onChange={(e, v: string[]) => onValueChange && onValueChange(v)}
-      // inputValue and onInputChange refer to the latest string value being entered
-      inputValue={inputValue}
-      onInputChange={(e, newValue) => setInputValue(newValue)}
-      onBlur={handleBlur}
-      renderTags={(value: readonly string[], getTagProps) =>
-        value.map((option: string, index: number) => (
-          <Chip
-            size="small"
-            variant="outlined"
-            label={option}
-            {...getTagProps({ index })}
-            classes={{ label: styles.chip }}
-            onClick={() => handleChipClick(index)}
+    <FormControl fullWidth>
+      <Autocomplete
+        options={[]}
+        multiple
+        disableClearable
+        freeSolo
+        classes={classes}
+        // value and onChange pertain to the string[] value of the input
+        value={value ?? []}
+        onChange={(e, v: string[]) => handleValueChange(v)}
+        // inputValue and onInputChange refer to the latest string value being entered
+        inputValue={inputValue}
+        onInputChange={(e, newValue) => setInputValue(newValue)}
+        onBlur={handleBlur}
+        renderTags={(value: readonly string[], getTagProps) =>
+          value.map((option: string, index: number) => (
+            <Chip
+              size="small"
+              variant="outlined"
+              label={option}
+              {...getTagProps({ index })}
+              classes={{ label: styles.chip }}
+              onClick={() => handleChipClick(index)}
+            />
+          ))
+        }
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label={label}
+            size={"small"}
+            helperText={definition.description}
+            id={definition.name}
           />
-        ))
-      }
-      renderInput={(params) => (
-        <TextField {...params} label={definition.label} size={"small"} />
+        )}
+      />
+      {touched[definition.name] && errors[definition.name] && (
+        <FormHelperText error={true}>{errors[definition.name]}</FormHelperText>
       )}
-    />
+    </FormControl>
   );
 };
 
-export const BoolParamInput: React.FC<ParamInputProps> = ({
+export const BoolParamInput: React.FC<ParamInputProps<boolean>> = ({
   classes,
   definition,
   value,
@@ -188,7 +459,7 @@ export const BoolParamInput: React.FC<ParamInputProps> = ({
   );
 };
 
-export const IntParamInput: React.FC<ParamInputProps> = ({
+export const IntParamInput: React.FC<ParamInputProps<number>> = ({
   classes,
   definition,
   value,
@@ -217,7 +488,8 @@ export const IntParamInput: React.FC<ParamInputProps> = ({
   );
 };
 
-interface ResourceNameInputProps extends Omit<ParamInputProps, "definition"> {
+interface ResourceNameInputProps
+  extends Omit<ParamInputProps<string>, "definition"> {
   existingNames?: string[];
   kind: "source" | "destination" | "configuration";
 }
@@ -265,3 +537,42 @@ export const ResourceNameInput: React.FC<ResourceNameInputProps> = ({
     />
   );
 };
+
+// Utility functions
+export type Tuple = [string, string];
+
+export function valueToTupleArray(value: any): Tuple[] {
+  try {
+    const tuples = Object.entries(value);
+
+    tuples.push(["", ""]);
+    return tuples as Tuple[];
+  } catch (err) {
+    return [["", ""]];
+  }
+}
+
+export function tupleArrayToMap(tuples: Tuple[]): Record<string, string> {
+  const mapValue: Record<string, string> = {};
+  for (const [k, v] of tuples) {
+    if (k === "") {
+      continue;
+    }
+
+    mapValue[k] = v;
+  }
+
+  return mapValue;
+}
+
+function addRow(tuples: Tuple[]): Tuple[] {
+  const newTuples = [...tuples];
+  newTuples.push(["", ""]);
+  return newTuples;
+}
+
+function removeRow(tuples: Tuple[], removeIndex: number): Tuple[] {
+  const newTuples = [...tuples];
+  newTuples.splice(removeIndex, 1);
+  return newTuples;
+}

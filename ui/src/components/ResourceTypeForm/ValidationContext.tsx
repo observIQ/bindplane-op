@@ -21,8 +21,16 @@ const defaultValue: ValidationContextValue = {
 
 const ValidationContext = createContext(defaultValue);
 
-export const ValidationContextProvider: React.FC = ({ children }) => {
-  const [errors, setErrors] = useState<Record<string, string | null>>({});
+interface Props {
+  initErrors: Record<string, string | null>;
+}
+
+export const ValidationContextProvider: React.FC<Props> = ({
+  children,
+  initErrors,
+}) => {
+  const [errors, setErrors] =
+    useState<Record<string, string | null>>(initErrors);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   function setError(parameterName: string, error: string | null) {
