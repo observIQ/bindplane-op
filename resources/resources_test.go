@@ -62,6 +62,17 @@ func TestValidateSourceTypes(t *testing.T) {
 	}
 }
 
+func TestValidateProcessorTypes(t *testing.T) {
+	paths := resourcePaths(t, "processor-types")
+	for _, path := range paths {
+		t.Run(path, func(t *testing.T) {
+			resource := fileResource[*model.ProcessorType](t, path)
+			err := resource.Validate()
+			require.NoError(t, err)
+		})
+	}
+}
+
 func TestValidateDestinationTypes(t *testing.T) {
 	paths := resourcePaths(t, "destination-types")
 	for _, path := range paths {

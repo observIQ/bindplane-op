@@ -82,6 +82,7 @@ type ResourceConfiguration {
   name: String
   type: String
   parameters: [Parameter!]
+  processors: [ResourceConfiguration!]
 }
 
 type Parameter {
@@ -158,6 +159,13 @@ type SourceType {
   spec: ResourceTypeSpec!
 }
 
+type ProcessorType {
+  apiVersion: String!
+  metadata: Metadata!
+  kind: String!
+  spec: ResourceTypeSpec!
+}
+
 type DestinationType {
   apiVersion: String!
   metadata: Metadata!
@@ -186,6 +194,9 @@ enum ParameterType {
   int
   bool
   enum
+  enums
+  map
+  yaml
 }
 
 type ParameterDefinition {
@@ -213,9 +224,16 @@ enum RelevantIfOperatorType {
 }
 
 # ----------------------------------------------------------------------
-# sources and destinations
+# sources, processors, and destinations
 
 type Source {
+  apiVersion: String!
+  kind: String!
+  metadata: Metadata!
+  spec: ParameterizedSpec!
+}
+
+type Processor {
   apiVersion: String!
   kind: String!
   metadata: Metadata!
@@ -259,6 +277,12 @@ type Query {
 
   sourceTypes: [SourceType!]!
   sourceType(name: String!): SourceType
+
+  processors: [Processor!]!
+  processor(name: String!): Processor
+
+  processorTypes: [ProcessorType!]!
+  processorType(name: String!): ProcessorType
 
   destinations: [Destination!]!
   destination(name: String!): Destination

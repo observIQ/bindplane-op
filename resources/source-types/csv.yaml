@@ -2,7 +2,7 @@ apiVersion: bindplane.observiq.com/v1beta
 kind: SourceType
 metadata:
   name: csv
-  displayName: CSV Logs
+  displayName: CSV
   icon: /icons/sources/csv.svg
   description: Parser for logs with Comma Separated Values
 spec:
@@ -23,14 +23,14 @@ spec:
       label: File Path(s)
       description: File or directory paths to tail for logs.
       type: strings
-      default: [""]
+      default: []
       required: true
 
     - name: exclude_file_path
       label: Exclude File Path(s)
       description: File or directory paths to exclude.
       type: strings
-      default: [""]
+      default: []
 
     - name: log_type
       label: Log Type

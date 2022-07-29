@@ -1,0 +1,36 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: SourceType
+metadata:
+  name: experimental-parameter-types
+  icon: /icons/destinations/otlp.svg
+  description: This is a contrived source type to show experimental parameter types in the UI
+  displayName: Experimental Source Type
+spec:
+  version: 0.0.1
+  supportedPlatforms:
+    - macos
+  parameters:
+    - name: enums_type_param
+      label: Enums Param
+      type: enums
+      description: The first of its kind.
+      validValues:
+        - foo
+        - bar
+        - baz
+        - blah
+      default:
+        - foo
+        - bar
+        - baz
+        - blah
+    - name: map_type_param
+      label: Map Type Param
+      type: map
+      description: A compelling and thorough description.
+      required: true
+    - name: yaml_type_param
+      label: Yaml Type Param
+      type: yaml
+      required: true
+      description: First discovered by Sir Gerald Yaml.

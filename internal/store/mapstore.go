@@ -38,10 +38,12 @@ type mapStore struct {
 	configurations   resourceStore[*model.Configuration]
 	sources          resourceStore[*model.Source]
 	sourceTypes      resourceStore[*model.SourceType]
+	processors       resourceStore[*model.Processor]
+	processorTypes   resourceStore[*model.ProcessorType]
 	destinations     resourceStore[*model.Destination]
 	destinationTypes resourceStore[*model.DestinationType]
 
-	updates            eventbus.Source[*Updates]
+	updates            *storeUpdates
 	agentIndex         search.Index
 	configurationIndex search.Index
 	logger             *zap.Logger
@@ -53,19 +55,21 @@ type mapStore struct {
 var _ Store = (*mapStore)(nil)
 
 // NewMapStore returns an in memory Store
-func NewMapStore(logger *zap.Logger, sessionsSecret string) Store {
+func NewMapStore(ctx context.Context, options Options, logger *zap.Logger) Store {
 	return &mapStore{
 		agents:             make(map[string]*model.Agent),
 		configurations:     newResourceStore[*model.Configuration](),
 		sources:            newResourceStore[*model.Source](),
 		sourceTypes:        newResourceStore[*model.SourceType](),
+		processors:         newResourceStore[*model.Processor](),
+		processorTypes:     newResourceStore[*model.ProcessorType](),
 		destinations:       newResourceStore[*model.Destination](),
 		destinationTypes:   newResourceStore[*model.DestinationType](),
-		updates:            eventbus.NewSource[*Updates](),
+		updates:            newStoreUpdates(ctx, options.MaxEventsToMerge),
 		agentIndex:         search.NewInMemoryIndex("agent"),
 		configurationIndex: search.NewInMemoryIndex("configuration"),
 		logger:             logger,
-		sessionStore:       newBPCookieStore(sessionsSecret),
+		sessionStore:       newBPCookieStore(options.SessionsSecret),
 	}
 }
 
@@ -345,6 +349,42 @@ func (mapstore *mapStore) DeleteSourceType(name string) (*model.SourceType, erro
 	return item, nil
 }
 
+func (mapstore *mapStore) Processor(name string) (*model.Processor, error) {
+	return mapstore.processors.get(name), nil
+}
+func (mapstore *mapStore) Processors() ([]*model.Processor, error) {
+	return mapstore.processors.list(), nil
+}
+func (mapstore *mapStore) DeleteProcessor(name string) (*model.Processor, error) {
+	item, exists, err := mapstore.processors.removeAndNotify(name, mapstore)
+	if err != nil {
+		return item, err
+	}
+
+	if !exists {
+		return nil, nil
+	}
+	return item, nil
+}
+
+func (mapstore *mapStore) ProcessorType(name string) (*model.ProcessorType, error) {
+	return mapstore.processorTypes.get(name), nil
+}
+func (mapstore *mapStore) ProcessorTypes() ([]*model.ProcessorType, error) {
+	return mapstore.processorTypes.list(), nil
+}
+func (mapstore *mapStore) DeleteProcessorType(name string) (*model.ProcessorType, error) {
+	item, exists, err := mapstore.processorTypes.removeAndNotify(name, mapstore)
+	if err != nil {
+		return item, err
+	}
+
+	if !exists {
+		return nil, nil
+	}
+	return item, nil
+}
+
 func (mapstore *mapStore) Destination(name string) (*model.Destination, error) {
 	return mapstore.destinations.get(name), nil
 }
@@ -407,6 +447,10 @@ func (mapstore *mapStore) ApplyResources(resources []model.Resource) ([]model.Re
 			resourceStatus = mapstore.sources.add(r)
 		case *model.SourceType:
 			resourceStatus = mapstore.sourceTypes.add(r)
+		case *model.Processor:
+			resourceStatus = mapstore.processors.add(r)
+		case *model.ProcessorType:
+			resourceStatus = mapstore.processorTypes.add(r)
 		case *model.Destination:
 			resourceStatus = mapstore.destinations.add(r)
 		case *model.DestinationType:
@@ -473,6 +517,12 @@ func (mapstore *mapStore) DeleteResources(resources []model.Resource) ([]model.R
 		case *model.SourceType:
 			_, exists = mapstore.sourceTypes.remove(r.Name())
 
+		case *model.Processor:
+			_, exists = mapstore.processors.remove(r.Name())
+
+		case *model.ProcessorType:
+			_, exists = mapstore.processorTypes.remove(r.Name())
+
 		case *model.Destination:
 			_, exists = mapstore.destinations.remove(r.Name())
 
@@ -522,7 +572,7 @@ func (mapstore *mapStore) AgentsIDsMatchingConfiguration(configuration *model.Co
 }
 
 func (mapstore *mapStore) Updates() eventbus.Source[*Updates] {
-	return mapstore.updates
+	return mapstore.updates.Updates()
 }
 
 // CleanupDisconnectedAgents removes agents that have disconnected before the specified time

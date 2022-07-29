@@ -5,11 +5,11 @@ import {
   split,
   from,
 } from "@apollo/client";
-import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { onError } from "@apollo/client/link/error";
 import { isFunction } from "lodash";
-import { createClient } from 'graphql-ws';
+import { createClient } from "graphql-ws";
 
 const httpLink = new HttpLink({
   uri: "/v1/graphql",
@@ -19,9 +19,11 @@ const httpLink = new HttpLink({
 const ws = window.location.protocol === "https:" ? "wss:" : "ws:";
 const url = new URL(`${ws}//${window.location.host}/v1/graphql`);
 
-const wsLink = new GraphQLWsLink(createClient({
-  url: url.href,
-}));
+const wsLink = new GraphQLWsLink(
+  createClient({
+    url: url.href,
+  })
+);
 
 // Use the httpLink for queries and wsLink for subscriptions
 const requestLink = split(

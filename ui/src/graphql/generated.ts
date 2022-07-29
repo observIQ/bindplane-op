@@ -173,9 +173,12 @@ export type ParameterDefinition = {
 export enum ParameterType {
   Bool = 'bool',
   Enum = 'enum',
+  Enums = 'enums',
   Int = 'int',
+  Map = 'map',
   String = 'string',
-  Strings = 'strings'
+  Strings = 'strings',
+  Yaml = 'yaml'
 }
 
 export type ParameterizedSpec = {
@@ -190,6 +193,22 @@ export enum PipelineType {
   Traces = 'traces'
 }
 
+export type Processor = {
+  __typename?: 'Processor';
+  apiVersion: Scalars['String'];
+  kind: Scalars['String'];
+  metadata: Metadata;
+  spec: ParameterizedSpec;
+};
+
+export type ProcessorType = {
+  __typename?: 'ProcessorType';
+  apiVersion: Scalars['String'];
+  kind: Scalars['String'];
+  metadata: Metadata;
+  spec: ResourceTypeSpec;
+};
+
 export type Query = {
   __typename?: 'Query';
   agent?: Maybe<Agent>;
@@ -202,6 +221,10 @@ export type Query = {
   destinationTypes: Array<DestinationType>;
   destinationWithType: DestinationWithType;
   destinations: Array<Destination>;
+  processor?: Maybe<Processor>;
+  processorType?: Maybe<ProcessorType>;
+  processorTypes: Array<ProcessorType>;
+  processors: Array<Processor>;
   source?: Maybe<Source>;
   sourceType?: Maybe<SourceType>;
   sourceTypes: Array<SourceType>;
@@ -246,6 +269,16 @@ export type QueryDestinationWithTypeArgs = {
 };
 
 
+export type QueryProcessorArgs = {
+  name: Scalars['String'];
+};
+
+
+export type QueryProcessorTypeArgs = {
+  name: Scalars['String'];
+};
+
+
 export type QuerySourceArgs = {
   name: Scalars['String'];
 };
@@ -270,6 +303,7 @@ export type ResourceConfiguration = {
   __typename?: 'ResourceConfiguration';
   name?: Maybe<Scalars['String']>;
   parameters?: Maybe<Array<Parameter>>;
+  processors?: Maybe<Array<ResourceConfiguration>>;
   type?: Maybe<Scalars['String']>;
 };
 

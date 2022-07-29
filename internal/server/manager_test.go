@@ -35,7 +35,10 @@ import (
 
 var (
 	logger       = zap.NewNop()
-	testMapstore = store.NewMapStore(logger, "super-secret-key")
+	testMapstore = store.NewMapStore(context.Background(), store.Options{
+		SessionsSecret:   "super-secret-key",
+		MaxEventsToMerge: 1,
+	}, logger)
 	testProtocol = &mockProtocol{}
 	testManager  = &manager{
 		store:     testMapstore,

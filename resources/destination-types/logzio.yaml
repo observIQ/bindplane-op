@@ -1,0 +1,122 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: DestinationType
+metadata:
+  name: logzio
+  displayName: Logz.io
+  icon: /icons/destinations/logzio.svg
+spec:
+  parameters:
+    - name: enable_logs
+      label: Enable Logs
+      description: Enable to send logs to Logz.io.
+      type: bool
+      default: true
+
+    - name: logs_token
+      label: Logs Token
+      description: Your logz.io account token for your logs account
+      type: string
+      default: ""
+      required: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+    - name: enable_metrics
+      label: Enable Metrics
+      description: Enable to send metrics to Logz.io.
+      type: bool
+      default: true
+
+    - name: metrics_token
+      label: Metrics Token
+      description: Your logz.io account token for your metrics account
+      type: string
+      default: ""
+      required: true
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: listener_url
+      label: Listener URL
+      description: The URL of the Logz.io listener in your region.
+      type: string
+      default: "https://listener.logz.io:8053"
+      required: true
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: enable_tracing
+      label: Enable Tracing
+      description: Enable to send spans to Logz.io.
+      type: bool
+      default: true
+
+    - name: tracing_token
+      label: Tracing Token
+      description: Your logz.io account token for your tracing account
+      type: string
+      default: ""
+      required: true
+      relevantIf:
+        - name: enable_tracing
+          operator: equals
+          value: true
+
+    - name: region
+      label: Region
+      description: Your logz.io account region code. Defaults to us.
+      type: enum
+      validValues:
+        - us
+        - eu
+        - uk
+        - nl
+        - wa
+        - ca
+        - au
+      default: "us"
+      required: true
+
+    - name: timeout
+      label: Timeout
+      description: Time to wait per individual attempt to send data to a backend. default = 30s
+      type: int
+      default: 30
+      required: true
+
+  metrics:
+    exporters: |
+      {{ if .enable_metrics }}
+      - prometheusremotewrite:
+          endpoint: "{{ .listener_url }}"
+          timeout: "{{ .timeout }}s"
+          headers:
+            Authorization: "Bearer {{ .metrics_token }}"
+      {{ end }}
+  traces:
+    exporters: |
+      {{ if .enable_tracing }}
+      - logzio/tracing:
+          region: "{{ .region }}"
+          account_token: "{{ .tracing_token }}"
+          timeout: "{{ .timeout }}s"
+      {{ end }}
+    processors: |
+      - batch:
+
+  logs:
+    exporters: |
+      {{ if .enable_logs }}
+      - logzio/logs:
+          region: "{{ .region }}"
+          account_token: "{{ .logs_token }}"
+          timeout: "{{ .timeout }}s"
+      {{ end }}
+    processors: |
+      - batch:

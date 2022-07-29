@@ -103,7 +103,7 @@ const AgentsTableComponent: React.FC<Props> = ({
   selector,
   minHeight,
   columnFields,
-  density,
+  density = GridDensityTypes.Standard,
   initQuery = "",
 }) => {
   // const { data, loading, refetch, subscribeToMore } = useAgentsTableQuery({

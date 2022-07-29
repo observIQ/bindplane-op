@@ -26,6 +26,7 @@ import { useNavigate } from "react-router-dom";
 
 import styles from "./configuration-page.module.scss";
 import mixins from "../../../styles/mixins.module.scss";
+import { DuplicateConfigDialog } from "./DuplicateConfigDialog";
 
 const DetailsSectionComponent: React.FC<{
   configuration: NonNullable<ShowPageConfig>;
@@ -38,6 +39,7 @@ const DetailsSectionComponent: React.FC<{
   onSaveDescriptionError,
   onSaveDescriptionSuccess,
 }) => {
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
   const [openDeleteConfirm, setOpenDelete] = useState(false);
   const [editingDescription, setEditingDescription] = useState(false);
   const descriptionInputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -104,13 +106,22 @@ const DetailsSectionComponent: React.FC<{
         <Typography variant="h5" marginBottom="1rem">
           Details
         </Typography>
-        <Button
-          color="error"
-          variant="contained"
-          onClick={() => setOpenDelete(true)}
-        >
-          Delete
-        </Button>
+        <Stack direction="row" spacing={2}>
+          <Button
+            variant="outlined"
+            onClick={() => setDuplicateDialogOpen(true)}
+          >
+            Duplicate
+          </Button>
+
+          <Button
+            color="error"
+            variant="contained"
+            onClick={() => setOpenDelete(true)}
+          >
+            Delete
+          </Button>
+        </Stack>
       </Stack>
 
       {/* Agent Details Table */}
@@ -188,7 +199,6 @@ const DetailsSectionComponent: React.FC<{
           </CardContent>
         </Card>
       </div>
-
       <ConfirmDeleteResourceDialog
         open={openDeleteConfirm}
         onCancel={() => setOpenDelete(false)}
@@ -199,6 +209,13 @@ const DetailsSectionComponent: React.FC<{
           Are you sure you want to delete this configuration?
         </Typography>
       </ConfirmDeleteResourceDialog>
+
+      <DuplicateConfigDialog
+        currentConfigName={configuration.metadata.name}
+        open={duplicateDialogOpen}
+        onClose={() => setDuplicateDialogOpen(false)}
+        maxWidth="xs"
+      />
     </CardContainer>
   );
 };

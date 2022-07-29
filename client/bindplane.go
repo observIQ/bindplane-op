@@ -137,6 +137,14 @@ type BindPlane interface {
 	SourceType(ctx context.Context, name string) (*model.SourceType, error)
 	DeleteSourceType(ctx context.Context, name string) error
 
+	Processors(ctx context.Context) ([]*model.Processor, error)
+	Processor(ctx context.Context, name string) (*model.Processor, error)
+	DeleteProcessor(ctx context.Context, name string) error
+
+	ProcessorTypes(ctx context.Context) ([]*model.ProcessorType, error)
+	ProcessorType(ctx context.Context, name string) (*model.ProcessorType, error)
+	DeleteProcessorType(ctx context.Context, name string) error
+
 	Destinations(ctx context.Context) ([]*model.Destination, error)
 	Destination(ctx context.Context, name string) (*model.Destination, error)
 	DeleteDestination(ctx context.Context, name string) error
@@ -157,8 +165,6 @@ type BindPlane interface {
 	AgentInstallCommand(ctx context.Context, options AgentInstallOptions) (string, error)
 	// AgentUpdate TODO(doc)
 	AgentUpdate(ctx context.Context, id string, version string) error
-	// AgentRestart TODO(doc)
-	AgentRestart(ctx context.Context, id string) error
 
 	// AgentLabels gets the labels for an agent
 	AgentLabels(ctx context.Context, id string) (*model.Labels, error)
@@ -182,7 +188,7 @@ func NewBindPlane(config *common.Client, logger *zap.Logger) (BindPlane, error) 
 	client.SetBasicAuth(config.Username, config.Password)
 	client.SetBaseURL(fmt.Sprintf("%s/v1", config.BindPlaneURL()))
 
-	tlsConfig, err := tlsClient(config.Certificate, config.PrivateKey, config.CertificateAuthority)
+	tlsConfig, err := tlsClient(config.Certificate, config.PrivateKey, config.CertificateAuthority, config.InsecureSkipVerify)
 	if err != nil {
 		return nil, fmt.Errorf("failed to configure TLS client: %w", err)
 	}
@@ -313,6 +319,42 @@ func (c *bindplaneClient) DeleteSourceType(ctx context.Context, name string) err
 
 // ----------------------------------------------------------------------
 
+func (c *bindplaneClient) Processors(ctx context.Context) ([]*model.Processor, error) {
+	result := model.ProcessorsResponse{}
+	err := c.resources(ctx, "/processors", &result)
+	return result.Processors, err
+}
+
+func (c *bindplaneClient) Processor(ctx context.Context, name string) (*model.Processor, error) {
+	result := model.ProcessorResponse{}
+	err := c.resource(ctx, "/processors", name, &result)
+	return result.Processor, err
+}
+
+func (c *bindplaneClient) DeleteProcessor(ctx context.Context, name string) error {
+	return c.deleteResource(ctx, "/processors", name)
+}
+
+// ----------------------------------------------------------------------
+
+func (c *bindplaneClient) ProcessorTypes(ctx context.Context) ([]*model.ProcessorType, error) {
+	result := model.ProcessorTypesResponse{}
+	err := c.resources(ctx, "/processor-types", &result)
+	return result.ProcessorTypes, err
+}
+
+func (c *bindplaneClient) ProcessorType(ctx context.Context, name string) (*model.ProcessorType, error) {
+	result := model.ProcessorTypeResponse{}
+	err := c.resource(ctx, "/processor-types", name, &result)
+	return result.ProcessorType, err
+}
+
+func (c *bindplaneClient) DeleteProcessorType(ctx context.Context, name string) error {
+	return c.deleteResource(ctx, "/processor-types", name)
+}
+
+// ----------------------------------------------------------------------
+
 func (c *bindplaneClient) Destinations(ctx context.Context) ([]*model.Destination, error) {
 	result := model.DestinationsResponse{}
 	err := c.resources(ctx, "/destinations", &result)
@@ -389,10 +431,6 @@ func (c *bindplaneClient) Delete(ctx context.Context, resources []*model.AnyReso
 	}
 
 	dr := &model.DeleteResponseClientSide{}
-	err = json.Unmarshal(resp.Body(), dr)
-	if err != nil {
-		return nil, err
-	}
 
 	switch resp.StatusCode() {
 	case http.StatusAccepted:
@@ -403,10 +441,14 @@ func (c *bindplaneClient) Delete(ctx context.Context, resources []*model.AnyReso
 		if dr.Errors != nil {
 			return nil, errors.New(dr.Errors[0])
 		}
-
 		return nil, errors.New("bad request")
 	case http.StatusInternalServerError:
 		return nil, fmt.Errorf("%s", dr.Errors[0])
+	}
+
+	err = json.Unmarshal(resp.Body(), dr)
+	if err != nil {
+		return nil, err
 	}
 
 	return nil, fmt.Errorf("unknown response from bindplane server")
@@ -446,13 +488,6 @@ func (c *bindplaneClient) AgentUpdate(ctx context.Context, id string, version st
 	_, err := c.client.R().SetBody(model.PostAgentVersionRequest{
 		Version: version,
 	}).Post(endpoint)
-	return err
-}
-
-// AgentRestart TODO(doc)
-func (c *bindplaneClient) AgentRestart(ctx context.Context, id string) error {
-	endpoint := fmt.Sprintf("/agents/%s/restart", id)
-	_, err := c.client.R().Put(endpoint)
 	return err
 }
 

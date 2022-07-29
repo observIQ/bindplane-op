@@ -19,8 +19,6 @@ import { Link } from "react-router-dom";
 import { AgentStatus } from "../../../types/agents";
 import { isFunction } from "lodash";
 
-import mixins from "../../../styles/mixins.module.scss";
-
 export enum AgentsTableField {
   NAME = "name",
   STATUS = "status",
@@ -101,10 +99,7 @@ const AgentsDataGridComponent: React.FC<AgentsDataGridProps> = ({
           field: AgentsTableField.NAME,
           headerName: "Name",
           valueGetter: (params: GridValueGetterParams<Agent>) => {
-            return {
-              name: params.row.name,
-              id: params.row.id,
-            };
+            return params.row.name;
           },
           renderCell: renderNameDataCell,
           width: 325,
@@ -136,9 +131,6 @@ const AgentsDataGridComponent: React.FC<AgentsDataGridProps> = ({
       style={{ minHeight }}
       loading={loading}
       disableSelectionOnClick
-      getCellClassName={() => {
-        return mixins["flex-wrap"];
-      }}
       columns={columns}
       rows={agents ?? []}
     />
@@ -154,11 +146,9 @@ function renderConfigurationCell(cellParams: GridCellParams<string>) {
 }
 
 function renderNameDataCell(
-  cellParams: GridCellParams<{ name: string; id: string }>
+  cellParams: GridCellParams<{ name: string; id: string }, Agent>
 ): JSX.Element {
-  return (
-    <Link to={`/agents/${cellParams.value?.id}`}>{cellParams.value?.name}</Link>
-  );
+  return <Link to={`/agents/${cellParams.row.id}`}>{cellParams.row.name}</Link>;
 }
 
 function renderLabelDataCell(
@@ -174,7 +164,7 @@ function renderStatusDataCell(
 }
 
 AgentsDataGridComponent.defaultProps = {
-  minHeight: "60vh",
+  minHeight: "calc(100vh - 300px)",
   columnFields: [
     AgentsTableField.NAME,
     AgentsTableField.STATUS,

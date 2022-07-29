@@ -130,7 +130,7 @@ func TestSourceTypeValidate(t *testing.T) {
 		},
 		{
 			testfile:           "sourcetype-bad-parameter-definitions.yaml",
-			expectErrorMessage: "20 errors occurred:\n\t* missing type for 'no_type'\n\t* missing name for parameter\n\t* invalid name 'bad-name' for parameter\n\t* missing type for 'bad-name'\n\t* invalid type 'bad-type' for 'bad_type'\n\t* parameter of type 'enum' must have 'validValues' specified\n\t* validValues is undefined for parameter of type 'strings'\n\t* default value for 'bad_string_default' must be a string\n\t* default value for 'bad_bool_default' must be a bool\n\t* default value for 'bad_strings_default' must be an array of strings\n\t* default value for 'bad_int_default' must be an integer\n\t* default value for 'bad_int_default_as_float' must be an integer\n\t* default value for 'bad_enum_default' must be one of [1 2 3]\n\t* relevantIf for 'bad_relevant_if_2' must have a name\n\t* relevantIf for 'bad_relevant_if_2' refers to nonexistant parameter 'does_not_exist'\n\t* relevantIf 'string_default_1' for 'bad_relevant_if_2': relevantIf value for 'string_default_1' must be a string\n\t* relevantIf 'string_default_2' for 'bad_relevant_if_2' must have an operator\n\t* relevantIf 'string_default_3' for 'bad_relevant_if_2' must have a value\n\t* relevantIf 'bad_enum_default' for 'bad_relevant_if_2': relevantIf value for 'bad_enum_default' must be one of [1 2 3]\n\t* relevantIf 'bad_bool_default' for 'bad_relevant_if_2': relevantIf value for 'bad_bool_default' must be a bool\n\n",
+			expectErrorMessage: "20 errors occurred:\n\t* missing type for 'no_type'\n\t* missing name for parameter\n\t* invalid name 'bad-name' for parameter\n\t* missing type for 'bad-name'\n\t* invalid type 'bad-type' for 'bad_type'\n\t* parameter of type 'enum' or 'enums' must have 'validValues' specified\n\t* validValues is undefined for parameter of type 'strings'\n\t* default value for 'bad_string_default' must be a string\n\t* default value for 'bad_bool_default' must be a bool\n\t* default value for 'bad_strings_default' must be an array of strings\n\t* default value for 'bad_int_default' must be an integer\n\t* default value for 'bad_int_default_as_float' must be an integer\n\t* default value for 'bad_enum_default' must be one of [1 2 3]\n\t* relevantIf for 'bad_relevant_if_2' must have a name\n\t* relevantIf for 'bad_relevant_if_2' refers to nonexistant parameter 'does_not_exist'\n\t* relevantIf 'string_default_1' for 'bad_relevant_if_2': relevantIf value for 'string_default_1' must be a string\n\t* relevantIf 'string_default_2' for 'bad_relevant_if_2' must have an operator\n\t* relevantIf 'string_default_3' for 'bad_relevant_if_2' must have a value\n\t* relevantIf 'bad_enum_default' for 'bad_relevant_if_2': relevantIf value for 'bad_enum_default' must be one of [1 2 3]\n\t* relevantIf 'bad_bool_default' for 'bad_relevant_if_2': relevantIf value for 'bad_bool_default' must be a bool\n\n",
 		},
 		{
 			testfile:           "sourcetype-bad-templates.yaml",
@@ -179,6 +179,21 @@ func TestSourceValidate(t *testing.T) {
 			expectValidateError:          "",
 			expectValidateWithStoreError: "3 errors occurred:\n\t* parameter value for 'install_log_path' must be a string\n\t* parameter value for 'start_at' must be one of [beginning end]\n\t* parameter unknown not defined in type MacOS\n\n",
 		},
+		{
+			testfile:                     "source-bad-processor-type.yaml",
+			expectValidateError:          "",
+			expectValidateWithStoreError: "1 error occurred:\n\t* unknown ProcessorType: not_valid\n\n",
+		},
+		{
+			testfile:                     "source-bad-processor-name.yaml",
+			expectValidateError:          "",
+			expectValidateWithStoreError: "1 error occurred:\n\t* unknown Processor: not_found\n\n",
+		},
+		{
+			testfile:                     "source-bad-processor-parameter-values.yaml",
+			expectValidateError:          "",
+			expectValidateWithStoreError: "1 error occurred:\n\t* unknown ProcessorType: resource-attribute-transposer\n\n",
+		},
 	}
 
 	store := newTestResourceStore()
@@ -188,10 +203,10 @@ func TestSourceValidate(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.testfile, func(t *testing.T) {
-			config := validateResource[*Source](t, test.testfile)
+			src := validateResource[*Source](t, test.testfile)
 
 			// test normal Validate() used by all resources
-			err := config.Validate()
+			err := src.Validate()
 			if test.expectValidateError == "" {
 				require.NoError(t, err)
 			} else {
@@ -200,7 +215,7 @@ func TestSourceValidate(t *testing.T) {
 			}
 
 			// test special ValidateWithStore which can validate sources and destinations
-			err = config.ValidateWithStore(store)
+			err = src.ValidateWithStore(store)
 			if test.expectValidateWithStoreError == "" {
 				require.NoError(t, err)
 			} else {
