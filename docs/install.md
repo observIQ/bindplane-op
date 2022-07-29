@@ -188,26 +188,8 @@ After running the collector install command, the collector will appear in the `b
 #### Linux: bash
 
 1. Verify that `bash-completion` is installed on the host
-2. `sudo su` Switching to root
-3. `bindplane completion bash >/etc/bash_completion.d/bindplane` appends the output to a file in the bash completion directory
-4. Restart the shell
-
-#### macOS: bash
-
-bash-completion v2 requires bash version 4+
-On MacOS, the default version is below 4 and will need to be updated!
-Follow these instructions on [Upgrading Bash on MacOS](https://itnext.io/upgrading-bash-on-macos-7138bd1066ba).
-
-To setup bash completion for bindplanectl on MacOS:
-1. Install *bash-completion* by running `brew install bash-completion@2`&nbsp;
-2. Include the following lines in `~/.bash_profile`&nbsp;
-```
-export BASH_COMPLETION_COMPAT_DIR="/usr/local/etc/bash_completion.d"
-[[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]] && . "/usr/local/etc/profile.d/bash_completion.sh"
-```
-3. Run the following command to include the bash-completion script in `/usr/local/etc/bash_completion.d/`\
-`bindplanectl completion bash >/usr/local/etc/bash_completion.d/bindplanectl`
-4. Restart the shell and bindplanectl tab completions will be available
+2. `bindplanectl completion bash | sudo tee -a /etc/bash_completion.d/bindplanectl` appends the output to a file in the bash completion directory
+3. Restart the shell
 
 #### macOS/Linux: ZSH
 
