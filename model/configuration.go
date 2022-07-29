@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/go-multierror"
 	"github.com/observiq/bindplane-op/internal/store/search"
 	"github.com/observiq/bindplane-op/model/otel"
@@ -481,4 +482,20 @@ func (c *Configuration) IndexFields(index search.Indexer) {
 func (rc *ResourceConfiguration) indexFields(resourceName string, resourceTypeName string, index search.Indexer) {
 	index(resourceName, rc.Name)
 	index(resourceTypeName, rc.Type)
+}
+
+// Duplicate copies the value of the current configuration and returns
+// a duplicate with the new name.  It should be identical except for the
+// Metadata.Name, Metadata.ID, and Spec.Selector fields.
+func (c *Configuration) Duplicate(name string) *Configuration {
+	copy := *c
+
+	// Change the metadata values
+	copy.Metadata.Name = name
+	copy.Metadata.ID = uuid.NewString()
+
+	// replace the configuration matchLabel
+	matchLabels := copy.Spec.Selector.MatchLabels
+	matchLabels["configuration"] = name
+	return &copy
 }

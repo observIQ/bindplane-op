@@ -48,6 +48,7 @@ func AddRestRoutes(router gin.IRouter, bindplane server.BindPlane) {
 	router.GET("/configurations", func(c *gin.Context) { configurations(c, bindplane) })
 	router.GET("/configurations/:name", func(c *gin.Context) { configuration(c, bindplane) })
 	router.DELETE("/configurations/:name", func(c *gin.Context) { deleteConfiguration(c, bindplane) })
+	router.POST("/configurations/:name/duplicate", func(c *gin.Context) { duplicateConfig(c, bindplane) })
 
 	router.GET("/sources", func(c *gin.Context) { sources(c, bindplane) })
 	router.GET("/sources/:name", func(c *gin.Context) { source(c, bindplane) })
@@ -474,6 +475,62 @@ func deleteConfiguration(c *gin.Context, bindplane server.BindPlane) {
 	if okResource(c, configuration == nil, err) {
 		c.Status(http.StatusNoContent)
 	}
+}
+
+// @Summary Duplicate an existing configuration
+// @Produce json
+// @Router /configurations/{name}/duplicate [post]
+// @Param 	name	path	string	true "the name of the configuration to duplicate"
+// @Param name	body	string	true "the desired name of the duplicate configuration"
+// @Success 201	"Successful Duplication, created"
+// @Failure 404 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 409 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+func duplicateConfig(c *gin.Context, bindplane server.BindPlane) {
+	name := c.Param("name")
+
+	// The config to make a duplicate of
+	config, err := bindplane.Store().Configuration(name)
+	if err != nil {
+		handleErrorResponse(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	if config == nil {
+		handleErrorResponse(c, http.StatusNotFound, fmt.Errorf("no configuration with name %s found", name))
+		return
+	}
+
+	var req model.PostDuplicateConfigRequest
+	if err := c.BindJSON(&req); err != nil {
+		handleErrorResponse(c, http.StatusBadRequest, err)
+		return
+	}
+
+	duplicateName := req.Name
+	duplicateConfig, err := bindplane.Store().Configuration(duplicateName)
+	if err != nil {
+		handleErrorResponse(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	if duplicateConfig != nil {
+		handleErrorResponse(c, http.StatusConflict, errors.New("a configuration with that name already exists"))
+		return
+	}
+
+	duplicateConfig = config.Duplicate(duplicateName)
+
+	_, err = bindplane.Store().ApplyResources([]model.Resource{duplicateConfig})
+	if err != nil {
+		handleErrorResponse(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, &model.PostDuplicateConfigResponse{
+		Name: duplicateName,
+	})
 }
 
 // ----------------------------------------------------------------------
