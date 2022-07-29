@@ -1,5 +1,3 @@
-# TODO: This is an example but probably needs more explanation, a textarea for editing (type: text?), and some help
-# text. It may also need special support for properly indenting the user-supplied yaml.
 apiVersion: bindplane.observiq.com/v1beta
 kind: ProcessorType
 metadata:
@@ -10,8 +8,9 @@ spec:
   parameters:
     - name: configuration
       label: Configuration
-      type: string
+      type: yaml
       required: true
+
   logs+metrics+traces:
     processors: |
-      - {{ .configuration }}
+      - {{ .configuration | nindent 2 }}
