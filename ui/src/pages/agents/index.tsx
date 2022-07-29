@@ -1,19 +1,19 @@
 import { Button, Typography } from "@mui/material";
 import { GridRowParams, GridSelectionModel } from "@mui/x-data-grid";
+import { useSnackbar } from "notistack";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { CardContainer } from "../../components/CardContainer";
-import { PlusCircleIcon } from "../../components/Icons";
-import { AgentsTable } from "../../components/Tables/AgentsTable";
-import { classes } from "../../utils/styles";
-import { deleteAgents } from "../../utils/rest/delete-agents";
-import { useSnackbar } from "notistack";
-import { Agent } from "../../graphql/generated";
-import { AgentStatus } from "../../types/agents";
 import { ConfirmDeleteResourceDialog } from "../../components/ConfirmDeleteResourceDialog";
-import { withRequireLogin } from "../../contexts/RequireLogin";
+import { PlusCircleIcon } from "../../components/Icons";
 import { withNavBar } from "../../components/NavBar";
+import { AgentsTable } from "../../components/Tables/AgentsTable";
+import { withRequireLogin } from "../../contexts/RequireLogin";
+import { AgentStatus } from "../../types/agents";
+import { deleteAgents } from "../../utils/rest/delete-agents";
+import { classes } from "../../utils/styles";
 
+import { AgentsTableRow } from '../../components/Tables/AgentsTable/AgentsDataGrid';
 import mixins from "../../styles/mixins.module.scss";
 
 export const AgentsPageContent: React.FC = () => {
@@ -36,7 +36,7 @@ export const AgentsPageContent: React.FC = () => {
     }
   }
 
-  function isRowSelectable(params: GridRowParams<Agent>): boolean {
+  function isRowSelectable(params: GridRowParams<AgentsTableRow>): boolean {
     return params.row.status === AgentStatus.DISCONNECTED;
   }
 

@@ -1,4 +1,3 @@
-import { gql } from "@apollo/client";
 import {
   GridDensityTypes,
   GridRowParams,
@@ -7,7 +6,6 @@ import {
 import { debounce } from "lodash";
 import { memo, useMemo, useState } from "react";
 import {
-  Agent,
   AgentChangeType,
   Suggestion,
   useAgentChangesSubscription,
@@ -20,42 +18,9 @@ import {
   AgentsTableRow,
 } from "./AgentsDataGrid";
 
-gql`
-  query AgentsTable($selector: String, $query: String) {
-    agents(selector: $selector, query: $query) {
-      agents {
-        id
-        name
-        status
-        architecture
-        labels
-        platform
-
-        operatingSystem
-
-        connectedAt
-        disconnectedAt
-
-        configurationResource {
-          metadata {
-            name
-          }
-        }
-      }
-
-      query
-
-      suggestions {
-        query
-        label
-      }
-    }
-  }
-`;
-
 interface Props {
   onAgentsSelected?: (agentIds: GridSelectionModel) => void;
-  isRowSelectable?: (params: GridRowParams<Agent>) => boolean;
+  isRowSelectable?: (params: GridRowParams<AgentsTableRow>) => boolean;
   selector?: string;
   minHeight?: string;
   columnFields?: AgentsTableField[];
@@ -63,9 +28,9 @@ interface Props {
   initQuery?: string;
 }
 
-function applyAgentChanges(
+export function applyAgentChanges(
+  agents: AgentsTableRow[],
   changes: AgentsTableChange[],
-  agents: AgentsTableRow[]
 ): AgentsTableRow[] {
   // make a map of id => agent
   const map: { [id: string]: AgentsTableRow } = {};
@@ -89,8 +54,6 @@ function applyAgentChanges(
   return Object.values(map);
 }
 
-let total = 0;
-
 interface AgentsTableData {
   agents: AgentsTableRow[];
   suggestions?: Suggestion[];
@@ -106,12 +69,6 @@ const AgentsTableComponent: React.FC<Props> = ({
   density = GridDensityTypes.Standard,
   initQuery = "",
 }) => {
-  // const { data, loading, refetch, subscribeToMore } = useAgentsTableQuery({
-  //   variables: { selector, query: initQuery },
-  //   fetchPolicy: "network-only",
-  //   nextFetchPolicy: "cache-only",
-  // });
-
   const [data, setData] = useState<AgentsTableData>({
     agents: [],
     suggestions: [],
@@ -133,24 +90,19 @@ const AgentsTableComponent: React.FC<Props> = ({
         return;
       }
 
-      // keep track of the amount of data loaded for now
-      const size = JSON.stringify(agentChanges).length;
-      total += size;
-      console.log(`${size} bytes => ${total / 1000} k total`);
-
       const { query, agentChanges: changes, suggestions } = agentChanges;
       if (changes != null) {
         if (query === data.query) {
           // query is the same, accumulate results
           setData({
-            agents: applyAgentChanges(changes, data.agents),
+            agents: applyAgentChanges(data.agents, changes),
             suggestions: data.suggestions,
             query: data.query,
           });
         } else {
           // query changed, start over
           setData({
-            agents: applyAgentChanges(changes, []),
+            agents: applyAgentChanges([], changes),
             suggestions: suggestions || [],
             query: query || "",
           });
@@ -159,48 +111,11 @@ const AgentsTableComponent: React.FC<Props> = ({
     },
   });
 
-  // const debouncedRefetch = useMemo(() => debounce(refetch, 100), [refetch]);
-
   const filterOptions: Suggestion[] = [
     { label: "Disconnected agents", query: "status:disconnected" },
     { label: "Outdated agents", query: "-version:latest" },
     { label: "No managed configuration", query: "-configuration:" },
   ];
-
-  // useEffect(() => {
-  //   if (data?.agents.agents != null) {
-  //     setAgents(data.agents.agents);
-  //   }
-  // }, [data?.agents.agents, setAgents]);
-
-  // useEffect(() => {
-  //   subscribeToMore({
-  //     document: AgentChangesDocument,
-  //     variables: { query: subQuery, selector },
-  //     updateQuery: (prev, { subscriptionData, variables }) => {
-  //       if (
-  //         subscriptionData == null ||
-  //         variables?.query !== subQuery ||
-  //         variables.selector !== selector
-  //       ) {
-  //         return prev;
-  //       }
-
-  //       const { data } = subscriptionData as unknown as {
-  //         data: AgentChangesSubscription;
-  //       };
-
-  //       return {
-  //         agents: {
-  //           __typename: "Agents",
-  //           suggestions: prev.agents.suggestions,
-  //           query: prev.agents.query,
-  //           agents: mergeAgents(prev.agents.agents, data.agentChanges),
-  //         },
-  //       };
-  //     },
-  //   });
-  // }, [selector, subQuery, subscribeToMore]);
 
   const debouncedSetSubQuery = useMemo(
     () => debounce(setSubQuery, 300),

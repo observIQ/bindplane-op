@@ -33,7 +33,7 @@ export type AgentsTableRow =
 
 interface AgentsDataGridProps {
   onAgentsSelected?: (agentIds: GridSelectionModel) => void;
-  isRowSelectable?: (params: GridRowParams<Agent>) => boolean;
+  isRowSelectable?: (params: GridRowParams<AgentsTableRow>) => boolean;
   density?: GridDensityTypes;
   loading: boolean;
   minHeight?: string;

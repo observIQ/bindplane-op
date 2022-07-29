@@ -1,12 +1,10 @@
-import { ComponentStory, ComponentMeta } from "@storybook/react";
+import { ComponentMeta, ComponentStory } from "@storybook/react";
 import { AgentsTable } from ".";
 import {
-  AgentChangesDocument,
-  AgentsTableDocument,
-  AgentsTableQuery,
+  AgentChangesDocument, AgentChangesSubscription
 } from "../../../graphql/generated";
 import { AgentTable } from "../AgentTable";
-import { generateAgents } from "./__testutil__/generate-agents";
+import { generateAgentChanges } from "./__testutil__/generate-agents";
 
 export default {
   title: "Agents Table",
@@ -39,9 +37,9 @@ const Template: ComponentStory<typeof AgentsTable> = (args) => (
 export const Default = Template.bind({});
 export const Selectable = Template.bind({});
 
-const resultData: AgentsTableQuery = {
-  agents: {
-    agents: generateAgents(50),
+const resultData: AgentChangesSubscription = {
+  agentChanges: {
+    agentChanges: generateAgentChanges(50),
     suggestions: [],
     query: "",
   },
@@ -52,7 +50,7 @@ const mockParams = {
     mocks: [
       {
         request: {
-          query: AgentsTableDocument,
+          query: AgentChangesDocument,
           variables: {
             query: "",
           },
