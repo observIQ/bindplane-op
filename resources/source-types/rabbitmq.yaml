@@ -75,6 +75,7 @@ spec:
 
     - name: disable_metrics
       label: Disable Metrics
+      description: Toggle the metrics you wish to omit from collection.
       type: enums
       validValues:
         - rabbitmq.consumer.count
