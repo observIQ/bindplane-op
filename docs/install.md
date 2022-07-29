@@ -219,7 +219,7 @@ compinit
 ```
 2. Locate `fpath` by running `echo $fpath`, there may be several listed, some may not exist, use an existing one in the next step.
 3. Run the following command to generate the zsh tab completion script.\
-`bindplanectl completion --zsh ><YOUR FPATH HERE>/_bindplanectl`
+`bindplanectl completion zsh ><YOUR FPATH HERE>/_bindplanectl`
 4. Restart zsh and the bindplanectl tab completions will be available.
 
 ### Manual Install
