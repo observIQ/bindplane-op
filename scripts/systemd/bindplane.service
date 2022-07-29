@@ -1,5 +1,5 @@
 [Unit]
-Description=observIQ Agent
+Description=BindPlane OP is an open source observability pipeline that gives you the ability to collect, refine, and ship metrics, logs, and traces to any destination.
 After=network.target
 
 [Service]
