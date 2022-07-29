@@ -109,6 +109,24 @@ func TestValidateDefault(t *testing.T) {
 			},
 		},
 		{
+			"ValidEnumsDefaultEmpty",
+			false,
+			ParameterDefinition{
+				Type:        "enums",
+				ValidValues: []string{"foo", "bar", "baz", "blah"},
+				Default:     []any{},
+			},
+		},
+		{
+			"ValidEnumsDefaultAll",
+			false,
+			ParameterDefinition{
+				Type:        "enums",
+				ValidValues: []string{"foo", "bar", "baz", "blah"},
+				Default:     []any{"foo", "bar", "baz", "blah"},
+			},
+		},
+		{
 			"NonStringEnumDefault",
 			true,
 			ParameterDefinition{
@@ -274,6 +292,106 @@ func TestValidateValue(t *testing.T) {
 				Default: 5,
 			},
 			5,
+		},
+		{
+			"ValidMap",
+			false,
+			ParameterDefinition{
+				Type: "map",
+			},
+			map[string]string{
+				"foo":  "bar",
+				"blah": "baz",
+			},
+		},
+		{
+			"InvalidMap",
+			true,
+			ParameterDefinition{
+				Type: "map",
+			},
+			5,
+		},
+		{
+			"InvalidMapType",
+			true,
+			ParameterDefinition{
+				Type: "map",
+			},
+			map[string]interface{}{
+				"blah": 1,
+				"foo":  "blah",
+			},
+		},
+		{
+			"ValidYaml",
+			false,
+			ParameterDefinition{
+				Type: "yaml",
+			},
+			`blah: foo
+bar: baz
+baz:
+- one
+- two
+`,
+		}, {
+			"ValidYaml",
+			false,
+			ParameterDefinition{
+				Type: "yaml",
+			},
+			`- one
+- two
+`,
+		},
+		{
+			"InvalidYaml",
+			true,
+			ParameterDefinition{
+				Type: "yaml",
+			},
+			`one: two
+three: four
+- five: 6
+seven:
+	- eight
+	- nine
+	- 10
+eleven:
+	- twelve: thirteen
+	fourteen: 15
+`,
+		},
+		{
+			"InvalidYaml",
+			true,
+			ParameterDefinition{
+				Type: "yaml",
+			},
+			`{{{}}}`,
+		},
+		{
+			"ValidEnums",
+			false,
+			ParameterDefinition{
+				Type:        "enums",
+				ValidValues: []string{"one", "two", "three", "four"},
+			},
+			[]any{
+				"two", "four",
+			},
+		},
+		{
+			"InvalidEnums",
+			true,
+			ParameterDefinition{
+				Type:        "enums",
+				ValidValues: []string{"one", "two", "three", "four"},
+			},
+			[]any{
+				"one", "seven",
+			},
 		},
 	}
 

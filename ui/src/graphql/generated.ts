@@ -166,9 +166,12 @@ export type ParameterDefinition = {
 export enum ParameterType {
   Bool = 'bool',
   Enum = 'enum',
+  Enums = 'enums',
   Int = 'int',
+  Map = 'map',
   String = 'string',
-  Strings = 'strings'
+  Strings = 'strings',
+  Yaml = 'yaml'
 }
 
 export type ParameterizedSpec = {

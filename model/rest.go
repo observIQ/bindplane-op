@@ -171,3 +171,12 @@ type InstallCommandResponse struct {
 type PostAgentVersionRequest struct {
 	Version string `json:"version"`
 }
+
+// PostDuplicateConfigRequest is the REST API body for PUT /v1/configurations/{name}/duplicate
+type PostDuplicateConfigRequest struct {
+	// The intended name of the duplicated config
+	Name string `json:"name"`
+}
+
+// PostDuplicateConfigResponse is the REST API response to PUT /v1/configurations/{name}/duplicate
+type PostDuplicateConfigResponse = PostDuplicateConfigRequest

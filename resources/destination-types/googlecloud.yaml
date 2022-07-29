@@ -77,3 +77,4 @@ spec:
               - prefix: jboss
               - prefix: hadoop
               - prefix: hbase
+              - prefix: sqlserver
