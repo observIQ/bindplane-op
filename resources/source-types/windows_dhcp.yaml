@@ -4,7 +4,7 @@ metadata:
   name: windowsdhcp
   displayName: Windows DHCP Server
   icon: /icons/sources/windows.svg
-  description: Windows DHCP Server log parser
+  description: Log collector for DHCP server
 spec:
   version: 0.0.1
   supported_platforms:
@@ -14,7 +14,8 @@ spec:
       label: File Path(s)
       description: File or directory paths to tail for logs.
       type: strings
-      default: []
+      default:
+        - "C:/Windows/System32/dhcp/DhcpSrvLog-*.log"
       required: true
 
     - name: start_at
