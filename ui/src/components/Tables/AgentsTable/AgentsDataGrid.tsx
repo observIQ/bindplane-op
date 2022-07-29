@@ -13,7 +13,6 @@ import { renderAgentLabels, renderAgentStatus } from "../utils";
 import {
   Agent,
   AgentChangesSubscription,
-  AgentChangeType,
 } from "../../../graphql/generated";
 import { Link } from "react-router-dom";
 import { AgentStatus } from "../../../types/agents";
