@@ -21,9 +21,11 @@ spec:
 
     - name: protocol_version
       label: Protocol Version
-      description: Protocol version.
+      description: The Kafka protocol version to use when communicating with brokers.
       type: enum
       validValues:
+        - "2.2.1"
+        - "2.2.0"
         - "2.0.0"
         - "1.0.0"
       default: "2.0.0"
@@ -61,7 +63,7 @@ spec:
       validValues:
         - basic
         - sasl
-        # TODO: Should be tested before implemented into the destination type
+        # TODO: Should be tested before implemented
         #- tls
         - kerberos
       default: basic
