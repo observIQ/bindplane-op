@@ -49,6 +49,7 @@ type ParameterDefinition struct {
 	Type string `json:"type" yaml:"type"`
 
 	// only useable if Type == "enum"
+	Creatable   bool     `json:"creatable" yaml:"creatable"`
 	ValidValues []string `json:"validValues,omitempty" yaml:"validValues,omitempty" mapstructure:"validValues"`
 
 	// Must be valid according to Type & ValidValues
@@ -79,6 +80,10 @@ func (p ParameterDefinition) validateDefinition(errs validation.Errors) {
 	}
 
 	if err := p.validateValidValues(); err != nil {
+		errs.Add(err)
+	}
+
+	if err := p.validateCreatable(); err != nil {
 		errs.Add(err)
 	}
 
@@ -118,6 +123,17 @@ func (p ParameterDefinition) validateType() error {
 			"ensure that the type is one of 'string', 'int', 'bool', 'strings', or 'enum'",
 		)
 	}
+	return nil
+}
+
+func (p ParameterDefinition) validateCreatable() error {
+	if p.Creatable && p.Type != "enum" {
+		return errors.NewError(
+			fmt.Sprintf("creatable is true for parameter of type '%s'", p.Type),
+			"remove 'creatable' field or change type to 'enum'",
+		)
+	}
+
 	return nil
 }
 
@@ -269,6 +285,12 @@ func (p ParameterDefinition) validateEnumValue(fieldType parameterFieldType, val
 			fmt.Sprintf("ensure that the %s value is a string", fieldType),
 		)
 	}
+
+	// If the enum is creatable thats all we need to check - any string value is valid.
+	if p.Creatable {
+		return nil
+	}
+
 	for _, val := range p.ValidValues {
 		if val == def {
 			return nil

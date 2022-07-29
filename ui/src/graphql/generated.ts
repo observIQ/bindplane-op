@@ -153,6 +153,7 @@ export type Parameter = {
 
 export type ParameterDefinition = {
   __typename?: 'ParameterDefinition';
+  creatable?: Maybe<Scalars['Boolean']>;
   default?: Maybe<Scalars['Any']>;
   description: Scalars['String'];
   label: Scalars['String'];
@@ -447,7 +448,7 @@ export type DestinationsAndTypesQuery = { __typename?: 'Query', destinationTypes
 export type SourceTypesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type SourceTypesQuery = { __typename?: 'Query', sourceTypes: Array<{ __typename?: 'SourceType', apiVersion: string, kind: string, metadata: { __typename?: 'Metadata', id: string, name: string, displayName?: string | null, description?: string | null, icon?: string | null }, spec: { __typename?: 'ResourceTypeSpec', supportedPlatforms: Array<string>, version: string, telemetryTypes: Array<PipelineType>, parameters: Array<{ __typename?: 'ParameterDefinition', name: string, label: string, description: string, required: boolean, type: ParameterType, validValues?: Array<string> | null, default?: any | null, relevantIf?: Array<{ __typename?: 'RelevantIfCondition', name: string, operator: RelevantIfOperatorType, value: any }> | null }> } }> };
+export type SourceTypesQuery = { __typename?: 'Query', sourceTypes: Array<{ __typename?: 'SourceType', apiVersion: string, kind: string, metadata: { __typename?: 'Metadata', id: string, name: string, displayName?: string | null, description?: string | null, icon?: string | null }, spec: { __typename?: 'ResourceTypeSpec', supportedPlatforms: Array<string>, version: string, telemetryTypes: Array<PipelineType>, parameters: Array<{ __typename?: 'ParameterDefinition', name: string, label: string, description: string, required: boolean, type: ParameterType, validValues?: Array<string> | null, creatable?: boolean | null, default?: any | null, relevantIf?: Array<{ __typename?: 'RelevantIfCondition', name: string, operator: RelevantIfOperatorType, value: any }> | null }> } }> };
 
 export type GetConfigNamesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1228,6 +1229,7 @@ export const SourceTypesDocument = gql`
         required
         type
         validValues
+        creatable
         default
       }
       supportedPlatforms

@@ -58,6 +58,7 @@ gql`
           required
           type
           validValues
+          creatable
           default
         }
         supportedPlatforms

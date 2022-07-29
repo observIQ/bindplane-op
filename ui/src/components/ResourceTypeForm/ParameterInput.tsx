@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   Chip,
+  createFilterOptions,
   FormControl,
   FormControlLabel,
   FormHelperText,
@@ -88,7 +89,15 @@ export const StringParamInput: React.FC<ParamInputProps<string>> = ({
   );
 };
 
-export const EnumParamInput: React.FC<ParamInputProps<string>> = ({
+export const EnumParamInput: React.FC<ParamInputProps<string>> = (props) => {
+  return props.definition.creatable ? (
+    <CreatableSelectInput {...props} />
+  ) : (
+    <SelectParamInput {...props} />
+  );
+};
+
+const SelectParamInput: React.FC<ParamInputProps<string>> = ({
   classes,
   definition,
   value,
@@ -116,6 +125,49 @@ export const EnumParamInput: React.FC<ParamInputProps<string>> = ({
         </option>
       ))}
     </TextField>
+  );
+};
+
+const filter = createFilterOptions<string>();
+const CreatableSelectInput: React.FC<ParamInputProps<string>> = ({
+  classes,
+  definition,
+  // value,
+  onValueChange,
+}) => {
+  const [value, setValue] = useState("");
+
+  return (
+    <Autocomplete
+      value={value}
+      onChange={(event, newValue) => {
+        if (newValue) setValue(newValue);
+      }}
+      filterOptions={(options, params) => {
+        const filtered = filter(options, params);
+
+        const { inputValue } = params;
+        // Suggest the creation of a new value
+        const isExisting = options.some((option) => inputValue === option);
+        if (inputValue !== "" && !isExisting) {
+          filtered.push(inputValue);
+        }
+
+        return filtered;
+      }}
+      selectOnFocus
+      clearOnBlur
+      handleHomeEndKeys
+      id="free-solo-with-text-demo"
+      options={definition.validValues ?? []}
+      getOptionLabel={(option) => option}
+      renderOption={(props, option) => <li {...props}>{option}</li>}
+      sx={{ width: 300 }}
+      freeSolo
+      renderInput={(params) => (
+        <TextField {...params} label="Free solo with text demo" />
+      )}
+    />
   );
 };
 
