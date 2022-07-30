@@ -3,29 +3,29 @@ import { applyAgentChanges } from '.';
 import {
   AgentChangeType
 } from "../../../graphql/generated";
-import { AgentsTableRow } from './AgentsDataGrid';
+import { AgentChangeAgent } from '../../../hooks/useAgentChanges';
 
-const a1: AgentsTableRow = {
+const a1: AgentChangeAgent = {
   id: "1",
   name: "",
   status: 1,
 };
-const a2: AgentsTableRow = {
+const a2: AgentChangeAgent = {
   id: "2",
   name: "",
   status: 1,
 };
-const a3: AgentsTableRow = {
+const a3: AgentChangeAgent = {
   id: "3",
   name: "",
   status: 1,
 };
-const a4: AgentsTableRow = {
+const a4: AgentChangeAgent = {
   id: "4",
   name: "",
   status: 1,
 };
-const a5: AgentsTableRow = {
+const a5: AgentChangeAgent = {
   id: "5",
   name: "",
   status: 1,

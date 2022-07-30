@@ -10,17 +10,16 @@ import {
   Suggestion,
   useAgentChangesSubscription,
 } from "../../../graphql/generated";
+import { AgentChangeAgent, AgentChangeItem } from '../../../hooks/useAgentChanges';
 import { SearchBar } from "../../SearchBar";
 import {
-  AgentsTableChange,
   AgentsDataGrid,
   AgentsTableField,
-  AgentsTableRow,
 } from "./AgentsDataGrid";
 
 interface Props {
   onAgentsSelected?: (agentIds: GridSelectionModel) => void;
-  isRowSelectable?: (params: GridRowParams<AgentsTableRow>) => boolean;
+  isRowSelectable?: (params: GridRowParams<AgentChangeAgent>) => boolean;
   selector?: string;
   minHeight?: string;
   columnFields?: AgentsTableField[];
@@ -29,11 +28,11 @@ interface Props {
 }
 
 export function applyAgentChanges(
-  agents: AgentsTableRow[],
-  changes: AgentsTableChange[],
-): AgentsTableRow[] {
+  agents: AgentChangeAgent[],
+  changes: AgentChangeItem[],
+): AgentChangeAgent[] {
   // make a map of id => agent
-  const map: { [id: string]: AgentsTableRow } = {};
+  const map: { [id: string]: AgentChangeAgent } = {};
   for (const agent of agents) {
     map[agent.id] = agent;
   }
@@ -55,7 +54,7 @@ export function applyAgentChanges(
 }
 
 interface AgentsTableData {
-  agents: AgentsTableRow[];
+  agents: AgentChangeAgent[];
   suggestions?: Suggestion[];
   query: string;
 }

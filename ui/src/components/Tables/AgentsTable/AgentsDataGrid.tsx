@@ -6,17 +6,17 @@ import {
   GridDensityTypes,
   GridRowParams,
   GridSelectionModel,
-  GridValueGetterParams,
+  GridValueGetterParams
 } from "@mui/x-data-grid";
-import React, { memo } from "react";
-import { renderAgentLabels, renderAgentStatus } from "../utils";
-import {
-  Agent,
-  AgentChangesSubscription,
-} from "../../../graphql/generated";
-import { Link } from "react-router-dom";
-import { AgentStatus } from "../../../types/agents";
 import { isFunction } from "lodash";
+import React, { memo } from "react";
+import { Link } from "react-router-dom";
+import {
+  Agent
+} from "../../../graphql/generated";
+import { AgentChangeAgent } from '../../../hooks/useAgentChanges';
+import { AgentStatus } from "../../../types/agents";
+import { renderAgentLabels, renderAgentStatus } from "../utils";
 
 export enum AgentsTableField {
   NAME = "name",
@@ -27,17 +27,13 @@ export enum AgentsTableField {
   LABELS = "labels",
 }
 
-export type AgentsTableChange =  AgentChangesSubscription["agentChanges"]["agentChanges"][0];
-export type AgentsTableRow =
-  AgentChangesSubscription["agentChanges"]["agentChanges"][0]["agent"];
-
 interface AgentsDataGridProps {
   onAgentsSelected?: (agentIds: GridSelectionModel) => void;
-  isRowSelectable?: (params: GridRowParams<AgentsTableRow>) => boolean;
+  isRowSelectable?: (params: GridRowParams<AgentChangeAgent>) => boolean;
   density?: GridDensityTypes;
   loading: boolean;
   minHeight?: string;
-  agents?: AgentsTableRow[];
+  agents?: AgentChangeAgent[];
   columnFields?: AgentsTableField[];
 }
 

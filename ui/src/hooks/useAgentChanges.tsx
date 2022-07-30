@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 import { useContext } from "react";
-import { AgentsTableChange } from '../components/Tables/AgentsTable/AgentsDataGrid';
 import { AgentChangesContext } from "../contexts/AgentChanges";
+import { AgentChangesSubscription } from '../graphql/generated';
 
 gql`
   subscription AgentChanges($selector: String, $query: String, $seed: Boolean) {
@@ -36,7 +36,11 @@ gql`
   }
 `;
 
-export function useAgentChangesContext(): AgentsTableChange[] {
+export type AgentChangeItem =  AgentChangesSubscription["agentChanges"]["agentChanges"][0];
+export type AgentChangeAgent =
+  AgentChangesSubscription["agentChanges"]["agentChanges"][0]["agent"];
+
+export function useAgentChangesContext(): AgentChangeItem[] {
   const { agentChanges } = useContext(AgentChangesContext);
   return agentChanges;
 }

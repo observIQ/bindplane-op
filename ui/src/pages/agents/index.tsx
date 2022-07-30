@@ -13,7 +13,7 @@ import { AgentStatus } from "../../types/agents";
 import { deleteAgents } from "../../utils/rest/delete-agents";
 import { classes } from "../../utils/styles";
 
-import { AgentsTableRow } from '../../components/Tables/AgentsTable/AgentsDataGrid';
+import { AgentChangeAgent } from '../../hooks/useAgentChanges';
 import mixins from "../../styles/mixins.module.scss";
 
 export const AgentsPageContent: React.FC = () => {
@@ -36,7 +36,7 @@ export const AgentsPageContent: React.FC = () => {
     }
   }
 
-  function isRowSelectable(params: GridRowParams<AgentsTableRow>): boolean {
+  function isRowSelectable(params: GridRowParams<AgentChangeAgent>): boolean {
     return params.row.status === AgentStatus.DISCONNECTED;
   }
 

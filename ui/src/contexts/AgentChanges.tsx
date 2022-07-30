@@ -1,9 +1,9 @@
 import { createContext } from "react";
-import { AgentsTableChange } from '../components/Tables/AgentsTable/AgentsDataGrid';
 import { useAgentChangesSubscription } from "../graphql/generated";
+import { AgentChangeItem } from '../hooks/useAgentChanges';
 
 interface AgentChangesContextValue {
-  agentChanges: AgentsTableChange[];
+  agentChanges: AgentChangeItem[];
 }
 
 export const AgentChangesContext = createContext<AgentChangesContextValue>({
