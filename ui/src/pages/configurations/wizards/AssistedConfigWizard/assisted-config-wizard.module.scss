@@ -43,3 +43,8 @@
   width: 40px;
   height: 40px;
 }
+
+.break-word-cell {
+  word-break: break-word;
+  white-space: pre-wrap;
+}

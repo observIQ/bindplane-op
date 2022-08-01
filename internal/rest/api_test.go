@@ -180,7 +180,13 @@ func TestREST(t *testing.T) {
 	svr := httptest.NewServer(router)
 	defer svr.Close()
 
-	store := store.NewMapStore(zap.NewNop(), "super-secret-key")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	store := store.NewMapStore(ctx, store.Options{
+		SessionsSecret:   "super-secret-key",
+		MaxEventsToMerge: 1,
+	}, zap.NewNop())
+
 	bindplane, err := server.NewBindPlane(&common.Server{}, zaptest.NewLogger(t), store, nil)
 	require.NoError(t, err)
 	AddRestRoutes(router, bindplane)
@@ -630,6 +636,55 @@ func TestREST(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.NotContains(t, configurations, testConfiguration1)
+	})
+
+	t.Run("POST /configurations/:name/duplicate", func(t *testing.T) {
+		resetStore(t, s)
+		originalName := "original"
+		newName := "newName"
+		thirdName := "third"
+
+		original := testConfiguration(originalName)
+		third := testConfiguration(thirdName)
+		_, err := bindplane.Store().ApplyResources([]model.Resource{original, third})
+		require.NoError(t, err)
+
+		t.Run("404 Not Found", func(t *testing.T) {
+			endpoint := "/configurations/does-not-exist/duplicate"
+
+			resp, err := client.R().SetBody(&model.PostDuplicateConfigRequest{Name: newName}).Post(endpoint)
+			require.NoError(t, err)
+
+			require.Equal(t, http.StatusNotFound, resp.StatusCode())
+		})
+
+		t.Run("400 Bad Request", func(t *testing.T) {
+			endpoint := fmt.Sprintf("/configurations/%s/duplicate", originalName)
+			resp, err := client.R().SetBody(`{"""`).Post(endpoint)
+			require.NoError(t, err)
+
+			require.Equal(t, http.StatusBadRequest, resp.StatusCode())
+
+		})
+
+		t.Run("409 Conflict", func(t *testing.T) {
+			endpoint := fmt.Sprintf("/configurations/%s/duplicate", originalName)
+			resp, err := client.R().SetBody(&model.PostDuplicateConfigRequest{Name: thirdName}).Post(endpoint)
+			require.NoError(t, err)
+
+			require.Equal(t, http.StatusConflict, resp.StatusCode())
+		})
+
+		t.Run("201 Created", func(t *testing.T) {
+			endpoint := fmt.Sprintf("/configurations/%s/duplicate", originalName)
+			result := &model.PostDuplicateConfigResponse{}
+
+			resp, err := client.R().SetBody(&model.PostDuplicateConfigRequest{Name: newName}).SetResult(result).Post(endpoint)
+			require.NoError(t, err)
+
+			require.Equal(t, http.StatusCreated, resp.StatusCode())
+			require.Equal(t, result.Name, newName)
+		})
 	})
 
 	t.Run("POST /delete Status 200 Accepted", func(t *testing.T) {

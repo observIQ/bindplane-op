@@ -76,6 +76,10 @@ type Agent struct {
 	Configuration  interface{} `json:"configuration,omitempty" yaml:"configuration,omitempty"`
 	ConnectedAt    *time.Time  `json:"connectedAt,omitempty" yaml:"connectedAt,omitempty"`
 	DisconnectedAt *time.Time  `json:"disconnectedAt,omitempty" yaml:"disconnectedAt,omitempty"`
+
+	// used by the agent management protocol
+	Protocol string      `json:"protocol,omitempty" yaml:"protocol,omitempty"`
+	State    interface{} `json:"state,omitempty" yaml:"state,omitempty"`
 }
 
 var _ search.Indexed = (*Agent)(nil)

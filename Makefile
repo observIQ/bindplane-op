@@ -51,7 +51,7 @@ dev:
 
 .PHONY: test
 test: prep
-	go test ./... -race -cover
+	go test ./... -race -cover -timeout 60s
 
 .PHONY: test-with-cover
 test-with-cover: prep

@@ -137,6 +137,14 @@ type BindPlane interface {
 	SourceType(ctx context.Context, name string) (*model.SourceType, error)
 	DeleteSourceType(ctx context.Context, name string) error
 
+	Processors(ctx context.Context) ([]*model.Processor, error)
+	Processor(ctx context.Context, name string) (*model.Processor, error)
+	DeleteProcessor(ctx context.Context, name string) error
+
+	ProcessorTypes(ctx context.Context) ([]*model.ProcessorType, error)
+	ProcessorType(ctx context.Context, name string) (*model.ProcessorType, error)
+	DeleteProcessorType(ctx context.Context, name string) error
+
 	Destinations(ctx context.Context) ([]*model.Destination, error)
 	Destination(ctx context.Context, name string) (*model.Destination, error)
 	DeleteDestination(ctx context.Context, name string) error
@@ -180,7 +188,7 @@ func NewBindPlane(config *common.Client, logger *zap.Logger) (BindPlane, error) 
 	client.SetBasicAuth(config.Username, config.Password)
 	client.SetBaseURL(fmt.Sprintf("%s/v1", config.BindPlaneURL()))
 
-	tlsConfig, err := tlsClient(config.Certificate, config.PrivateKey, config.CertificateAuthority)
+	tlsConfig, err := tlsClient(config.Certificate, config.PrivateKey, config.CertificateAuthority, config.InsecureSkipVerify)
 	if err != nil {
 		return nil, fmt.Errorf("failed to configure TLS client: %w", err)
 	}
@@ -307,6 +315,42 @@ func (c *bindplaneClient) SourceType(ctx context.Context, name string) (*model.S
 
 func (c *bindplaneClient) DeleteSourceType(ctx context.Context, name string) error {
 	return c.deleteResource(ctx, "/source-types", name)
+}
+
+// ----------------------------------------------------------------------
+
+func (c *bindplaneClient) Processors(ctx context.Context) ([]*model.Processor, error) {
+	result := model.ProcessorsResponse{}
+	err := c.resources(ctx, "/processors", &result)
+	return result.Processors, err
+}
+
+func (c *bindplaneClient) Processor(ctx context.Context, name string) (*model.Processor, error) {
+	result := model.ProcessorResponse{}
+	err := c.resource(ctx, "/processors", name, &result)
+	return result.Processor, err
+}
+
+func (c *bindplaneClient) DeleteProcessor(ctx context.Context, name string) error {
+	return c.deleteResource(ctx, "/processors", name)
+}
+
+// ----------------------------------------------------------------------
+
+func (c *bindplaneClient) ProcessorTypes(ctx context.Context) ([]*model.ProcessorType, error) {
+	result := model.ProcessorTypesResponse{}
+	err := c.resources(ctx, "/processor-types", &result)
+	return result.ProcessorTypes, err
+}
+
+func (c *bindplaneClient) ProcessorType(ctx context.Context, name string) (*model.ProcessorType, error) {
+	result := model.ProcessorTypeResponse{}
+	err := c.resource(ctx, "/processor-types", name, &result)
+	return result.ProcessorType, err
+}
+
+func (c *bindplaneClient) DeleteProcessorType(ctx context.Context, name string) error {
+	return c.deleteResource(ctx, "/processor-types", name)
 }
 
 // ----------------------------------------------------------------------

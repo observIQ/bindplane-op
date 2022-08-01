@@ -118,7 +118,7 @@ export const StepTwo: React.FC = (props) => {
 
   function renderSourceAccordion(
     s: ResourceConfiguration,
-    ix: number
+    index: number
   ): JSX.Element {
     const sourceType = data?.sourceTypes.find(
       (st: SourceType) => st.metadata.name === s.type
@@ -132,7 +132,10 @@ export const StepTwo: React.FC = (props) => {
     const icon = sourceType.metadata.icon;
 
     return (
-      <Accordion key={s.type} data-testid="source-accordion">
+      <Accordion
+        key={`accordion-${index}-${s.type}`}
+        data-testid="source-accordion"
+      >
         <AccordionSummary>
           <Stack direction={"row"} alignItems="center" spacing={1}>
             <span
@@ -145,17 +148,44 @@ export const StepTwo: React.FC = (props) => {
         <AccordionDetails>
           <Table>
             <TableBody>
-              {s.parameters?.map((param) => {
-                const label =
-                  sourceType.spec.parameters.find(
-                    (def: ParameterDefinition) => def.name === param.name
-                  )?.label ?? param.name;
+              {s.parameters?.map((param, ix) => {
+                const definition = sourceType.spec.parameters.find(
+                  (def: ParameterDefinition) => def.name === param.name
+                );
+                const label = definition?.label ?? param.name;
+                const type = definition?.type;
 
                 if (param.value == null) return null;
                 return (
-                  <TableRow key={param.name}>
-                    <TableCell>{label}</TableCell>
-                    <TableCell>{String(param.value)}</TableCell>
+                  <TableRow key={`accordion-${index}-${param.name}-${ix}`}>
+                    <TableCell
+                      key={`accordion-${index}-${param.name}-${ix}-key`}
+                      width={"20%"}
+                    >
+                      {label}
+                    </TableCell>
+                    <TableCell
+                      key={`accordion-${index}-${param.name}-${ix}-value`}
+                      classes={{ root: styles["break-word-cell"] }}
+                    >
+                      {type === "map" ? (
+                        Object.entries(param.value).map(([k, v], j) => (
+                          <Typography
+                            key={`accordion-${index}-${param.name}-${ix}-value-node-${j}`}
+                            fontSize={13}
+                            fontFamily="monospace"
+                          >
+                            {k}: {v}
+                          </Typography>
+                        ))
+                      ) : (
+                        <span
+                          key={`accordion-${index}-${param.name}-${ix}-value-node`}
+                        >
+                          {String(param.value)}
+                        </span>
+                      )}
+                    </TableCell>
                   </TableRow>
                 );
               })}
@@ -173,7 +203,7 @@ export const StepTwo: React.FC = (props) => {
             >
               Delete
             </Button>
-            <Button onClick={() => setEditingSourceIx(ix)}>Edit</Button>
+            <Button onClick={() => setEditingSourceIx(index)}>Edit</Button>
           </Stack>
         </AccordionDetails>
       </Accordion>

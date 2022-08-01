@@ -32,6 +32,7 @@ func Global(cmd *cobra.Command) {
 	pf.String("tls-cert", "", "TLS certificate file")
 	pf.String("tls-key", "", "TLS private key file")
 	pf.StringSlice("tls-ca", make([]string, 0), "TLS certificate authority file(s) for mutual TLS authentication")
+	pf.Bool("tls-skip-verify", false, "Whether to verify the server's certificate chain and host name when making client requests")
 	pf.String("log-file-path", "", "full path of the BindPlane log file, defaults to $HOME/.bindplane/bindplane.log")
 	pf.String("log-output", "", "output of the log. One of: file|stdout")
 }

@@ -43,3 +43,9 @@ export interface LabelAgentsPayload {
 export interface LabelAgentsResponse {
   errors: string[];
 }
+
+export interface DuplicateConfigPayload {
+  name: string;
+}
+
+export type DuplicateConfigResponse = DuplicateConfigPayload;

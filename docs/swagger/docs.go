@@ -523,6 +523,55 @@ const docTemplate = `{
                 }
             }
         },
+        "/configurations/{name}/duplicate": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Duplicate an existing configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the name of the configuration to duplicate",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "the desired name of the duplicate configuration",
+                        "name": "name",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successful Duplication, created"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/rest.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/rest.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rest.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/delete": {
             "post": {
                 "description": "/delete endpoint will try to parse resources\nand delete them from the store.  Additionally\nit will send reconfigure tasks to affected agents.",
@@ -814,6 +863,188 @@ const docTemplate = `{
                 }
             }
         },
+        "/processor-types": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "List processor types",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.ProcessorTypesResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rest.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/processor-types/{name}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get processor type by name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the name of the processor type",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.ProcessorTypeResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rest.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rest.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Delete processor type by name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the name of the processor type to delete",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successful Delete, no content"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/rest.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rest.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/processors": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "List processors",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.ProcessorsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rest.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/processors/{name}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get processor by name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the name of the processor",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.ProcessorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rest.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rest.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Delete processor by name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the name of the processor to delete",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successful Delete, no content"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/rest.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rest.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/source-types": {
             "get": {
                 "produces": [
@@ -1057,9 +1288,14 @@ const docTemplate = `{
                 "platform": {
                     "type": "string"
                 },
+                "protocol": {
+                    "description": "used by the agent management protocol",
+                    "type": "string"
+                },
                 "remoteAddress": {
                     "type": "string"
                 },
+                "state": {},
                 "status": {
                     "description": "reported by Status messages",
                     "type": "integer"
@@ -1423,8 +1659,87 @@ const docTemplate = `{
                         "$ref": "#/definitions/model.Parameter"
                     }
                 },
+                "processors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ResourceConfiguration"
+                    }
+                },
                 "type": {
                     "type": "string"
+                }
+            }
+        },
+        "model.Processor": {
+            "type": "object",
+            "properties": {
+                "apiVersion": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/model.Metadata"
+                },
+                "spec": {
+                    "description": "Spec TODO(doc)",
+                    "$ref": "#/definitions/model.ParameterizedSpec"
+                }
+            }
+        },
+        "model.ProcessorResponse": {
+            "type": "object",
+            "properties": {
+                "processor": {
+                    "$ref": "#/definitions/model.Processor"
+                }
+            }
+        },
+        "model.ProcessorType": {
+            "type": "object",
+            "properties": {
+                "apiVersion": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/model.Metadata"
+                },
+                "spec": {
+                    "$ref": "#/definitions/model.ResourceTypeSpec"
+                }
+            }
+        },
+        "model.ProcessorTypeResponse": {
+            "type": "object",
+            "properties": {
+                "processorType": {
+                    "$ref": "#/definitions/model.ProcessorType"
+                }
+            }
+        },
+        "model.ProcessorTypesResponse": {
+            "type": "object",
+            "properties": {
+                "processorTypes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ProcessorType"
+                    }
+                }
+            }
+        },
+        "model.ProcessorsResponse": {
+            "type": "object",
+            "properties": {
+                "processors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Processor"
+                    }
                 }
             }
         },
@@ -1452,6 +1767,12 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.Parameter"
+                    }
+                },
+                "processors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ResourceConfiguration"
                     }
                 },
                 "type": {

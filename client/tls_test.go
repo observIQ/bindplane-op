@@ -126,7 +126,8 @@ func Test_tlsClient(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			out, err := tlsClient(tc.cert, tc.key, tc.ca)
+			skipVerify := false
+			out, err := tlsClient(tc.cert, tc.key, tc.ca, skipVerify)
 			if tc.expectErr {
 				require.Error(t, err)
 				return

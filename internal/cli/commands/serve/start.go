@@ -28,13 +28,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hashicorp/go-multierror"
 	cors "github.com/itsjamie/gin-cors"
-	swaggerfiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.uber.org/zap"
 
 	"github.com/observiq/bindplane-op/common"
-	swaggerdocs "github.com/observiq/bindplane-op/docs/swagger"
+	"github.com/observiq/bindplane-op/docs/swagger"
 	"github.com/observiq/bindplane-op/internal/agent"
 	"github.com/observiq/bindplane-op/internal/cli"
 	"github.com/observiq/bindplane-op/internal/cli/commands/profile"
@@ -126,8 +124,7 @@ func (s *Server) Start(bindplane *cli.BindPlane, h profile.Helper, forceConsoleC
 	graphql.AddRoutes(authv1, server)
 
 	// Swagger documentation
-	swaggerdocs.SwaggerInfo.BasePath = "/v1"
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+	swagger.AddRoutes(router)
 
 	// opamp does its own authorization based on the OnConnecting callback
 	err = opamp.AddRoutes(v1, server)
@@ -216,7 +213,10 @@ func (s *Server) createStore(config *common.Server) (store.Store, error) {
 
 	switch config.StoreType {
 	case common.StoreTypeMap:
-		return store.NewMapStore(s.logger, config.SessionsSecret), nil
+		return store.NewMapStore(context.Background(), store.Options{
+			SessionsSecret:   config.SessionsSecret,
+			MaxEventsToMerge: 100,
+		}, s.logger), nil
 
 	case common.StoreTypeGoogleCloud:
 		s.logger.Info("Using Google Cloud Datastore and Pub/Sub")
@@ -233,7 +233,10 @@ func (s *Server) createStore(config *common.Server) (store.Store, error) {
 		}
 
 		s.logger.Info("Using BBolt Storage", zap.String("storageFilePath", storageFilePath))
-		return store.NewBoltStore(db, config.SessionsSecret, s.logger), nil
+		return store.NewBoltStore(context.Background(), db, store.Options{
+			SessionsSecret:   config.SessionsSecret,
+			MaxEventsToMerge: 100,
+		}, s.logger), nil
 	}
 }
 

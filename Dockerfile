@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM debian:11.3-slim
+FROM debian:11.4-slim
 
 ENV USER=bindplane
 ENV UID=10001
@@ -29,7 +29,7 @@ RUN mkdir /data
 RUN chown bindplane:bindplane /data
 RUN chmod 0750 /data
 ENV BINDPLANE_CONFIG_HOME="/data"
-ENV BINDPLANE_CONFIG_LOG_FILE_PATH="/data/bindplane.log"
+ENV BINDPLANE_CONFIG_LOG_OUTPUT="stdout"
 
 # Bind to all interfaces and use port 3001
 ENV BINDPLANE_CONFIG_HOST=0.0.0.0

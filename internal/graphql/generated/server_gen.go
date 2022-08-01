@@ -48,6 +48,8 @@ type ResolverRoot interface {
 	DestinationType() DestinationTypeResolver
 	Metadata() MetadataResolver
 	ParameterDefinition() ParameterDefinitionResolver
+	Processor() ProcessorResolver
+	ProcessorType() ProcessorTypeResolver
 	Query() QueryResolver
 	RelevantIfCondition() RelevantIfConditionResolver
 	Source() SourceResolver
@@ -181,6 +183,20 @@ type ComplexityRoot struct {
 		Type       func(childComplexity int) int
 	}
 
+	Processor struct {
+		APIVersion func(childComplexity int) int
+		Kind       func(childComplexity int) int
+		Metadata   func(childComplexity int) int
+		Spec       func(childComplexity int) int
+	}
+
+	ProcessorType struct {
+		APIVersion func(childComplexity int) int
+		Kind       func(childComplexity int) int
+		Metadata   func(childComplexity int) int
+		Spec       func(childComplexity int) int
+	}
+
 	Query struct {
 		Agent               func(childComplexity int, id string) int
 		Agents              func(childComplexity int, selector *string, query *string) int
@@ -192,6 +208,10 @@ type ComplexityRoot struct {
 		DestinationTypes    func(childComplexity int) int
 		DestinationWithType func(childComplexity int, name string) int
 		Destinations        func(childComplexity int) int
+		Processor           func(childComplexity int, name string) int
+		ProcessorType       func(childComplexity int, name string) int
+		ProcessorTypes      func(childComplexity int) int
+		Processors          func(childComplexity int) int
 		Source              func(childComplexity int, name string) int
 		SourceType          func(childComplexity int, name string) int
 		SourceTypes         func(childComplexity int) int
@@ -207,6 +227,7 @@ type ComplexityRoot struct {
 	ResourceConfiguration struct {
 		Name       func(childComplexity int) int
 		Parameters func(childComplexity int) int
+		Processors func(childComplexity int) int
 		Type       func(childComplexity int) int
 	}
 
@@ -268,6 +289,12 @@ type MetadataResolver interface {
 type ParameterDefinitionResolver interface {
 	Type(ctx context.Context, obj *model.ParameterDefinition) (model1.ParameterType, error)
 }
+type ProcessorResolver interface {
+	Kind(ctx context.Context, obj *model.Processor) (string, error)
+}
+type ProcessorTypeResolver interface {
+	Kind(ctx context.Context, obj *model.ProcessorType) (string, error)
+}
 type QueryResolver interface {
 	Agents(ctx context.Context, selector *string, query *string) (*model1.Agents, error)
 	Agent(ctx context.Context, id string) (*model.Agent, error)
@@ -277,6 +304,10 @@ type QueryResolver interface {
 	Source(ctx context.Context, name string) (*model.Source, error)
 	SourceTypes(ctx context.Context) ([]*model.SourceType, error)
 	SourceType(ctx context.Context, name string) (*model.SourceType, error)
+	Processors(ctx context.Context) ([]*model.Processor, error)
+	Processor(ctx context.Context, name string) (*model.Processor, error)
+	ProcessorTypes(ctx context.Context) ([]*model.ProcessorType, error)
+	ProcessorType(ctx context.Context, name string) (*model.ProcessorType, error)
 	Destinations(ctx context.Context) ([]*model.Destination, error)
 	Destination(ctx context.Context, name string) (*model.Destination, error)
 	DestinationWithType(ctx context.Context, name string) (*model1.DestinationWithType, error)
@@ -810,6 +841,62 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ParameterizedSpec.Type(childComplexity), true
 
+	case "Processor.apiVersion":
+		if e.complexity.Processor.APIVersion == nil {
+			break
+		}
+
+		return e.complexity.Processor.APIVersion(childComplexity), true
+
+	case "Processor.kind":
+		if e.complexity.Processor.Kind == nil {
+			break
+		}
+
+		return e.complexity.Processor.Kind(childComplexity), true
+
+	case "Processor.metadata":
+		if e.complexity.Processor.Metadata == nil {
+			break
+		}
+
+		return e.complexity.Processor.Metadata(childComplexity), true
+
+	case "Processor.spec":
+		if e.complexity.Processor.Spec == nil {
+			break
+		}
+
+		return e.complexity.Processor.Spec(childComplexity), true
+
+	case "ProcessorType.apiVersion":
+		if e.complexity.ProcessorType.APIVersion == nil {
+			break
+		}
+
+		return e.complexity.ProcessorType.APIVersion(childComplexity), true
+
+	case "ProcessorType.kind":
+		if e.complexity.ProcessorType.Kind == nil {
+			break
+		}
+
+		return e.complexity.ProcessorType.Kind(childComplexity), true
+
+	case "ProcessorType.metadata":
+		if e.complexity.ProcessorType.Metadata == nil {
+			break
+		}
+
+		return e.complexity.ProcessorType.Metadata(childComplexity), true
+
+	case "ProcessorType.spec":
+		if e.complexity.ProcessorType.Spec == nil {
+			break
+		}
+
+		return e.complexity.ProcessorType.Spec(childComplexity), true
+
 	case "Query.agent":
 		if e.complexity.Query.Agent == nil {
 			break
@@ -915,6 +1002,44 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Destinations(childComplexity), true
 
+	case "Query.processor":
+		if e.complexity.Query.Processor == nil {
+			break
+		}
+
+		args, err := ec.field_Query_processor_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Processor(childComplexity, args["name"].(string)), true
+
+	case "Query.processorType":
+		if e.complexity.Query.ProcessorType == nil {
+			break
+		}
+
+		args, err := ec.field_Query_processorType_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ProcessorType(childComplexity, args["name"].(string)), true
+
+	case "Query.processorTypes":
+		if e.complexity.Query.ProcessorTypes == nil {
+			break
+		}
+
+		return e.complexity.Query.ProcessorTypes(childComplexity), true
+
+	case "Query.processors":
+		if e.complexity.Query.Processors == nil {
+			break
+		}
+
+		return e.complexity.Query.Processors(childComplexity), true
+
 	case "Query.source":
 		if e.complexity.Query.Source == nil {
 			break
@@ -987,6 +1112,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ResourceConfiguration.Parameters(childComplexity), true
+
+	case "ResourceConfiguration.processors":
+		if e.complexity.ResourceConfiguration.Processors == nil {
+			break
+		}
+
+		return e.complexity.ResourceConfiguration.Processors(childComplexity), true
 
 	case "ResourceConfiguration.type":
 		if e.complexity.ResourceConfiguration.Type == nil {
@@ -1270,6 +1402,7 @@ type ResourceConfiguration {
   name: String
   type: String
   parameters: [Parameter!]
+  processors: [ResourceConfiguration!]
 }
 
 type Parameter {
@@ -1338,6 +1471,13 @@ type SourceType {
   spec: ResourceTypeSpec!
 }
 
+type ProcessorType {
+  apiVersion: String!
+  metadata: Metadata!
+  kind: String!
+  spec: ResourceTypeSpec!
+}
+
 type DestinationType {
   apiVersion: String!
   metadata: Metadata!
@@ -1366,6 +1506,9 @@ enum ParameterType {
   int
   bool
   enum
+  enums
+  map
+  yaml
 }
 
 type ParameterDefinition {
@@ -1393,9 +1536,16 @@ enum RelevantIfOperatorType {
 }
 
 # ----------------------------------------------------------------------
-# sources and destinations
+# sources, processors, and destinations
 
 type Source {
+  apiVersion: String!
+  kind: String!
+  metadata: Metadata!
+  spec: ParameterizedSpec!
+}
+
+type Processor {
   apiVersion: String!
   kind: String!
   metadata: Metadata!
@@ -1439,6 +1589,12 @@ type Query {
 
   sourceTypes: [SourceType!]!
   sourceType(name: String!): SourceType
+
+  processors: [Processor!]!
+  processor(name: String!): Processor
+
+  processorTypes: [ProcessorType!]!
+  processorType(name: String!): ProcessorType
 
   destinations: [Destination!]!
   destination(name: String!): Destination
@@ -1589,6 +1745,36 @@ func (ec *executionContext) field_Query_destinationWithType_args(ctx context.Con
 }
 
 func (ec *executionContext) field_Query_destination_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_processorType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_processor_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -3476,6 +3662,8 @@ func (ec *executionContext) fieldContext_ConfigurationSpec_sources(ctx context.C
 				return ec.fieldContext_ResourceConfiguration_type(ctx, field)
 			case "parameters":
 				return ec.fieldContext_ResourceConfiguration_parameters(ctx, field)
+			case "processors":
+				return ec.fieldContext_ResourceConfiguration_processors(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ResourceConfiguration", field.Name)
 		},
@@ -3525,6 +3713,8 @@ func (ec *executionContext) fieldContext_ConfigurationSpec_destinations(ctx cont
 				return ec.fieldContext_ResourceConfiguration_type(ctx, field)
 			case "parameters":
 				return ec.fieldContext_ResourceConfiguration_parameters(ctx, field)
+			case "processors":
+				return ec.fieldContext_ResourceConfiguration_processors(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ResourceConfiguration", field.Name)
 		},
@@ -4999,6 +5189,402 @@ func (ec *executionContext) fieldContext_ParameterizedSpec_parameters(ctx contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Processor_apiVersion(ctx context.Context, field graphql.CollectedField, obj *model.Processor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Processor_apiVersion(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.APIVersion, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Processor_apiVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Processor",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Processor_kind(ctx context.Context, field graphql.CollectedField, obj *model.Processor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Processor_kind(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Processor().Kind(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Processor_kind(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Processor",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Processor_metadata(ctx context.Context, field graphql.CollectedField, obj *model.Processor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Processor_metadata(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Metadata, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.Metadata)
+	fc.Result = res
+	return ec.marshalNMetadata2githubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐMetadata(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Processor_metadata(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Processor",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Metadata_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Metadata_name(ctx, field)
+			case "displayName":
+				return ec.fieldContext_Metadata_displayName(ctx, field)
+			case "description":
+				return ec.fieldContext_Metadata_description(ctx, field)
+			case "icon":
+				return ec.fieldContext_Metadata_icon(ctx, field)
+			case "labels":
+				return ec.fieldContext_Metadata_labels(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Metadata", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Processor_spec(ctx context.Context, field graphql.CollectedField, obj *model.Processor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Processor_spec(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Spec, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.ParameterizedSpec)
+	fc.Result = res
+	return ec.marshalNParameterizedSpec2githubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐParameterizedSpec(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Processor_spec(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Processor",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "type":
+				return ec.fieldContext_ParameterizedSpec_type(ctx, field)
+			case "parameters":
+				return ec.fieldContext_ParameterizedSpec_parameters(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ParameterizedSpec", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProcessorType_apiVersion(ctx context.Context, field graphql.CollectedField, obj *model.ProcessorType) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProcessorType_apiVersion(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.APIVersion, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProcessorType_apiVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProcessorType",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProcessorType_metadata(ctx context.Context, field graphql.CollectedField, obj *model.ProcessorType) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProcessorType_metadata(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Metadata, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.Metadata)
+	fc.Result = res
+	return ec.marshalNMetadata2githubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐMetadata(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProcessorType_metadata(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProcessorType",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Metadata_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Metadata_name(ctx, field)
+			case "displayName":
+				return ec.fieldContext_Metadata_displayName(ctx, field)
+			case "description":
+				return ec.fieldContext_Metadata_description(ctx, field)
+			case "icon":
+				return ec.fieldContext_Metadata_icon(ctx, field)
+			case "labels":
+				return ec.fieldContext_Metadata_labels(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Metadata", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProcessorType_kind(ctx context.Context, field graphql.CollectedField, obj *model.ProcessorType) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProcessorType_kind(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ProcessorType().Kind(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProcessorType_kind(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProcessorType",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProcessorType_spec(ctx context.Context, field graphql.CollectedField, obj *model.ProcessorType) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProcessorType_spec(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Spec, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.ResourceTypeSpec)
+	fc.Result = res
+	return ec.marshalNResourceTypeSpec2githubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐResourceTypeSpec(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProcessorType_spec(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProcessorType",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "version":
+				return ec.fieldContext_ResourceTypeSpec_version(ctx, field)
+			case "parameters":
+				return ec.fieldContext_ResourceTypeSpec_parameters(ctx, field)
+			case "supportedPlatforms":
+				return ec.fieldContext_ResourceTypeSpec_supportedPlatforms(ctx, field)
+			case "telemetryTypes":
+				return ec.fieldContext_ResourceTypeSpec_telemetryTypes(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ResourceTypeSpec", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_agents(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_agents(ctx, field)
 	if err != nil {
@@ -5503,6 +6089,238 @@ func (ec *executionContext) fieldContext_Query_sourceType(ctx context.Context, f
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_sourceType_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_processors(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_processors(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Processors(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Processor)
+	fc.Result = res
+	return ec.marshalNProcessor2ᚕᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐProcessorᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_processors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "apiVersion":
+				return ec.fieldContext_Processor_apiVersion(ctx, field)
+			case "kind":
+				return ec.fieldContext_Processor_kind(ctx, field)
+			case "metadata":
+				return ec.fieldContext_Processor_metadata(ctx, field)
+			case "spec":
+				return ec.fieldContext_Processor_spec(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Processor", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_processor(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_processor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Processor(rctx, fc.Args["name"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Processor)
+	fc.Result = res
+	return ec.marshalOProcessor2ᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐProcessor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_processor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "apiVersion":
+				return ec.fieldContext_Processor_apiVersion(ctx, field)
+			case "kind":
+				return ec.fieldContext_Processor_kind(ctx, field)
+			case "metadata":
+				return ec.fieldContext_Processor_metadata(ctx, field)
+			case "spec":
+				return ec.fieldContext_Processor_spec(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Processor", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_processor_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_processorTypes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_processorTypes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ProcessorTypes(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ProcessorType)
+	fc.Result = res
+	return ec.marshalNProcessorType2ᚕᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐProcessorTypeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_processorTypes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "apiVersion":
+				return ec.fieldContext_ProcessorType_apiVersion(ctx, field)
+			case "metadata":
+				return ec.fieldContext_ProcessorType_metadata(ctx, field)
+			case "kind":
+				return ec.fieldContext_ProcessorType_kind(ctx, field)
+			case "spec":
+				return ec.fieldContext_ProcessorType_spec(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ProcessorType", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_processorType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_processorType(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ProcessorType(rctx, fc.Args["name"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ProcessorType)
+	fc.Result = res
+	return ec.marshalOProcessorType2ᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐProcessorType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_processorType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "apiVersion":
+				return ec.fieldContext_ProcessorType_apiVersion(ctx, field)
+			case "metadata":
+				return ec.fieldContext_ProcessorType_metadata(ctx, field)
+			case "kind":
+				return ec.fieldContext_ProcessorType_kind(ctx, field)
+			case "spec":
+				return ec.fieldContext_ProcessorType_spec(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ProcessorType", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_processorType_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -6237,6 +7055,57 @@ func (ec *executionContext) fieldContext_ResourceConfiguration_parameters(ctx co
 				return ec.fieldContext_Parameter_value(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Parameter", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ResourceConfiguration_processors(ctx context.Context, field graphql.CollectedField, obj *model.ResourceConfiguration) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ResourceConfiguration_processors(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Processors, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]model.ResourceConfiguration)
+	fc.Result = res
+	return ec.marshalOResourceConfiguration2ᚕgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐResourceConfigurationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ResourceConfiguration_processors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ResourceConfiguration",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_ResourceConfiguration_name(ctx, field)
+			case "type":
+				return ec.fieldContext_ResourceConfiguration_type(ctx, field)
+			case "parameters":
+				return ec.fieldContext_ResourceConfiguration_parameters(ctx, field)
+			case "processors":
+				return ec.fieldContext_ResourceConfiguration_processors(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ResourceConfiguration", field.Name)
 		},
 	}
 	return fc, nil
@@ -9721,6 +10590,130 @@ func (ec *executionContext) _ParameterizedSpec(ctx context.Context, sel ast.Sele
 	return out
 }
 
+var processorImplementors = []string{"Processor"}
+
+func (ec *executionContext) _Processor(ctx context.Context, sel ast.SelectionSet, obj *model.Processor) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, processorImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Processor")
+		case "apiVersion":
+
+			out.Values[i] = ec._Processor_apiVersion(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "kind":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Processor_kind(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "metadata":
+
+			out.Values[i] = ec._Processor_metadata(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "spec":
+
+			out.Values[i] = ec._Processor_spec(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var processorTypeImplementors = []string{"ProcessorType"}
+
+func (ec *executionContext) _ProcessorType(ctx context.Context, sel ast.SelectionSet, obj *model.ProcessorType) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, processorTypeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ProcessorType")
+		case "apiVersion":
+
+			out.Values[i] = ec._ProcessorType_apiVersion(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "metadata":
+
+			out.Values[i] = ec._ProcessorType_metadata(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "kind":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ProcessorType_kind(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "spec":
+
+			out.Values[i] = ec._ProcessorType_spec(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -9902,6 +10895,92 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_sourceType(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "processors":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_processors(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "processor":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_processor(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "processorTypes":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_processorTypes(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "processorType":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_processorType(ctx, field)
 				return res
 			}
 
@@ -10143,6 +11222,10 @@ func (ec *executionContext) _ResourceConfiguration(ctx context.Context, sel ast.
 		case "parameters":
 
 			out.Values[i] = ec._ResourceConfiguration_parameters(ctx, field, obj)
+
+		case "processors":
+
+			out.Values[i] = ec._ResourceConfiguration_processors(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -11320,6 +12403,114 @@ func (ec *executionContext) marshalNPipelineType2ᚕgithubᚗcomᚋobserviqᚋbi
 	return ret
 }
 
+func (ec *executionContext) marshalNProcessor2ᚕᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐProcessorᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Processor) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNProcessor2ᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐProcessor(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNProcessor2ᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐProcessor(ctx context.Context, sel ast.SelectionSet, v *model.Processor) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Processor(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNProcessorType2ᚕᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐProcessorTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ProcessorType) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNProcessorType2ᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐProcessorType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNProcessorType2ᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐProcessorType(ctx context.Context, sel ast.SelectionSet, v *model.ProcessorType) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ProcessorType(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNRelevantIfCondition2githubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐRelevantIfCondition(ctx context.Context, sel ast.SelectionSet, v model.RelevantIfCondition) graphql.Marshaler {
 	return ec._RelevantIfCondition(ctx, sel, &v)
 }
@@ -11902,6 +13093,20 @@ func (ec *executionContext) marshalOParameter2ᚕgithubᚗcomᚋobserviqᚋbindp
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalOProcessor2ᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐProcessor(ctx context.Context, sel ast.SelectionSet, v *model.Processor) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Processor(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOProcessorType2ᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐProcessorType(ctx context.Context, sel ast.SelectionSet, v *model.ProcessorType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ProcessorType(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalORelevantIfCondition2ᚕgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐRelevantIfConditionᚄ(ctx context.Context, sel ast.SelectionSet, v []model.RelevantIfCondition) graphql.Marshaler {

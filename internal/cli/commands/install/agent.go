@@ -62,7 +62,17 @@ func AgentCommand(bindplane *cli.BindPlane) *cobra.Command {
 
 	defaultPlatform := fmt.Sprintf("%s-%s", runtime.GOOS, runtime.GOARCH)
 
-	cmd.Flags().StringVar(&platformFlag, "platform", defaultPlatform, "platform where the agent will be installed")
+	cmd.Flags().StringVar(&platformFlag, "platform", defaultPlatform, `platform where the agent will be installed, one of:
+	linux           [alias for linux-amd64]
+	macos           [alias for darwin-arm64]
+	windows         [alias for window-amd64]
+	linux-amd64
+	linux-arm64
+	linux-arm
+	darwin-arm64
+	darwin-amd64
+	windows-amd64
+`)
 	cmd.Flags().StringVar(&versionFlag, "version", "latest", "version of the agent to install")
 	cmd.Flags().StringVar(&labelsFlag, "labels", "", "labels to apply to the new agent")
 	cmd.Flags().StringVar(&secretKeyFlag, "secret-key", "", "secret-key to assign to the agent")
