@@ -200,10 +200,15 @@ type ParameterDefinition {
   type: ParameterType!
 
   validValues: [String!]
-  creatable: Boolean
 
   default: Any
   relevantIf: [RelevantIfCondition!]
+
+  options: ParameterOptions!
+}
+
+type ParameterOptions {
+  creatable: Boolean
 }
 
 type RelevantIfCondition {

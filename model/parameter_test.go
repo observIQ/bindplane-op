@@ -157,7 +157,7 @@ func TestValidateDefault(t *testing.T) {
 	}
 }
 
-func TestValidateCreatable(t *testing.T) {
+func TestValidateOptions(t *testing.T) {
 	testCases := []struct {
 		name      string
 		expectErr bool
@@ -167,38 +167,46 @@ func TestValidateCreatable(t *testing.T) {
 			"Enum Creatable OK",
 			false,
 			ParameterDefinition{
-				Type:      "enum",
-				Creatable: true,
+				Type: "enum",
+				Options: ParameterOptions{
+					Creatable: true,
+				},
 			},
 		},
 		{
-			"Enum Not Createable OK",
+			"Enum Not Creatable OK",
 			false,
 			ParameterDefinition{
-				Type:      "enum",
-				Creatable: false,
+				Type: "enum",
+				Options: ParameterOptions{
+					Creatable: false,
+				},
 			},
 		},
 		{
 			"Non-Enum Creatable Error",
 			true,
 			ParameterDefinition{
-				Type:      "string",
-				Creatable: true,
+				Type: "string",
+				Options: ParameterOptions{
+					Creatable: true,
+				},
 			},
 		},
 		{
 			"Non-Enum Not Creatable OK",
 			false,
 			ParameterDefinition{
-				Type:      "enum",
-				Creatable: true,
+				Type: "enum",
+				Options: ParameterOptions{
+					Creatable: true,
+				},
 			},
 		},
 	}
 
 	for _, test := range testCases {
-		err := test.param.validateCreatable()
+		err := test.param.validateOptions()
 		if test.expectErr {
 			require.Error(t, err)
 		} else {
@@ -315,12 +323,14 @@ func TestValidateValue(t *testing.T) {
 			"test",
 		},
 		{
-			"ValidEnum - Createable",
+			"ValidEnum - Creatable",
 			false,
 			ParameterDefinition{
 				Type:        "enum",
 				ValidValues: []string{"test"},
-				Creatable:   true,
+				Options: ParameterOptions{
+					Creatable: true,
+				},
 			},
 			"not-test",
 		},

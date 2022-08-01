@@ -50,6 +50,9 @@ gql`
               value
             }
             validValues
+            options {
+              creatable
+            }
           }
         }
       }

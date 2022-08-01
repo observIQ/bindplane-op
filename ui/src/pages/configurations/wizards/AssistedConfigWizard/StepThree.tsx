@@ -72,6 +72,9 @@ gql`
             operator
           }
           required
+          options {
+            creatable
+          }
         }
         supportedPlatforms
         telemetryTypes

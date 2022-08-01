@@ -58,8 +58,10 @@ gql`
           required
           type
           validValues
-          creatable
           default
+          options {
+            creatable
+          }
         }
         supportedPlatforms
         version

@@ -90,7 +90,7 @@ export const StringParamInput: React.FC<ParamInputProps<string>> = ({
 };
 
 export const EnumParamInput: React.FC<ParamInputProps<string>> = (props) => {
-  return props.definition.creatable ? (
+  return props.definition.options.creatable ? (
     <CreatableSelectInput {...props} />
   ) : (
     <SelectParamInput {...props} />
@@ -132,16 +132,16 @@ const filter = createFilterOptions<string>();
 const CreatableSelectInput: React.FC<ParamInputProps<string>> = ({
   classes,
   definition,
-  // value,
+  value,
   onValueChange,
 }) => {
-  const [value, setValue] = useState("");
-
   return (
     <Autocomplete
       value={value}
       onChange={(event, newValue) => {
-        if (newValue) setValue(newValue);
+        if (newValue && isFunction(onValueChange)) {
+          onValueChange(newValue);
+        }
       }}
       filterOptions={(options, params) => {
         const filtered = filter(options, params);
@@ -158,14 +158,20 @@ const CreatableSelectInput: React.FC<ParamInputProps<string>> = ({
       selectOnFocus
       clearOnBlur
       handleHomeEndKeys
-      id="free-solo-with-text-demo"
       options={definition.validValues ?? []}
       getOptionLabel={(option) => option}
       renderOption={(props, option) => <li {...props}>{option}</li>}
-      sx={{ width: 300 }}
       freeSolo
       renderInput={(params) => (
-        <TextField {...params} label="Free solo with text demo" />
+        <TextField
+          {...params}
+          classes={classes}
+          fullWidth
+          label={definition.label}
+          helperText={definition.description}
+          required={definition.required}
+          size="small"
+        />
       )}
     />
   );

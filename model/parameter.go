@@ -49,7 +49,6 @@ type ParameterDefinition struct {
 	Type string `json:"type" yaml:"type"`
 
 	// only useable if Type == "enum"
-	Creatable   bool     `json:"creatable" yaml:"creatable"`
 	ValidValues []string `json:"validValues,omitempty" yaml:"validValues,omitempty" mapstructure:"validValues"`
 
 	// Must be valid according to Type & ValidValues
@@ -57,6 +56,15 @@ type ParameterDefinition struct {
 	RelevantIf     []RelevantIfCondition `json:"relevantIf,omitempty" yaml:"relevantIf,omitempty" mapstructure:"relevantIf"`
 	Hidden         bool                  `json:"hidden" yaml:"hidden"`
 	AdvancedConfig bool                  `json:"advancedConfig" yaml:"advancedConfig" mapstructure:"advancedConfig"`
+
+	Options ParameterOptions `json:"options" yaml:"options"`
+}
+
+// ParameterOptions specify further customization for inputs in the UI
+type ParameterOptions struct {
+	// Creatable will modify the "enum" parameter from a select to
+	// a creatable select where a user can specify a custom value
+	Creatable bool `json:"creatable" yaml:"creatable"`
 }
 
 // RelevantIfCondition specifies a condition under which a parameter is deemed relevant.
@@ -83,7 +91,7 @@ func (p ParameterDefinition) validateDefinition(errs validation.Errors) {
 		errs.Add(err)
 	}
 
-	if err := p.validateCreatable(); err != nil {
+	if err := p.validateOptions(); err != nil {
 		errs.Add(err)
 	}
 
@@ -126,15 +134,19 @@ func (p ParameterDefinition) validateType() error {
 	return nil
 }
 
-func (p ParameterDefinition) validateCreatable() error {
-	if p.Creatable && p.Type != "enum" {
-		return errors.NewError(
-			fmt.Sprintf("creatable is true for parameter of type '%s'", p.Type),
-			"remove 'creatable' field or change type to 'enum'",
+func (p ParameterDefinition) validateOptions() error {
+	err := &multierror.Error{}
+
+	if p.Options.Creatable && p.Type != "enum" {
+		multierror.Append(err,
+			errors.NewError(
+				fmt.Sprintf("creatable is true for parameter of type '%s'", p.Type),
+				"remove 'creatable' field or change type to 'enum'",
+			),
 		)
 	}
 
-	return nil
+	return err.ErrorOrNil()
 }
 
 func (p ParameterDefinition) validateValidValues() error {
@@ -287,7 +299,7 @@ func (p ParameterDefinition) validateEnumValue(fieldType parameterFieldType, val
 	}
 
 	// If the enum is creatable thats all we need to check - any string value is valid.
-	if p.Creatable {
+	if p.Options.Creatable {
 		return nil
 	}
 

@@ -168,15 +168,19 @@ type ComplexityRoot struct {
 	}
 
 	ParameterDefinition struct {
-		Creatable   func(childComplexity int) int
 		Default     func(childComplexity int) int
 		Description func(childComplexity int) int
 		Label       func(childComplexity int) int
 		Name        func(childComplexity int) int
+		Options     func(childComplexity int) int
 		RelevantIf  func(childComplexity int) int
 		Required    func(childComplexity int) int
 		Type        func(childComplexity int) int
 		ValidValues func(childComplexity int) int
+	}
+
+	ParameterOptions struct {
+		Creatable func(childComplexity int) int
 	}
 
 	ParameterizedSpec struct {
@@ -772,13 +776,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Parameter.Value(childComplexity), true
 
-	case "ParameterDefinition.creatable":
-		if e.complexity.ParameterDefinition.Creatable == nil {
-			break
-		}
-
-		return e.complexity.ParameterDefinition.Creatable(childComplexity), true
-
 	case "ParameterDefinition.default":
 		if e.complexity.ParameterDefinition.Default == nil {
 			break
@@ -807,6 +804,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ParameterDefinition.Name(childComplexity), true
 
+	case "ParameterDefinition.options":
+		if e.complexity.ParameterDefinition.Options == nil {
+			break
+		}
+
+		return e.complexity.ParameterDefinition.Options(childComplexity), true
+
 	case "ParameterDefinition.relevantIf":
 		if e.complexity.ParameterDefinition.RelevantIf == nil {
 			break
@@ -834,6 +838,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ParameterDefinition.ValidValues(childComplexity), true
+
+	case "ParameterOptions.creatable":
+		if e.complexity.ParameterOptions.Creatable == nil {
+			break
+		}
+
+		return e.complexity.ParameterOptions.Creatable(childComplexity), true
 
 	case "ParameterizedSpec.parameters":
 		if e.complexity.ParameterizedSpec.Parameters == nil {
@@ -1528,10 +1539,15 @@ type ParameterDefinition {
   type: ParameterType!
 
   validValues: [String!]
-  creatable: Boolean!
 
   default: Any
   relevantIf: [RelevantIfCondition!]
+
+  options: ParameterOptions!
+}
+
+type ParameterOptions {
+  creatable: Boolean
 }
 
 type RelevantIfCondition {
@@ -5017,50 +5033,6 @@ func (ec *executionContext) fieldContext_ParameterDefinition_validValues(ctx con
 	return fc, nil
 }
 
-func (ec *executionContext) _ParameterDefinition_creatable(ctx context.Context, field graphql.CollectedField, obj *model.ParameterDefinition) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ParameterDefinition_creatable(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Creatable, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ParameterDefinition_creatable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ParameterDefinition",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _ParameterDefinition_default(ctx context.Context, field graphql.CollectedField, obj *model.ParameterDefinition) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ParameterDefinition_default(ctx, field)
 	if err != nil {
@@ -5146,6 +5118,95 @@ func (ec *executionContext) fieldContext_ParameterDefinition_relevantIf(ctx cont
 				return ec.fieldContext_RelevantIfCondition_value(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RelevantIfCondition", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ParameterDefinition_options(ctx context.Context, field graphql.CollectedField, obj *model.ParameterDefinition) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ParameterDefinition_options(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Options, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.ParameterOptions)
+	fc.Result = res
+	return ec.marshalNParameterOptions2githubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐParameterOptions(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ParameterDefinition_options(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ParameterDefinition",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "creatable":
+				return ec.fieldContext_ParameterOptions_creatable(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ParameterOptions", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ParameterOptions_creatable(ctx context.Context, field graphql.CollectedField, obj *model.ParameterOptions) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ParameterOptions_creatable(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Creatable, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ParameterOptions_creatable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ParameterOptions",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -7259,12 +7320,12 @@ func (ec *executionContext) fieldContext_ResourceTypeSpec_parameters(ctx context
 				return ec.fieldContext_ParameterDefinition_type(ctx, field)
 			case "validValues":
 				return ec.fieldContext_ParameterDefinition_validValues(ctx, field)
-			case "creatable":
-				return ec.fieldContext_ParameterDefinition_creatable(ctx, field)
 			case "default":
 				return ec.fieldContext_ParameterDefinition_default(ctx, field)
 			case "relevantIf":
 				return ec.fieldContext_ParameterDefinition_relevantIf(ctx, field)
+			case "options":
+				return ec.fieldContext_ParameterDefinition_options(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ParameterDefinition", field.Name)
 		},
@@ -10594,13 +10655,6 @@ func (ec *executionContext) _ParameterDefinition(ctx context.Context, sel ast.Se
 
 			out.Values[i] = ec._ParameterDefinition_validValues(ctx, field, obj)
 
-		case "creatable":
-
-			out.Values[i] = ec._ParameterDefinition_creatable(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "default":
 
 			out.Values[i] = ec._ParameterDefinition_default(ctx, field, obj)
@@ -10608,6 +10662,38 @@ func (ec *executionContext) _ParameterDefinition(ctx context.Context, sel ast.Se
 		case "relevantIf":
 
 			out.Values[i] = ec._ParameterDefinition_relevantIf(ctx, field, obj)
+
+		case "options":
+
+			out.Values[i] = ec._ParameterDefinition_options(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var parameterOptionsImplementors = []string{"ParameterOptions"}
+
+func (ec *executionContext) _ParameterOptions(ctx context.Context, sel ast.SelectionSet, obj *model.ParameterOptions) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, parameterOptionsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ParameterOptions")
+		case "creatable":
+
+			out.Values[i] = ec._ParameterOptions_creatable(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -11980,12 +12066,12 @@ func (ec *executionContext) marshalNAgents2ᚖgithubᚗcomᚋobserviqᚋbindplan
 	return ec._Agents(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNAny2interface(ctx context.Context, v interface{}) (interface{}, error) {
+func (ec *executionContext) unmarshalNAny2interface(ctx context.Context, v interface{}) (any, error) {
 	res, err := graphql.UnmarshalAny(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAny2interface(ctx context.Context, sel ast.SelectionSet, v interface{}) graphql.Marshaler {
+func (ec *executionContext) marshalNAny2interface(ctx context.Context, sel ast.SelectionSet, v any) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12372,6 +12458,10 @@ func (ec *executionContext) marshalNParameterDefinition2ᚕgithubᚗcomᚋobserv
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalNParameterOptions2githubᚗcomᚋobserviqᚋbindplaneᚑopᚋmodelᚐParameterOptions(ctx context.Context, sel ast.SelectionSet, v model.ParameterOptions) graphql.Marshaler {
+	return ec._ParameterOptions(ctx, sel, &v)
 }
 
 func (ec *executionContext) unmarshalNParameterType2githubᚗcomᚋobserviqᚋbindplaneᚑopᚋinternalᚋgraphqlᚋmodelᚐParameterType(ctx context.Context, v interface{}) (model1.ParameterType, error) {

@@ -62,6 +62,9 @@ models:
   ParameterInput:
     model:
       - github.com/observiq/bindplane-op/model.Parameter
+  ParameterOptions:
+    model:
+      - github.com/observiq/bindplane-op/model.ParameterOptions
   PipelineType:
     model:
       - github.com/observiq/bindplane-op/model/otel.PipelineType
