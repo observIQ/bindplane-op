@@ -76,7 +76,7 @@ func (i *BindPlane) Client() (client.BindPlane, error) {
 	// don't override a client provided to SetClient
 	if i.client == nil {
 		var err error
-		i.client, err = client.NewBindPlane(&i.Config.Client, i.Logger())
+		i.client, err = client.NewBindPlane(&i.Config.Client, i.Logger(), i.Config.Server.BindPlaneURL())
 		if err != nil {
 			return nil, err
 		}

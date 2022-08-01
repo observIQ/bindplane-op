@@ -22,6 +22,7 @@ import (
 	"github.com/observiq/bindplane-op/internal/cli"
 	"github.com/observiq/bindplane-op/internal/cli/commands"
 	"github.com/observiq/bindplane-op/internal/cli/commands/apply"
+	"github.com/observiq/bindplane-op/internal/cli/commands/copy"
 	"github.com/observiq/bindplane-op/internal/cli/commands/delete"
 	"github.com/observiq/bindplane-op/internal/cli/commands/get"
 	"github.com/observiq/bindplane-op/internal/cli/commands/initialize"
@@ -63,6 +64,7 @@ func main() {
 		initialize.Command(bindplane, h, initialize.ClientMode),
 		install.Command(bindplane),
 		validate.Command(bindplane),
+		copy.Command(bindplane),
 	)
 
 	cobra.CheckErr(rootCmd.Execute())
