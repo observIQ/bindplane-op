@@ -86,8 +86,8 @@ export const CreateProcessorSelectView: React.FC<CreateProcessorSelectViewProps>
             .filter((pt) => metadataSatisfiesSubstring(pt, search))
             .map((p) => (
               <ResourceTypeButton
+                hideIcon
                 key={`${p.metadata.name}`}
-                icon={""}
                 displayName={p.metadata.displayName!}
                 onSelect={() => {
                   onSelect(p);

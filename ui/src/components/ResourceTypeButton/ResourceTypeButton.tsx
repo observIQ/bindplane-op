@@ -1,13 +1,14 @@
 import { Card, Stack, Typography } from "@mui/material";
 import { useState } from "react";
-import { PipelineType } from "../../graphql/generated";
+import { Maybe, PipelineType } from "../../graphql/generated";
 import { TelemetryChip } from "../Chips";
 
 import styles from "./resource-button.module.scss";
 
 interface ResourceButtonProps {
-  icon: string;
+  icon?: Maybe<string>;
   displayName: string;
+  hideIcon?: boolean;
   onSelect: () => void;
   telemetryTypes?: PipelineType[];
 }
@@ -16,6 +17,7 @@ interface ResourceButtonProps {
 // as selectable button in a stack.
 export const ResourceTypeButton: React.FC<ResourceButtonProps> = ({
   icon,
+  hideIcon,
   displayName,
   onSelect,
   telemetryTypes,
@@ -44,10 +46,13 @@ export const ResourceTypeButton: React.FC<ResourceButtonProps> = ({
           padding={1}
           marginLeft={1}
         >
-          <span
-            className={styles.icon}
-            style={{ backgroundImage: `url(${icon})` }}
-          />
+          {!hideIcon && (
+            <span
+              className={styles.icon}
+              style={{ backgroundImage: `url(${icon})` }}
+            />
+          )}
+
           <Typography fontWeight={600} color={isHovered ? "#fff" : "inherit"}>
             {displayName}
           </Typography>
