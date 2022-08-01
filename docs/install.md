@@ -183,6 +183,27 @@ Copy the output and run the command on the system your wish to install the colle
 
 After running the collector install command, the collector will appear in the `bindplanectl get agents` output.
 
+### Shell Completion
+
+#### Linux: bash
+
+1. Verify that `bash-completion` is installed on the host
+2. `bindplanectl completion bash | sudo tee -a /etc/bash_completion.d/bindplanectl` appends the output to a file in the bash completion directory
+3. Restart the shell
+
+#### macOS/Linux: ZSH
+
+To setup zsh completion for bindplanectl on MacOS:
+1. Include the following lines in `~/.zshrc`&nbsp;
+```
+autoload -Uz compinit
+compinit
+```
+2. Locate `fpath` by running `echo $fpath`, there may be several listed, some may not exist, use an existing one in the next step.
+3. Run the following command to generate the zsh tab completion script.\
+`bindplanectl completion zsh ><YOUR FPATH HERE>/_bindplanectl`
+4. Restart zsh and the bindplanectl tab completions will be available.
+
 ### Manual Install
 
 Installing manually can be desired if you wish to avoid running shell scripts, or you require
