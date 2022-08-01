@@ -30,6 +30,8 @@ import (
 	"go.uber.org/zap"
 )
 
+const channelBufferSize = 10
+
 // Labels is the resolver for the labels field.
 func (r *agentResolver) Labels(ctx context.Context, obj *model.Agent) (map[string]interface{}, error) {
 	labels := map[string]interface{}{}
@@ -302,24 +304,35 @@ func (r *sourceTypeResolver) Kind(ctx context.Context, obj *model.SourceType) (s
 	return string(obj.GetKind()), nil
 }
 
-// AgentChanges is the resolver for the agentChanges field.
-func (r *subscriptionResolver) AgentChanges(ctx context.Context, selector *string, query *string) (<-chan []*model1.AgentChange, error) {
+func (r *subscriptionResolver) AgentChanges(ctx context.Context, selector *string, query *string, seed *bool) (<-chan *model1.AgentChanges, error) {
 	parsedSelector, parsedQuery, err := r.parseSelectorAndQuery(selector, query)
 	if err != nil {
 		return nil, err
 	}
 
+	channel := make(chan *model1.AgentChanges, 10)
+
 	// we can ignore the unsubscribe function because this will automatically unsubscribe when the context is done. we
 	// could subscribe directly to store.AgentChanges, but the resolver is setup to relay events and the filter and
-	// dispatch will happen in a separate goroutine.
-	channel, _ := eventbus.SubscribeWithFilterUntilDone(ctx, r.updates, func(updates *store.Updates) (result []*model1.AgentChange, accept bool) {
+	// dispatch will happen in a separate goroutine. we can ignore the channel returned because we provide it so that we
+	// can seed AgentChanges onto it.
+	eventbus.SubscribeWithFilterUntilDone(ctx, r.updates, func(updates *store.Updates) (result *model1.AgentChanges, accept bool) {
 		// if the observer is using a selector or query, we want to change Update to Remove if it no longer matches the
 		// selector or query
 		events := applySelectorToChanges(parsedSelector, updates.Agents)
 		events = applyQueryToChanges(parsedQuery, r.bindplane.Store().AgentIndex(), events)
 
-		return model1.ToAgentChangeArray(events), !events.Empty()
-	})
+		changes := model1.ToAgentChangeArray(events)
+
+		return &model1.AgentChanges{
+			AgentChanges: changes,
+			Query:        query,
+		}, !events.Empty()
+	}, eventbus.WithChannel(channel))
+
+	if seed != nil && *seed {
+		go r.seedAgents(ctx, parsedSelector, query, parsedQuery, channel)
+	}
 
 	return channel, nil
 }

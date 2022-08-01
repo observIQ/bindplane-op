@@ -1,75 +1,62 @@
-import { gql } from "@apollo/client";
-import { debounce } from "lodash";
-import { memo, useEffect, useMemo, useState } from "react";
-import {
-  Agent,
-  AgentChangesDocument,
-  AgentChangesSubscription,
-  Suggestion,
-  useAgentsTableQuery,
-} from "../../../graphql/generated";
-import { SearchBar } from "../../SearchBar";
-import { AgentsDataGrid, AgentsTableField } from "./AgentsDataGrid";
 import {
   GridDensityTypes,
   GridRowParams,
   GridSelectionModel,
 } from "@mui/x-data-grid";
-import { mergeAgents } from "./merge-agents";
-
-gql`
-  query AgentsTable($selector: String, $query: String) {
-    agents(selector: $selector, query: $query) {
-      agents {
-        id
-        architecture
-        hostName
-        labels
-        platform
-        version
-
-        name
-        home
-        operatingSystem
-        macAddress
-
-        type
-        status
-
-        connectedAt
-        disconnectedAt
-
-        configurationResource {
-          apiVersion
-          kind
-          metadata {
-            id
-            name
-          }
-          spec {
-            contentType
-          }
-        }
-      }
-
-      query
-
-      suggestions {
-        query
-        label
-      }
-    }
-  }
-`;
+import { debounce } from "lodash";
+import { memo, useMemo, useState } from "react";
+import {
+  AgentChangeType,
+  Suggestion,
+  useAgentChangesSubscription,
+} from "../../../graphql/generated";
+import { AgentChangeAgent, AgentChangeItem } from '../../../hooks/useAgentChanges';
+import { SearchBar } from "../../SearchBar";
+import {
+  AgentsDataGrid,
+  AgentsTableField,
+} from "./AgentsDataGrid";
 
 interface Props {
   onAgentsSelected?: (agentIds: GridSelectionModel) => void;
-  isRowSelectable?: (params: GridRowParams<Agent>) => boolean;
+  isRowSelectable?: (params: GridRowParams<AgentChangeAgent>) => boolean;
   selector?: string;
   minHeight?: string;
   columnFields?: AgentsTableField[];
   density?: GridDensityTypes;
   initQuery?: string;
+}
+
+export function applyAgentChanges(
+  agents: AgentChangeAgent[],
+  changes: AgentChangeItem[],
+): AgentChangeAgent[] {
+  // make a map of id => agent
+  const map: { [id: string]: AgentChangeAgent } = {};
+  for (const agent of agents) {
+    map[agent.id] = agent;
+  }
+
+  // changes includes inserts, updates, and deletes
+  for (const change of changes) {
+    const agent = change.agent;
+    switch (change.changeType) {
+      case AgentChangeType.Remove:
+        delete map[agent.id];
+        break;
+      default:
+        // update and insert are the same
+        map[agent.id] = agent;
+        break;
+    }
+  }
+  return Object.values(map);
+}
+
+interface AgentsTableData {
+  agents: AgentChangeAgent[];
+  suggestions?: Suggestion[];
+  query: string;
 }
 
 const AgentsTableComponent: React.FC<Props> = ({
@@ -81,16 +68,47 @@ const AgentsTableComponent: React.FC<Props> = ({
   density = GridDensityTypes.Standard,
   initQuery = "",
 }) => {
-  const { data, loading, refetch, subscribeToMore } = useAgentsTableQuery({
-    variables: { selector, query: initQuery },
-    fetchPolicy: "network-only",
-    nextFetchPolicy: "cache-only",
+  const [data, setData] = useState<AgentsTableData>({
+    agents: [],
+    suggestions: [],
+    query: "",
   });
-
-  const [agents, setAgents] = useState<Agent[]>([]);
   const [subQuery, setSubQuery] = useState<string>(initQuery);
 
-  const debouncedRefetch = useMemo(() => debounce(refetch, 100), [refetch]);
+  const { loading } = useAgentChangesSubscription({
+    variables: { selector, query: subQuery, seed: true },
+    fetchPolicy: "network-only",
+    onSubscriptionData(options) {
+      const agentChanges = options.subscriptionData.data?.agentChanges;
+      if (agentChanges == null) {
+        setData({
+          agents: [],
+          suggestions: [],
+          query: "",
+        });
+        return;
+      }
+
+      const { query, agentChanges: changes, suggestions } = agentChanges;
+      if (changes != null) {
+        if (query === data.query) {
+          // query is the same, accumulate results
+          setData({
+            agents: applyAgentChanges(data.agents, changes),
+            suggestions: data.suggestions,
+            query: data.query,
+          });
+        } else {
+          // query changed, start over
+          setData({
+            agents: applyAgentChanges([], changes),
+            suggestions: suggestions || [],
+            query: query || "",
+          });
+        }
+      }
+    },
+  });
 
   const filterOptions: Suggestion[] = [
     { label: "Disconnected agents", query: "status:disconnected" },
@@ -98,53 +116,27 @@ const AgentsTableComponent: React.FC<Props> = ({
     { label: "No managed configuration", query: "-configuration:" },
   ];
 
-  useEffect(() => {
-    if (data?.agents.agents != null) {
-      setAgents(data.agents.agents);
-    }
-  }, [data?.agents.agents, setAgents]);
-
-  useEffect(() => {
-    subscribeToMore({
-      document: AgentChangesDocument,
-      variables: { query: subQuery, selector },
-      updateQuery: (prev, { subscriptionData, variables }) => {
-        if (
-          subscriptionData == null ||
-          variables?.query !== subQuery ||
-          variables.selector !== selector
-        ) {
-          return prev;
-        }
-
-        const { data } = subscriptionData as unknown as {
-          data: AgentChangesSubscription;
-        };
-
-        return {
-          agents: {
-            __typename: "Agents",
-            suggestions: prev.agents.suggestions,
-            query: prev.agents.query,
-            agents: mergeAgents(prev.agents.agents, data.agentChanges),
-          },
-        };
-      },
-    });
-  }, [selector, subQuery, subscribeToMore]);
+  const debouncedSetSubQuery = useMemo(
+    () => debounce(setSubQuery, 300),
+    [setSubQuery]
+  );
 
   function onQueryChange(query: string) {
-    debouncedRefetch({ selector, query });
-    setSubQuery(query);
+    setData({
+      agents: data.agents,
+      suggestions: [],
+      query: data.query,
+    });
+    debouncedSetSubQuery(query);
   }
 
   return (
     <>
       <SearchBar
         filterOptions={filterOptions}
-        suggestions={data?.agents.suggestions}
+        suggestions={data.suggestions}
         onQueryChange={onQueryChange}
-        suggestionQuery={data?.agents.query}
+        suggestionQuery={subQuery}
         initialQuery={initQuery}
       />
 
@@ -154,7 +146,7 @@ const AgentsTableComponent: React.FC<Props> = ({
         density={density}
         minHeight={minHeight}
         loading={loading}
-        agents={agents}
+        agents={data.agents}
         columnFields={columnFields}
       />
     </>

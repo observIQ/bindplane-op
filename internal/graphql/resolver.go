@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"github.com/observiq/bindplane-op/internal/eventbus"
+	model1 "github.com/observiq/bindplane-op/internal/graphql/model"
 	"github.com/observiq/bindplane-op/internal/server"
 	"github.com/observiq/bindplane-op/internal/store"
 	"github.com/observiq/bindplane-op/internal/store/search"
@@ -139,7 +140,10 @@ func (r *Resolver) queryOptionsAndSuggestions(selector *string, query *string, i
 	if err != nil {
 		return nil, nil, err
 	}
+	return r.queryOptionsAndSuggestionsParsed(parsedSelector, parsedQuery, index)
+}
 
+func (r *Resolver) queryOptionsAndSuggestionsParsed(parsedSelector *model.Selector, parsedQuery *search.Query, index search.Index) ([]store.QueryOption, []*search.Suggestion, error) {
 	options := []store.QueryOption{}
 	if parsedSelector != nil {
 		options = append(options, store.WithSelector(*parsedSelector))
@@ -157,4 +161,26 @@ func (r *Resolver) queryOptionsAndSuggestions(selector *string, query *string, i
 		suggestions = s
 	}
 	return options, suggestions, nil
+}
+
+func (r *Resolver) seedAgents(ctx context.Context, parsedSelector *model.Selector, query *string, parsedQuery *search.Query, channel chan *model1.AgentChanges) {
+	// seed with insert AgentChange events to get started, similar to an Agents query.
+	options, suggestions, err := r.queryOptionsAndSuggestionsParsed(parsedSelector, parsedQuery, r.bindplane.Store().AgentIndex())
+	if err != nil {
+		return
+	}
+
+	agents, _ := r.bindplane.Store().Agents(ctx, options...)
+	changes := make([]*model1.AgentChange, 0, len(agents))
+	for _, agent := range agents {
+		changes = append(changes, &model1.AgentChange{
+			Agent:      agent,
+			ChangeType: model1.AgentChangeTypeInsert,
+		})
+	}
+	channel <- &model1.AgentChanges{
+		AgentChanges: changes,
+		Query:        query,
+		Suggestions:  suggestions,
+	}
 }

@@ -1,4 +1,4 @@
-import { Agent, AgentConfiguration } from "../../../../graphql/generated";
+import { Agent, AgentChange, AgentChangeType, AgentConfiguration } from "../../../../graphql/generated";
 
 function createAgent(): Agent {
   const now = new Date();
@@ -29,6 +29,18 @@ export function generateAgents(length: number): Agent[] {
   const agents: Agent[] = [];
   for (let i = 0; i < length; i++) {
     agents.push(createAgent());
+  }
+
+  return agents;
+}
+
+export function generateAgentChanges(length: number): AgentChange[] {
+  const agents: AgentChange[] = [];
+  for (let i = 0; i < length; i++) {
+    agents.push({
+      agent: createAgent(),
+      changeType: AgentChangeType.Insert,
+    });
   }
 
   return agents;

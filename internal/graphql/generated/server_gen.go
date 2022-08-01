@@ -87,6 +87,12 @@ type ComplexityRoot struct {
 		ChangeType func(childComplexity int) int
 	}
 
+	AgentChanges struct {
+		AgentChanges func(childComplexity int) int
+		Query        func(childComplexity int) int
+		Suggestions  func(childComplexity int) int
+	}
+
 	AgentConfiguration struct {
 		Collector func(childComplexity int) int
 		Logging   func(childComplexity int) int
@@ -253,7 +259,7 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		AgentChanges         func(childComplexity int, selector *string, query *string) int
+		AgentChanges         func(childComplexity int, selector *string, query *string, seed *bool) int
 		ConfigurationChanges func(childComplexity int, selector *string, query *string) int
 	}
 
@@ -325,7 +331,7 @@ type SourceTypeResolver interface {
 	Kind(ctx context.Context, obj *model.SourceType) (string, error)
 }
 type SubscriptionResolver interface {
-	AgentChanges(ctx context.Context, selector *string, query *string) (<-chan []*model1.AgentChange, error)
+	AgentChanges(ctx context.Context, selector *string, query *string, seed *bool) (<-chan *model1.AgentChanges, error)
 	ConfigurationChanges(ctx context.Context, selector *string, query *string) (<-chan []*model1.ConfigurationChange, error)
 }
 
@@ -483,6 +489,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AgentChange.ChangeType(childComplexity), true
+
+	case "AgentChanges.agentChanges":
+		if e.complexity.AgentChanges.AgentChanges == nil {
+			break
+		}
+
+		return e.complexity.AgentChanges.AgentChanges(childComplexity), true
+
+	case "AgentChanges.query":
+		if e.complexity.AgentChanges.Query == nil {
+			break
+		}
+
+		return e.complexity.AgentChanges.Query(childComplexity), true
+
+	case "AgentChanges.suggestions":
+		if e.complexity.AgentChanges.Suggestions == nil {
+			break
+		}
+
+		return e.complexity.AgentChanges.Suggestions(childComplexity), true
 
 	case "AgentConfiguration.Collector":
 		if e.complexity.AgentConfiguration.Collector == nil {
@@ -1221,7 +1248,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Subscription.AgentChanges(childComplexity, args["selector"].(*string), args["query"].(*string)), true
+		return e.complexity.Subscription.AgentChanges(childComplexity, args["selector"].(*string), args["query"].(*string), args["seed"].(*bool)), true
 
 	case "Subscription.configurationChanges":
 		if e.complexity.Subscription.ConfigurationChanges == nil {
@@ -1436,6 +1463,12 @@ type Suggestion {
 # ----------------------------------------------------------------------
 # agentChanges subscription result
 
+type AgentChanges {
+  query: String
+  agentChanges: [AgentChange!]!
+  suggestions: [Suggestion!]
+}
+
 enum AgentChangeType {
   INSERT
   UPDATE
@@ -1610,7 +1643,7 @@ type Query {
 # subscriptions
 
 type Subscription {
-  agentChanges(selector: String, query: String): [AgentChange!]!
+  agentChanges(selector: String, query: String, seed: Boolean): AgentChanges!
   configurationChanges(selector: String, query: String): [ConfigurationChange!]!
 }
 `, BuiltIn: false},
@@ -1840,6 +1873,15 @@ func (ec *executionContext) field_Subscription_agentChanges_args(ctx context.Con
 		}
 	}
 	args["query"] = arg1
+	var arg2 *bool
+	if tmp, ok := rawArgs["seed"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("seed"))
+		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["seed"] = arg2
 	return args, nil
 }
 
@@ -2791,6 +2833,144 @@ func (ec *executionContext) fieldContext_AgentChange_changeType(ctx context.Cont
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type AgentChangeType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AgentChanges_query(ctx context.Context, field graphql.CollectedField, obj *model1.AgentChanges) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AgentChanges_query(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Query, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AgentChanges_query(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AgentChanges",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AgentChanges_agentChanges(ctx context.Context, field graphql.CollectedField, obj *model1.AgentChanges) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AgentChanges_agentChanges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AgentChanges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.AgentChange)
+	fc.Result = res
+	return ec.marshalNAgentChange2ᚕᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋinternalᚋgraphqlᚋmodelᚐAgentChangeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AgentChanges_agentChanges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AgentChanges",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "agent":
+				return ec.fieldContext_AgentChange_agent(ctx, field)
+			case "changeType":
+				return ec.fieldContext_AgentChange_changeType(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AgentChange", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AgentChanges_suggestions(ctx context.Context, field graphql.CollectedField, obj *model1.AgentChanges) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AgentChanges_suggestions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Suggestions, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*search.Suggestion)
+	fc.Result = res
+	return ec.marshalOSuggestion2ᚕᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋinternalᚋstoreᚋsearchᚐSuggestionᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AgentChanges_suggestions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AgentChanges",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "label":
+				return ec.fieldContext_Suggestion_label(ctx, field)
+			case "query":
+				return ec.fieldContext_Suggestion_query(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Suggestion", field.Name)
 		},
 	}
 	return fc, nil
@@ -7715,7 +7895,7 @@ func (ec *executionContext) _Subscription_agentChanges(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().AgentChanges(rctx, fc.Args["selector"].(*string), fc.Args["query"].(*string))
+		return ec.resolvers.Subscription().AgentChanges(rctx, fc.Args["selector"].(*string), fc.Args["query"].(*string), fc.Args["seed"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7729,7 +7909,7 @@ func (ec *executionContext) _Subscription_agentChanges(ctx context.Context, fiel
 	}
 	return func(ctx context.Context) graphql.Marshaler {
 		select {
-		case res, ok := <-resTmp.(<-chan []*model1.AgentChange):
+		case res, ok := <-resTmp.(<-chan *model1.AgentChanges):
 			if !ok {
 				return nil
 			}
@@ -7737,7 +7917,7 @@ func (ec *executionContext) _Subscription_agentChanges(ctx context.Context, fiel
 				w.Write([]byte{'{'})
 				graphql.MarshalString(field.Alias).MarshalGQL(w)
 				w.Write([]byte{':'})
-				ec.marshalNAgentChange2ᚕᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋinternalᚋgraphqlᚋmodelᚐAgentChangeᚄ(ctx, field.Selections, res).MarshalGQL(w)
+				ec.marshalNAgentChanges2ᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋinternalᚋgraphqlᚋmodelᚐAgentChanges(ctx, field.Selections, res).MarshalGQL(w)
 				w.Write([]byte{'}'})
 			})
 		case <-ctx.Done():
@@ -7754,12 +7934,14 @@ func (ec *executionContext) fieldContext_Subscription_agentChanges(ctx context.C
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "agent":
-				return ec.fieldContext_AgentChange_agent(ctx, field)
-			case "changeType":
-				return ec.fieldContext_AgentChange_changeType(ctx, field)
+			case "query":
+				return ec.fieldContext_AgentChanges_query(ctx, field)
+			case "agentChanges":
+				return ec.fieldContext_AgentChanges_agentChanges(ctx, field)
+			case "suggestions":
+				return ec.fieldContext_AgentChanges_suggestions(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type AgentChange", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type AgentChanges", field.Name)
 		},
 	}
 	defer func() {
@@ -9909,6 +10091,42 @@ func (ec *executionContext) _AgentChange(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
+var agentChangesImplementors = []string{"AgentChanges"}
+
+func (ec *executionContext) _AgentChanges(ctx context.Context, sel ast.SelectionSet, obj *model1.AgentChanges) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, agentChangesImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AgentChanges")
+		case "query":
+
+			out.Values[i] = ec._AgentChanges_query(ctx, field, obj)
+
+		case "agentChanges":
+
+			out.Values[i] = ec._AgentChanges_agentChanges(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "suggestions":
+
+			out.Values[i] = ec._AgentChanges_suggestions(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var agentConfigurationImplementors = []string{"AgentConfiguration"}
 
 func (ec *executionContext) _AgentConfiguration(ctx context.Context, sel ast.SelectionSet, obj *model1.AgentConfiguration) graphql.Marshaler {
@@ -11904,6 +12122,20 @@ func (ec *executionContext) marshalNAgentChangeType2githubᚗcomᚋobserviqᚋbi
 	return v
 }
 
+func (ec *executionContext) marshalNAgentChanges2githubᚗcomᚋobserviqᚋbindplaneᚑopᚋinternalᚋgraphqlᚋmodelᚐAgentChanges(ctx context.Context, sel ast.SelectionSet, v model1.AgentChanges) graphql.Marshaler {
+	return ec._AgentChanges(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAgentChanges2ᚖgithubᚗcomᚋobserviqᚋbindplaneᚑopᚋinternalᚋgraphqlᚋmodelᚐAgentChanges(ctx context.Context, sel ast.SelectionSet, v *model1.AgentChanges) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AgentChanges(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNAgents2githubᚗcomᚋobserviqᚋbindplaneᚑopᚋinternalᚋgraphqlᚋmodelᚐAgents(ctx context.Context, sel ast.SelectionSet, v model1.Agents) graphql.Marshaler {
 	return ec._Agents(ctx, sel, &v)
 }
@@ -11918,12 +12150,12 @@ func (ec *executionContext) marshalNAgents2ᚖgithubᚗcomᚋobserviqᚋbindplan
 	return ec._Agents(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNAny2interface(ctx context.Context, v interface{}) (any, error) {
+func (ec *executionContext) unmarshalNAny2interface(ctx context.Context, v interface{}) (interface{}, error) {
 	res, err := graphql.UnmarshalAny(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAny2interface(ctx context.Context, sel ast.SelectionSet, v any) graphql.Marshaler {
+func (ec *executionContext) marshalNAny2interface(ctx context.Context, sel ast.SelectionSet, v interface{}) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

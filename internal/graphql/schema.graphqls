@@ -116,6 +116,14 @@ type Suggestion {
 # ----------------------------------------------------------------------
 # agentChanges subscription result
 
+type AgentChanges {
+  agentChanges: [AgentChange!]!
+  query: String
+
+  # suggestions is only returned with the initial response when seed==true
+  suggestions: [Suggestion!]
+}
+
 enum AgentChangeType {
   INSERT
   UPDATE
@@ -290,6 +298,6 @@ type Query {
 # subscriptions
 
 type Subscription {
-  agentChanges(selector: String, query: String): [AgentChange!]!
+  agentChanges(selector: String, query: String, seed: Boolean): AgentChanges!
   configurationChanges(selector: String, query: String): [ConfigurationChange!]!
 }

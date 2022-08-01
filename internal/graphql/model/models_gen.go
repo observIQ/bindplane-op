@@ -16,6 +16,12 @@ type AgentChange struct {
 	ChangeType AgentChangeType `json:"changeType"`
 }
 
+type AgentChanges struct {
+	Query        *string              `json:"query"`
+	AgentChanges []*AgentChange       `json:"agentChanges"`
+	Suggestions  []*search.Suggestion `json:"suggestions"`
+}
+
 type AgentConfiguration struct {
 	Collector *string                `json:"Collector"`
 	Logging   *string                `json:"Logging"`

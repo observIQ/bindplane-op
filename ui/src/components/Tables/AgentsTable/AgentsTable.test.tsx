@@ -1,32 +1,31 @@
-import { mergeAgents } from "./merge-agents";
-import {
-  Agent,
-  AgentChange,
-  AgentChangeType,
-} from "../../../graphql/generated";
 import { cloneDeep } from "@apollo/client/utilities";
+import { applyAgentChanges } from '.';
+import {
+  AgentChangeType
+} from "../../../graphql/generated";
+import { AgentChangeAgent } from '../../../hooks/useAgentChanges';
 
-const a1: Agent = {
+const a1: AgentChangeAgent = {
   id: "1",
   name: "",
   status: 1,
 };
-const a2: Agent = {
+const a2: AgentChangeAgent = {
   id: "2",
   name: "",
   status: 1,
 };
-const a3: Agent = {
+const a3: AgentChangeAgent = {
   id: "3",
   name: "",
   status: 1,
 };
-const a4: Agent = {
+const a4: AgentChangeAgent = {
   id: "4",
   name: "",
   status: 1,
 };
-const a5: Agent = {
+const a5: AgentChangeAgent = {
   id: "5",
   name: "",
   status: 1,
@@ -34,7 +33,7 @@ const a5: Agent = {
 
 describe("mergeAgents", () => {
   it("removes agents when it gets event type remove", () => {
-    const updates: AgentChange[] = [
+    const updates = [
       {
         agent: a1,
         changeType: AgentChangeType.Remove,
@@ -57,7 +56,7 @@ describe("mergeAgents", () => {
       },
     ];
 
-    const newAgents = mergeAgents([a1, a2, a3, a4, a5], updates);
+    const newAgents = applyAgentChanges([a1, a2, a3, a4, a5], updates);
     expect(newAgents).toEqual([]);
   });
 
@@ -65,7 +64,7 @@ describe("mergeAgents", () => {
     const current = [a1, a2, a3, a4];
     const updates = [{ agent: a5, changeType: AgentChangeType.Insert }];
 
-    const merged = mergeAgents(current, updates);
+    const merged = applyAgentChanges(current, updates);
     expect(merged).toEqual([a1, a2, a3, a4, a5]);
   });
 
@@ -81,7 +80,7 @@ describe("mergeAgents", () => {
       },
     ];
 
-    const merged = mergeAgents(current, updates);
+    const merged = applyAgentChanges(current, updates);
     expect(merged).toEqual([a1Updated, a2]);
   });
 
@@ -94,7 +93,7 @@ describe("mergeAgents", () => {
       },
     ];
 
-    const merged = mergeAgents(current, updates);
+    const merged = applyAgentChanges(current, updates);
     expect(merged).toEqual([a1, a2]);
   });
 
@@ -107,7 +106,7 @@ describe("mergeAgents", () => {
       },
     ];
 
-    const merged = mergeAgents(current, updates);
+    const merged = applyAgentChanges(current, updates);
     expect(merged).toEqual([a1, a2, a3]);
   });
 });
