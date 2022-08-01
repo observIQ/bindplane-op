@@ -1,0 +1,89 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: DestinationType
+metadata:
+  name: signalfx
+  displayName: Splunk Observability Cloud
+  description: Send metrics, traces, and logs to Splunk Observability Cloud (SignalFX).
+  icon: /icons/destinations/splunk.svg
+spec:
+  parameters:
+    - name: token
+      label: Token
+      description: Token used to authenticate with the Splunk (SignalFX) metric, trace, and log APIs
+      type: string
+      required: true
+      default: ""
+
+    # https://status.signalfx.com/
+    - name: realm
+      label: API Realm (region)
+      description: The Splunk API realm (region) to use when sending metrics, traces, and logs
+      type: enum
+      validValues:
+        - us0
+        - us1
+        - us2
+        - eu0
+        - jp0
+      default: us0
+
+    - name: enable_metrics
+      label: Enable Metrics
+      type: bool
+      default: true
+
+    - name: enable_logs
+      label: Enable Logs
+      type: bool
+      default: true
+
+    - name: enable_traces
+      label: Enable Traces
+      type: bool
+      default: true
+
+  metrics:
+    exporters: |
+      {{ if .enable_metrics }}
+      - signalfx:
+          access_token: '{{ .token }}'
+          api_url: https://api.{{ .realm }}.signalfx.com
+          ingest_url: https://ingest.{{ .realm }}.signalfx.com
+          sync_host_metadata: true
+      {{ end }}
+    processors: |
+      - resourcedetection:
+          detectors: [gce, ecs, ec2, azure, system]
+          override: true
+
+      - batch:
+
+  logs:
+    exporters: |
+      {{ if .enable_logs }}
+      - splunk_hec:
+          token: '{{ .token }}'
+          endpoint: https://ingest.{{ .realm }}.signalfx.com/v1/log
+          source: otel
+          sourcetype: otel
+      {{ end }}
+    processors: |
+      - resourcedetection:
+          detectors: [gce, ecs, ec2, azure, system]
+          override: true
+
+      - batch:
+
+  traces:
+    exporters: |
+      {{ if .enable_traces }}
+      - sapm:
+          access_token: '{{ .token }}'
+          endpoint: https://ingest.{{ .realm }}.signalfx.com/v2/trace
+      {{ end }}
+    processors: |
+      - resourcedetection:
+          detectors: [gce, ecs, ec2, azure, system]
+          override: true
+
+      - batch:
