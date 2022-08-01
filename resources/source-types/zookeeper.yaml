@@ -12,29 +12,100 @@ spec:
     - linux
     - windows
   parameters:
+    # Metrics
+    - name: enable_metrics
+      label: Enable Metrics
+      type: bool
+      default: true
+
     - name: collection_interval
       label: Collection Interval
       description: How often (seconds) to scrape for metrics.
       type: int
       default: 60
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
 
     - name: address
       label: Address
       description: IP address or hostname of the ZooKeeper system.
       type: string
       default: localhost
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
 
     - name: port
       label: Port
       description: Port of the ZooKeeper system.
       type: int
       default: 2181
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    # Logs
+    - name: enable_logs
+      label: Enable Logs
+      type: bool
+      default: true
+
+    - name: file_path
+      label: Log Path(s)
+      description: File paths to logs.
+      type: strings
+      default:
+        - "/opt/zookeeper/logs/zookeeper.log"
+      required: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+    - name: start_at
+      label: Start At
+      description: Start reading file from 'beginning' or 'end'.
+      type: enum
+      validValues:
+        - beginning
+        - end
+      default: end
+      advancedConfig: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
 
   metrics:
     receivers: |
+      {{ if .enable_metrics }}
       - zookeeper:
           endpoint: {{ .address }}:{{ .port }}
           collection_interval: {{ .collection_interval }}s
+      {{ end }}
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]
+
+  logs:
+    receivers: |
+      {{ if .enable_logs }}
+      - plugin:
+          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/zookeeper_logs.yaml
+          parameters:
+            start_at: {{ .start_at }}
+            file_path:
+              {{ range $fp := .file_path }}
+              - '{{ $fp }}'
+              {{ end }}
+      {{ end }}
 
     processors: |
       - resourcedetection:
