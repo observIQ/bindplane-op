@@ -1,0 +1,111 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: SourceType
+metadata:
+  name: oracledb
+  displayName: Oracle Database
+  icon: /icons/sources/oracledb.svg
+  description: Oracle Database log parser
+spec:
+  version: 0.0.1
+  supported_platforms:
+    - macos
+    - linux
+    - windows
+  parameters:
+    - name: enable_audit_log
+      label: Audit Logs
+      type: bool
+      default: true
+
+    - name: audit_log_path
+      label: Audit Log Path(s)
+      description: File paths to audit logs.
+      type: strings
+      default:
+        - "/u01/app/oracle/product/*/dbhome_1/admin/*/adump/*.aud"
+      required: true
+      relevantIf:
+        - name: enable_audit_log
+          operator: equals
+          value: true
+
+    - name: enable_alert_log
+      label: Alert Logs
+      type: bool
+      default: true
+
+    - name: alert_log_path
+      label: Alert Log Path(s)
+      description: File paths to alert logs.
+      type: strings
+      default:
+        - "/u01/app/oracle/product/*/dbhome_1/diag/rdbms/*/*/trace/alert_*.log"
+      required: true
+      relevantIf:
+        - name: enable_alert_log
+          operator: equals
+          value: true
+
+    - name: enable_listener_log
+      label: Listener Logs
+      type: bool
+      default: true
+
+    - name: listener_log_path
+      label: Listenr Log Path(s)
+      description: File paths to alert logs.
+      type: strings
+      default:
+        - "/u01/app/oracle/product/*/dbhome_1/diag/tnslsnr/*/listener/alert/log.xml"
+      required: true
+      relevantIf:
+        - name: enable_listener_log
+          operator: equals
+          value: true
+
+    - name: start_at
+      label: Start At
+      description: Start reading file from 'beginning' or 'end'.
+      type: enum
+      validValues:
+        - beginning
+        - end
+      default: end
+      advancedConfig: true
+
+  logs:
+    receivers: |
+      - plugin:
+          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/oracle_database_logs.yaml
+          parameters:
+            start_at: {{ .start_at }}
+
+            enable_audit_log: {{ .enable_audit_log}}
+            {{ if .enable_audit_log }}
+            audit_log_path:
+              {{ range $fp := .audit_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+            {{ end }}
+
+            enable_alert_log: {{ .enable_alert_log}}
+            {{ if .enable_alert_log }}
+            alert_log_path:
+              {{ range $fp := .alert_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+            {{ end }}
+
+            enable_listener_log: {{ .enable_listener_log}}
+            {{ if .enable_listener_log }}
+            listener_log_path:
+              {{ range $fp := .listener_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+            {{ end }}
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]
