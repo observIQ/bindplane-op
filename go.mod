@@ -43,7 +43,7 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/sessions v1.2.1
 	github.com/observiq/stanza v1.6.1
-	github.com/open-telemetry/opamp-go v0.2.0
+	github.com/open-telemetry/opamp-go v0.3.0
 	github.com/testcontainers/testcontainers-go v0.13.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.32.0
 	go.opentelemetry.io/otel v1.8.0
