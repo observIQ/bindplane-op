@@ -67,14 +67,8 @@ jobs:
     steps:
       - name: Check out source code
         uses: actions/checkout@v3
-      - name: install shellcheck
-        run: |
-          apt-get update
-          apt-get install -y shellcheck
-      - name: run shellcheck against scripts
-        run: |
-          shellcheck bindplane-op/scripts/*.sh
-          shellcheck bindplane-op/scripts/package/*.sh
+      - name: Run shellcheck
+        uses: ludeeus/action-shellcheck@master
           
   # Run go vet against Go code.
   vet:
