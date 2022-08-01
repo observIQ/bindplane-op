@@ -1,0 +1,65 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: SourceType
+metadata:
+  name: w3c
+  displayName: W3C Extended format
+  icon: /icons/sources/w3c.svg
+  description: W3C Extended format log parser
+spec:
+  version: 0.0.1
+  supported_platforms:
+    - macos
+    - linux
+    - windows
+  parameters:
+    - name: file_log_path
+      label: File Path(s)
+      description: File or directory paths to tail for logs.
+      type: strings
+      default: []
+      required: true
+
+    - name: exclude_file_log_path
+      label: Exclude File Path(s)
+      description: File or directory paths to exclude.
+      type: strings
+      default: []
+
+    - name: header
+      description: The W3C header which specifies the field names
+      type: string
+      required: true 
+
+    - name: start_at
+      label: Start At
+      description: Start reading file from 'beginning' or 'end'.
+      type: enum
+      validValues:
+        - beginning
+        - end
+      default: end
+      advancedConfig: true
+
+  logs:
+    receivers: |
+      - plugin:
+          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/w3c_logs.yaml
+          parameters:
+            start_at: {{ .start_at }}
+            file_log_path:
+              {{ range $fp := .file_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+            {{ if .exclude_file_log_path }}
+            exclude_file_log_path:
+              {{ range $fp := .exclude_file_log_path }}
+              - '{{ $fp }}'
+              {{ end }}
+            {{ end }}
+            header: {{ .header }}
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]
