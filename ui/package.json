@@ -102,7 +102,7 @@
     "@uiw/react-textarea-code-editor": "^2.0.2",
     "check-node-version": "^4.2.1",
     "concurrently": "^7.1.0",
-    "nock": "^13.2.7",
+    "nock": "^13.2.9",
     "sass": "^1.53.0",
     "source-map-explorer": "^2.5.2",
     "storybook-addon-apollo-client": "^4.0.12",
