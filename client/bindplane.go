@@ -128,6 +128,7 @@ type BindPlane interface {
 	DeleteConfiguration(ctx context.Context, name string) error
 	// RawConfiguration TODO(doc)
 	RawConfiguration(ctx context.Context, name string) (string, error)
+	CopyConfig(ctx context.Context, name, copyName string) error
 
 	Sources(ctx context.Context) ([]*model.Source, error)
 	Source(ctx context.Context, name string) (*model.Source, error)
@@ -182,11 +183,11 @@ type bindplaneClient struct {
 var _ BindPlane = (*bindplaneClient)(nil)
 
 // NewBindPlane takes a client configuration, logger and returns a new BindPlane.
-func NewBindPlane(config *common.Client, logger *zap.Logger) (BindPlane, error) {
+func NewBindPlane(config *common.Client, logger *zap.Logger, url string) (BindPlane, error) {
 	client := resty.New()
 	client.SetTimeout(time.Second * 20)
 	client.SetBasicAuth(config.Username, config.Password)
-	client.SetBaseURL(fmt.Sprintf("%s/v1", config.BindPlaneURL()))
+	client.SetBaseURL(fmt.Sprintf("%s/v1", url))
 
 	tlsConfig, err := tlsClient(config.Certificate, config.PrivateKey, config.CertificateAuthority, config.InsecureSkipVerify)
 	if err != nil {
@@ -544,6 +545,34 @@ func (c *bindplaneClient) ApplyAgentLabels(ctx context.Context, id string, label
 	}
 
 	return response.Labels, err
+}
+
+// ----------------------------------------------------------------------
+
+func (c *bindplaneClient) CopyConfig(ctx context.Context, name, copyName string) error {
+	payload := model.PostCopyConfigRequest{
+		Name: copyName,
+	}
+
+	endpoint := fmt.Sprintf("/configurations/%s/copy", name)
+
+	resp, err := c.client.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(payload).
+		Post(endpoint)
+
+	if err != nil {
+		return err
+	}
+
+	switch resp.StatusCode() {
+	case http.StatusCreated:
+		return nil
+	case http.StatusConflict:
+		return fmt.Errorf("a configuration with name '%s' already exists", name)
+	default:
+		return fmt.Errorf("failed to copy configuration, got status %v", resp.StatusCode())
+	}
 }
 
 // ----------------------------------------------------------------------
