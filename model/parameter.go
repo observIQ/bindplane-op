@@ -60,7 +60,7 @@ type ParameterDefinition struct {
 	Options ParameterOptions `json:"options" yaml:"options"`
 }
 
-// ParameterOptions specify further customization for inputs in the UI
+// ParameterOptions specify further customization for input parameters
 type ParameterOptions struct {
 	// Creatable will modify the "enum" parameter from a select to
 	// a creatable select where a user can specify a custom value
