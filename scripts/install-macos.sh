@@ -51,7 +51,7 @@ printf() {
 }
 
 increase_indent() { indent="$INDENT_WIDTH$indent" ; }
-decrease_indent() { indent="${indent#*$INDENT_WIDTH}" ; }
+decrease_indent() { indent="${indent#*"$INDENT_WIDTH"}" ; }
 
 # Color functions reset only when given an argument
 # Ignore "parameters are never passed"
