@@ -31,7 +31,7 @@ spec:
 
     # - name: address
     #   label: Address
-    #   description: IP address or hostname to scrape for JMX metrics.
+    #   description: IP address or hostname to scrape for metrics.
     #   type: string
     #   default: localhost
     #   relevantIf:
@@ -41,7 +41,7 @@ spec:
 
     # - name: port
     #   label: Port
-    #   description: Port to scrape for JMX metrics.
+    #   description: Port to scrape for metrics.
     #   type: int
     #   default: 33015
     #   relevantIf:
