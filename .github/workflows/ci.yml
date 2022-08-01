@@ -70,7 +70,7 @@ jobs:
       - name: Run shellcheck
         uses: ludeeus/action-shellcheck@master
         with:
-          version: v1.1.0
+          version: v0.8.0
           scandir: './scripts'
           severity: info
           
