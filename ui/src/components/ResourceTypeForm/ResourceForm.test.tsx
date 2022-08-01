@@ -27,6 +27,7 @@ describe("satisfiesRelevantIf", () => {
     label: "String Input",
     description: "Here is the description.",
     required: false,
+    options: {},
 
     type: ParameterType.String,
 
@@ -44,6 +45,7 @@ describe("satisfiesRelevantIf", () => {
     label: "String Input",
     description: "Here is the description.",
     required: false,
+    options: {},
 
     type: ParameterType.String,
     relevantIf: [
@@ -200,6 +202,7 @@ describe("ResourceForm component", () => {
         type: ParameterType.Strings,
         required: true,
         description: "",
+        options: {},
       },
     ];
 
@@ -229,6 +232,7 @@ describe("ResourceForm component", () => {
       description: "description",
       type: ParameterType.Map,
       name: "map_type_param",
+      options: {},
     };
 
     it("disables save button initially if required", () => {
@@ -272,6 +276,7 @@ describe("MapParamInput", () => {
     description: "description",
     type: ParameterType.Map,
     name: "map_type_param",
+    options: {},
   };
 
   it("valueToTupleArray", () => {
@@ -401,6 +406,7 @@ describe("EnumsParameter", () => {
       default: {},
       validValues: ["one", "two", "three", "four"],
       name: "enums_type_param",
+      options: {},
     };
 
     const tree = renderer.create(
@@ -419,9 +425,41 @@ describe("YamlParameter", () => {
       type: ParameterType.Yaml,
       default: "",
       name: "yaml_type_param",
+      options: {},
     };
 
     const tree = renderer.create(<ParameterInput definition={yamlParameter} />);
+    expect(tree).toMatchSnapshot();
+  });
+});
+
+describe("EnumParameter", () => {
+  it("renders correctly", () => {
+    const enumParam: ParameterDefinition = {
+      required: true,
+      label: "Label",
+      description: "description",
+      type: ParameterType.Enum,
+      default: "",
+      name: "yaml_type_param",
+      options: {},
+    };
+
+    const tree = renderer.create(<ParameterInput definition={enumParam} />);
+    expect(tree).toMatchSnapshot();
+  });
+
+  it("renders creatable enum correctly", () => {
+    const creatableEnum: ParameterDefinition = {
+      required: true,
+      label: "Label",
+      description: "description",
+      type: ParameterType.Enum,
+      name: "yaml_type_param",
+      options: {},
+    };
+
+    const tree = renderer.create(<ParameterInput definition={creatableEnum} />);
     expect(tree).toMatchSnapshot();
   });
 });

@@ -10,6 +10,18 @@ spec:
   supportedPlatforms:
     - macos
   parameters:
+    - name: creatable_enum_param
+      type: enum
+      label: Creatable Enum
+      required: true
+      description: '"BYOV" - bring your own value.'
+      validValues:
+        - one
+        - two
+        - three
+        - four
+      options:
+        creatable: true
     - name: enums_type_param
       label: Enums Param
       type: enums

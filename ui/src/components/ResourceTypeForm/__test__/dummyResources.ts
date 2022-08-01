@@ -15,6 +15,7 @@ export const stringDef: ParameterDefinition = {
   label: "String Input",
   description: "Here is the description.",
   required: false,
+  options: {},
 
   type: ParameterType.String,
 
@@ -26,6 +27,7 @@ export const stringDefRequired: ParameterDefinition = {
   label: "String Input",
   description: "Here is the description.",
   required: true,
+  options: {},
 
   type: ParameterType.String,
 
@@ -37,6 +39,7 @@ export const enumDef: ParameterDefinition = {
   label: "Enum Input",
   description: "Here is the description.",
   required: false,
+  options: {},
 
   type: ParameterType.Enum,
 
@@ -49,6 +52,7 @@ export const stringsDef: ParameterDefinition = {
   label: "Multi String Input",
   description: "Here is the description.",
   required: false,
+  options: {},
 
   type: ParameterType.Strings,
 
@@ -60,6 +64,7 @@ export const boolDef: ParameterDefinition = {
   label: "Bool Input",
   description: "Here is the description.",
   required: false,
+  options: {},
 
   type: ParameterType.Bool,
 
@@ -71,6 +76,7 @@ export const boolDefaultFalseDef: ParameterDefinition = {
   label: "Bool Default False Input",
   description: "Here is the description.",
   required: false,
+  options: {},
 
   type: ParameterType.Bool,
 
@@ -82,6 +88,7 @@ export const intDef: ParameterDefinition = {
   label: "Int Input",
   description: "Here is the description.",
   required: false,
+  options: {},
 
   type: ParameterType.Int,
 
@@ -93,6 +100,7 @@ export const relevantIfDef: ParameterDefinition = {
   label: "String Input",
   description: "Here is the description.",
   required: false,
+  options: {},
 
   type: ParameterType.String,
 

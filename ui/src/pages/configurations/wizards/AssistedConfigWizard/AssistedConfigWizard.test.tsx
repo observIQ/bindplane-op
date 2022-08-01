@@ -43,6 +43,7 @@ const dummySourceType: SourceTypesQuery["sourceTypes"][0] = {
         required: false,
         validValues: null,
         relevantIf: null,
+        options: {},
       },
       {
         __typename: "ParameterDefinition",
@@ -54,6 +55,7 @@ const dummySourceType: SourceTypesQuery["sourceTypes"][0] = {
         required: false,
         validValues: null,
         relevantIf: null,
+        options: {},
       },
     ],
     telemetryTypes: [],
@@ -87,6 +89,7 @@ const dummyDestinationType: DestinationsAndTypesQuery["destinationTypes"][0] = {
         required: false,
         validValues: null,
         relevantIf: null,
+        options: {},
       },
       {
         __typename: "ParameterDefinition",
@@ -98,6 +101,7 @@ const dummyDestinationType: DestinationsAndTypesQuery["destinationTypes"][0] = {
         required: false,
         validValues: null,
         relevantIf: null,
+        options: {},
       },
     ],
     telemetryTypes: [],

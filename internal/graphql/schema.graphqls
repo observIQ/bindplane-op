@@ -203,6 +203,12 @@ type ParameterDefinition {
 
   default: Any
   relevantIf: [RelevantIfCondition!]
+
+  options: ParameterOptions!
+}
+
+type ParameterOptions {
+  creatable: Boolean
 }
 
 type RelevantIfCondition {

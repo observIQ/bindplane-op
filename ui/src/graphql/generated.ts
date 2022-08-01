@@ -157,10 +157,16 @@ export type ParameterDefinition = {
   description: Scalars['String'];
   label: Scalars['String'];
   name: Scalars['String'];
+  options: ParameterOptions;
   relevantIf?: Maybe<Array<RelevantIfCondition>>;
   required: Scalars['Boolean'];
   type: ParameterType;
   validValues?: Maybe<Array<Scalars['String']>>;
+};
+
+export type ParameterOptions = {
+  __typename?: 'ParameterOptions';
+  creatable?: Maybe<Scalars['Boolean']>;
 };
 
 export enum ParameterType {
@@ -416,14 +422,14 @@ export type DestinationTypeQueryVariables = Exact<{
 }>;
 
 
-export type DestinationTypeQuery = { __typename?: 'Query', destinationType?: { __typename?: 'DestinationType', metadata: { __typename?: 'Metadata', displayName?: string | null, name: string, icon?: string | null, description?: string | null }, spec: { __typename?: 'ResourceTypeSpec', parameters: Array<{ __typename?: 'ParameterDefinition', label: string, name: string, description: string, required: boolean, type: ParameterType, default?: any | null, validValues?: Array<string> | null, relevantIf?: Array<{ __typename?: 'RelevantIfCondition', name: string, operator: RelevantIfOperatorType, value: any }> | null }> } } | null };
+export type DestinationTypeQuery = { __typename?: 'Query', destinationType?: { __typename?: 'DestinationType', metadata: { __typename?: 'Metadata', displayName?: string | null, name: string, icon?: string | null, description?: string | null }, spec: { __typename?: 'ResourceTypeSpec', parameters: Array<{ __typename?: 'ParameterDefinition', label: string, name: string, description: string, required: boolean, type: ParameterType, default?: any | null, validValues?: Array<string> | null, relevantIf?: Array<{ __typename?: 'RelevantIfCondition', name: string, operator: RelevantIfOperatorType, value: any }> | null, options: { __typename?: 'ParameterOptions', creatable?: boolean | null } }> } } | null };
 
 export type GetDestinationWithTypeQueryVariables = Exact<{
   name: Scalars['String'];
 }>;
 
 
-export type GetDestinationWithTypeQuery = { __typename?: 'Query', destinationWithType: { __typename?: 'DestinationWithType', destination?: { __typename?: 'Destination', metadata: { __typename?: 'Metadata', name: string, id: string, labels?: any | null }, spec: { __typename?: 'ParameterizedSpec', type: string, parameters?: Array<{ __typename?: 'Parameter', name: string, value: any }> | null } } | null, destinationType?: { __typename?: 'DestinationType', metadata: { __typename?: 'Metadata', name: string, icon?: string | null }, spec: { __typename?: 'ResourceTypeSpec', parameters: Array<{ __typename?: 'ParameterDefinition', label: string, name: string, description: string, required: boolean, type: ParameterType, default?: any | null, validValues?: Array<string> | null, relevantIf?: Array<{ __typename?: 'RelevantIfCondition', name: string, operator: RelevantIfOperatorType, value: any }> | null }> } } | null } };
+export type GetDestinationWithTypeQuery = { __typename?: 'Query', destinationWithType: { __typename?: 'DestinationWithType', destination?: { __typename?: 'Destination', metadata: { __typename?: 'Metadata', name: string, id: string, labels?: any | null }, spec: { __typename?: 'ParameterizedSpec', type: string, parameters?: Array<{ __typename?: 'Parameter', name: string, value: any }> | null } } | null, destinationType?: { __typename?: 'DestinationType', metadata: { __typename?: 'Metadata', name: string, icon?: string | null }, spec: { __typename?: 'ResourceTypeSpec', parameters: Array<{ __typename?: 'ParameterDefinition', label: string, name: string, description: string, required: boolean, type: ParameterType, default?: any | null, validValues?: Array<string> | null, relevantIf?: Array<{ __typename?: 'RelevantIfCondition', name: string, operator: RelevantIfOperatorType, value: any }> | null, options: { __typename?: 'ParameterOptions', creatable?: boolean | null } }> } } | null } };
 
 export type SourceTypeQueryVariables = Exact<{
   name: Scalars['String'];
@@ -442,12 +448,12 @@ export type GetConfigurationQuery = { __typename?: 'Query', configuration?: { __
 export type DestinationsAndTypesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type DestinationsAndTypesQuery = { __typename?: 'Query', destinationTypes: Array<{ __typename?: 'DestinationType', kind: string, apiVersion: string, metadata: { __typename?: 'Metadata', id: string, name: string, displayName?: string | null, description?: string | null, icon?: string | null }, spec: { __typename?: 'ResourceTypeSpec', version: string, supportedPlatforms: Array<string>, telemetryTypes: Array<PipelineType>, parameters: Array<{ __typename?: 'ParameterDefinition', label: string, type: ParameterType, name: string, description: string, default?: any | null, validValues?: Array<string> | null, required: boolean, relevantIf?: Array<{ __typename?: 'RelevantIfCondition', name: string, value: any, operator: RelevantIfOperatorType }> | null }> } }>, destinations: Array<{ __typename?: 'Destination', metadata: { __typename?: 'Metadata', name: string }, spec: { __typename?: 'ParameterizedSpec', type: string, parameters?: Array<{ __typename?: 'Parameter', name: string, value: any }> | null } }> };
+export type DestinationsAndTypesQuery = { __typename?: 'Query', destinationTypes: Array<{ __typename?: 'DestinationType', kind: string, apiVersion: string, metadata: { __typename?: 'Metadata', id: string, name: string, displayName?: string | null, description?: string | null, icon?: string | null }, spec: { __typename?: 'ResourceTypeSpec', version: string, supportedPlatforms: Array<string>, telemetryTypes: Array<PipelineType>, parameters: Array<{ __typename?: 'ParameterDefinition', label: string, type: ParameterType, name: string, description: string, default?: any | null, validValues?: Array<string> | null, required: boolean, relevantIf?: Array<{ __typename?: 'RelevantIfCondition', name: string, value: any, operator: RelevantIfOperatorType }> | null, options: { __typename?: 'ParameterOptions', creatable?: boolean | null } }> } }>, destinations: Array<{ __typename?: 'Destination', metadata: { __typename?: 'Metadata', name: string }, spec: { __typename?: 'ParameterizedSpec', type: string, parameters?: Array<{ __typename?: 'Parameter', name: string, value: any }> | null } }> };
 
 export type SourceTypesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type SourceTypesQuery = { __typename?: 'Query', sourceTypes: Array<{ __typename?: 'SourceType', apiVersion: string, kind: string, metadata: { __typename?: 'Metadata', id: string, name: string, displayName?: string | null, description?: string | null, icon?: string | null }, spec: { __typename?: 'ResourceTypeSpec', supportedPlatforms: Array<string>, version: string, telemetryTypes: Array<PipelineType>, parameters: Array<{ __typename?: 'ParameterDefinition', name: string, label: string, description: string, required: boolean, type: ParameterType, validValues?: Array<string> | null, default?: any | null, relevantIf?: Array<{ __typename?: 'RelevantIfCondition', name: string, operator: RelevantIfOperatorType, value: any }> | null }> } }> };
+export type SourceTypesQuery = { __typename?: 'Query', sourceTypes: Array<{ __typename?: 'SourceType', apiVersion: string, kind: string, metadata: { __typename?: 'Metadata', id: string, name: string, displayName?: string | null, description?: string | null, icon?: string | null }, spec: { __typename?: 'ResourceTypeSpec', supportedPlatforms: Array<string>, version: string, telemetryTypes: Array<PipelineType>, parameters: Array<{ __typename?: 'ParameterDefinition', name: string, label: string, description: string, required: boolean, type: ParameterType, validValues?: Array<string> | null, default?: any | null, relevantIf?: Array<{ __typename?: 'RelevantIfCondition', name: string, operator: RelevantIfOperatorType, value: any }> | null, options: { __typename?: 'ParameterOptions', creatable?: boolean | null } }> } }> };
 
 export type GetConfigNamesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -926,6 +932,9 @@ export const DestinationTypeDocument = gql`
           value
         }
         validValues
+        options {
+          creatable
+        }
       }
     }
   }
@@ -995,6 +1004,9 @@ export const GetDestinationWithTypeDocument = gql`
             value
           }
           validValues
+          options {
+            creatable
+          }
         }
       }
     }
@@ -1157,6 +1169,9 @@ export const DestinationsAndTypesDocument = gql`
           operator
         }
         required
+        options {
+          creatable
+        }
       }
       supportedPlatforms
       telemetryTypes
@@ -1229,6 +1244,9 @@ export const SourceTypesDocument = gql`
         type
         validValues
         default
+        options {
+          creatable
+        }
       }
       supportedPlatforms
       version

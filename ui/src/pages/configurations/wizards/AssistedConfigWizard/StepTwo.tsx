@@ -59,6 +59,9 @@ gql`
           type
           validValues
           default
+          options {
+            creatable
+          }
         }
         supportedPlatforms
         version
