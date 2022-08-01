@@ -48,7 +48,7 @@ func AddRestRoutes(router gin.IRouter, bindplane server.BindPlane) {
 	router.GET("/configurations", func(c *gin.Context) { configurations(c, bindplane) })
 	router.GET("/configurations/:name", func(c *gin.Context) { configuration(c, bindplane) })
 	router.DELETE("/configurations/:name", func(c *gin.Context) { deleteConfiguration(c, bindplane) })
-	router.POST("/configurations/:name/duplicate", func(c *gin.Context) { duplicateConfig(c, bindplane) })
+	router.POST("/configurations/:name/copy", func(c *gin.Context) { copyConfig(c, bindplane) })
 
 	router.GET("/sources", func(c *gin.Context) { sources(c, bindplane) })
 	router.GET("/sources/:name", func(c *gin.Context) { source(c, bindplane) })
@@ -479,15 +479,15 @@ func deleteConfiguration(c *gin.Context, bindplane server.BindPlane) {
 
 // @Summary Duplicate an existing configuration
 // @Produce json
-// @Router /configurations/{name}/duplicate [post]
+// @Router /configurations/{name}/copy [post]
 // @Param 	name	path	string	true "the name of the configuration to duplicate"
 // @Param name	body	string	true "the desired name of the duplicate configuration"
-// @Success 201	"Successful Duplication, created"
+// @Success 201	"Successful Copy, created"
 // @Failure 404 {object} ErrorResponse
 // @Failure 404 {object} ErrorResponse
 // @Failure 409 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-func duplicateConfig(c *gin.Context, bindplane server.BindPlane) {
+func copyConfig(c *gin.Context, bindplane server.BindPlane) {
 	name := c.Param("name")
 
 	// The config to make a duplicate of
@@ -502,7 +502,7 @@ func duplicateConfig(c *gin.Context, bindplane server.BindPlane) {
 		return
 	}
 
-	var req model.PostDuplicateConfigRequest
+	var req model.PostCopyConfigRequest
 	if err := c.BindJSON(&req); err != nil {
 		handleErrorResponse(c, http.StatusBadRequest, err)
 		return
@@ -528,7 +528,7 @@ func duplicateConfig(c *gin.Context, bindplane server.BindPlane) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, &model.PostDuplicateConfigResponse{
+	c.JSON(http.StatusCreated, &model.PostCopyConfigResponse{
 		Name: duplicateName,
 	})
 }

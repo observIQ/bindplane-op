@@ -785,7 +785,7 @@ paths:
           schema:
             $ref: '#/definitions/rest.ErrorResponse'
       summary: Get configuration by name
-  /configurations/{name}/duplicate:
+  /configurations/{name}/copy:
     post:
       parameters:
       - description: the name of the configuration to duplicate
@@ -803,7 +803,7 @@ paths:
       - application/json
       responses:
         "201":
-          description: Successful Duplication, created
+          description: Successful Copy, created
         "404":
           description: Not Found
           schema:

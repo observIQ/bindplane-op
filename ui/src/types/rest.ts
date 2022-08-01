@@ -44,8 +44,8 @@ export interface LabelAgentsResponse {
   errors: string[];
 }
 
-export interface DuplicateConfigPayload {
+export interface CopyConfigPayload {
   name: string;
 }
 
-export type DuplicateConfigResponse = DuplicateConfigPayload;
+export type CopyConfigResponse = CopyConfigPayload;

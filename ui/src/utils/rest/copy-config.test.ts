@@ -1,10 +1,10 @@
 import nock from "nock";
-import { duplicateConfig } from "./duplicate-config";
+import { copyConfig } from "./copy-config";
 
 describe("duplicateConfig", () => {
   const existingName = "name";
   const newName = "new-name";
-  const endpoint = "/v1/configurations/name/duplicate";
+  const endpoint = "/v1/configurations/name/copy";
 
   it("correct endpoint and payload", async () => {
     let endpointCalled = false;
@@ -19,7 +19,7 @@ describe("duplicateConfig", () => {
         name: newName,
       });
 
-    await duplicateConfig({ existingName, newName });
+    await copyConfig({ existingName, newName });
 
     expect(endpointCalled).toEqual(true);
     expect(payload).toEqual({ name: newName });
@@ -27,34 +27,34 @@ describe("duplicateConfig", () => {
 
   it("created", async () => {
     nock("http://localhost:80")
-      .post("/v1/configurations/name/duplicate", (body) => {
+      .post("/v1/configurations/name/copy", (body) => {
         return true;
       })
       .reply(201, {
         name: "new-name",
       });
 
-    const status = await duplicateConfig({ existingName, newName });
+    const status = await copyConfig({ existingName, newName });
     expect(status).toEqual("created");
   });
   it("conflict", async () => {
     nock("http://localhost:80")
-      .post("/v1/configurations/name/duplicate", (body) => {
+      .post("/v1/configurations/name/copy", (body) => {
         return true;
       })
       .reply(409, {});
 
-    const status = await duplicateConfig({ existingName, newName });
+    const status = await copyConfig({ existingName, newName });
     expect(status).toEqual("conflict");
   });
   it("error", async () => {
     nock("http://localhost:80")
-      .post("/v1/configurations/name/duplicate", (body) => {
+      .post("/v1/configurations/name/copy", (body) => {
         return true;
       })
       .reply(500, {});
 
-    const status = await duplicateConfig({ existingName, newName });
+    const status = await copyConfig({ existingName, newName });
     expect(status).toEqual("error");
   });
 });

@@ -638,7 +638,7 @@ func TestREST(t *testing.T) {
 		assert.NotContains(t, configurations, testConfiguration1)
 	})
 
-	t.Run("POST /configurations/:name/duplicate", func(t *testing.T) {
+	t.Run("POST /configurations/:name/copy", func(t *testing.T) {
 		resetStore(t, s)
 		originalName := "original"
 		newName := "newName"
@@ -650,16 +650,16 @@ func TestREST(t *testing.T) {
 		require.NoError(t, err)
 
 		t.Run("404 Not Found", func(t *testing.T) {
-			endpoint := "/configurations/does-not-exist/duplicate"
+			endpoint := "/configurations/does-not-exist/copy"
 
-			resp, err := client.R().SetBody(&model.PostDuplicateConfigRequest{Name: newName}).Post(endpoint)
+			resp, err := client.R().SetBody(&model.PostCopyConfigRequest{Name: newName}).Post(endpoint)
 			require.NoError(t, err)
 
 			require.Equal(t, http.StatusNotFound, resp.StatusCode())
 		})
 
 		t.Run("400 Bad Request", func(t *testing.T) {
-			endpoint := fmt.Sprintf("/configurations/%s/duplicate", originalName)
+			endpoint := fmt.Sprintf("/configurations/%s/copy", originalName)
 			resp, err := client.R().SetBody(`{"""`).Post(endpoint)
 			require.NoError(t, err)
 
@@ -668,18 +668,18 @@ func TestREST(t *testing.T) {
 		})
 
 		t.Run("409 Conflict", func(t *testing.T) {
-			endpoint := fmt.Sprintf("/configurations/%s/duplicate", originalName)
-			resp, err := client.R().SetBody(&model.PostDuplicateConfigRequest{Name: thirdName}).Post(endpoint)
+			endpoint := fmt.Sprintf("/configurations/%s/copy", originalName)
+			resp, err := client.R().SetBody(&model.PostCopyConfigRequest{Name: thirdName}).Post(endpoint)
 			require.NoError(t, err)
 
 			require.Equal(t, http.StatusConflict, resp.StatusCode())
 		})
 
 		t.Run("201 Created", func(t *testing.T) {
-			endpoint := fmt.Sprintf("/configurations/%s/duplicate", originalName)
-			result := &model.PostDuplicateConfigResponse{}
+			endpoint := fmt.Sprintf("/configurations/%s/copy", originalName)
+			result := &model.PostCopyConfigResponse{}
 
-			resp, err := client.R().SetBody(&model.PostDuplicateConfigRequest{Name: newName}).SetResult(result).Post(endpoint)
+			resp, err := client.R().SetBody(&model.PostCopyConfigRequest{Name: newName}).SetResult(result).Post(endpoint)
 			require.NoError(t, err)
 
 			require.Equal(t, http.StatusCreated, resp.StatusCode())

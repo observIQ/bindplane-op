@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGetConfigNamesQuery } from "../../../graphql/generated";
 import { validateNameField } from "../../../utils/forms/validate-name-field";
-import { duplicateConfig } from "../../../utils/rest/duplicate-config";
+import { copyConfig } from "../../../utils/rest/copy-config";
 
 interface Props extends DialogProps {
   currentConfigName: string;
@@ -52,7 +52,7 @@ export const DuplicateConfigDialog: React.FC<Props> = ({
   async function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    const status = await duplicateConfig({
+    const status = await copyConfig({
       existingName: currentConfigName,
       newName: newName,
     });
