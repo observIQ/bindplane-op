@@ -3,7 +3,7 @@ kind: SourceType
 metadata:
   name: ciscomeraki
   displayName: Cisco Meraki
-  icon: /icons/sources/cisco.svg
+  icon: /icons/sources/cisco_meraki.svg
   description: Cisco Meraki syslog parser
 spec:
   version: 0.0.1
