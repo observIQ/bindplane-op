@@ -4,7 +4,7 @@ metadata:
   name: couchbase
   displayName: Couchbase
   icon: /icons/sources/couchbase.svg
-  description: Couchbase log collector
+  description: Couchbase metrics and logs collector
 spec:
   version: 0.0.1
   supported_platforms:
@@ -12,11 +12,77 @@ spec:
     - windows
     - macos
   parameters:
+    # Metrics
+    #
+    - name: enable_metrics
+      label: Enable Metrics
+      description: Enable to collect metrics.
+      type: bool
+      default: true
+
+    - name: hostname
+      label: Hostname
+      description: The hostname or IP address of the Couchbase API.
+      type: string
+      default: "localhost"
+      required: true
+
+    - name: port
+      label: Port
+      description: The TCP port of the Couchbase API.
+      type: int
+      default: 8091
+
+    - name: username
+      label: Username
+      description: Username used to authenticate.
+      type: string
+      required: true
+      default: ""
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: password
+      label: Password
+      description: Password used to authenticate.
+      type: string
+      required: true
+      default: ""
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: collection_interval
+      label: Collection Interval
+      description: How often (seconds) to scrape for metrics.
+      type: int
+      default: 60
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+      advancedConfig: true
+
+    # Logging
+    #
+    - name: enable_logs
+      label: Enable Logs
+      description: Enable to collect logs.
+      type: bool
+      default: true
+
     - name: enable_error_log
       label: Error Logs
       description: Enable to read error logs.
       type: bool
       default: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
 
     - name: error_log_path
       label: Error Log Path(s)
@@ -25,6 +91,9 @@ spec:
       default:
         - "/opt/couchbase/var/lib/couchbase/logs/error.log"
       relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
         - name: enable_error_log
           operator: equals
           value: true
@@ -34,6 +103,10 @@ spec:
       description: Enable to read info logs.
       type: bool
       default: false
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
 
     - name: info_log_path
       label: Info Log Path(s)
@@ -42,6 +115,9 @@ spec:
       default: 
         - "/opt/couchbase/var/lib/couchbase/logs/info.log"
       relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
         - name: enable_info_log
           operator: equals
           value: true
@@ -51,6 +127,10 @@ spec:
       label: Debug Logs
       description: Enable to read debug logs.
       default: false
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
 
     - name: debug_log_path
       type: strings
@@ -59,6 +139,9 @@ spec:
       default: 
         - "/opt/couchbase/var/lib/couchbase/logs/debug.log"
       relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
         - name: enable_debug_log
           operator: equals
           value: true
@@ -68,6 +151,10 @@ spec:
       description: Enable to read http access logs.
       type: bool
       default: false
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
 
     - name: http_access_log_path
       label: HTTP Access Log Path(s)
@@ -76,6 +163,9 @@ spec:
       default: 
         - "/opt/couchbase/var/lib/couchbase/logs/http_access.log"
       relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
         - name: enable_access_log
           operator: equals
           value: true
@@ -85,6 +175,10 @@ spec:
       description: Enable to read internal access logs.
       type: bool
       default: false
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
 
     - name: http_internal_access_log_path
       label: Internal Access Log Path(s)
@@ -93,6 +187,9 @@ spec:
       default: 
         - "/opt/couchbase/var/lib/couchbase/logs/http_access_internal.log"
       relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
         - name: enable_internal_access_log
           operator: equals
           value: true
@@ -102,6 +199,10 @@ spec:
       description: Enable to read baby sitter logs.
       type: bool
       default: false
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
 
     - name: babysitter_log_path
       label: Baby Sitter Log Path(s)
@@ -110,6 +211,9 @@ spec:
       default: 
         - "/opt/couchbase/var/lib/couchbase/logs/babysitter.log"
       relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
         - name: enable_babysitter_log
           operator: equals
           value: true
@@ -119,6 +223,10 @@ spec:
       description: Enable to read xdcr logs.
       type: bool
       default: false
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
 
     - name: xdcr_log_path
       label: XDCR Log Path(s)
@@ -127,6 +235,9 @@ spec:
       default: 
         - "/opt/couchbase/var/lib/couchbase/logs/goxdcr.log"
       relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
         - name: enable_xdcr_log
           operator: equals
           value: true
@@ -140,9 +251,176 @@ spec:
         - end
       default: end
       advancedConfig: true
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+  metrics:
+    receivers: |
+      {{ if .enable_metrics }}
+      - prometheus:
+          config:
+            scrape_configs:
+              - job_name: 'couchbase'
+                scrape_interval: '{{ .collection_interval }}s'
+                static_configs:
+                  - targets: ['{{ .hostname }}:{{ .port }}']
+                basic_auth:
+                  username: '{{ .username }}'
+                  password: '{{ .password }}'
+                metric_relabel_configs:
+                  # Include only a few key metrics
+                  - source_labels: [ __name__ ]
+                    regex: "(kv_ops)|\
+                      (kv_vb_curr_items)|\
+                      (kv_num_vbuckets)|\
+                      (kv_ep_cursor_memory_freed_bytes)|\
+                      (kv_total_memory_used_bytes)|\
+                      (kv_ep_num_value_ejects)|\
+                      (kv_ep_mem_high_wat)|\
+                      (kv_ep_mem_low_wat)|\
+                      (kv_ep_tmp_oom_errors)|\
+                      (kv_ep_oom_errors)"
+                    action: keep
+      {{ end }}
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]
+
+      # Remove service.name and rename service.instance.id to couchbase.endpoint. These resources
+      # are useful when running prometheus against abitrary endpoints, not when  dedicated to
+      # couchbase. Additionally, when on GCP, these resources will cause incorrect monitored
+      # resource type mapping (maps to generic_task instead of generic_node ). By setting couchbase.endpoint,
+      # one collector (same host.name) could scrape many couchbase endpoints without resulting in
+      # duplicate metrics.
+      # -> service.name: STRING(couchbase)
+      # -> service.instance.id: STRING(localhost:8091)
+      - resource:
+          attributes:
+            - key: service.name
+              action: delete
+            - key: service.instance.id
+              action: delete
+            - key: couchbase.endpoint
+              value: {{ .hostname }}:{{ .port }}
+              action: upsert
+
+      - filter:
+          # Filter out prometheus scraping meta-metrics.
+          metrics:
+            exclude:
+              match_type: strict
+              metric_names:
+                - scrape_samples_post_metric_relabeling
+                - scrape_series_added
+                - scrape_duration_seconds
+                - scrape_samples_scraped
+                - up
+
+      - metricstransform:
+          transforms:
+            # Rename from prometheus metric name to OTel metric name.
+            # We cannot do this with metric_relabel_configs, as the prometheus receiver does not
+            # allow metric renames at this time.
+            - include: kv_ops
+              match_type: strict
+              action: update
+              new_name: "couchbase.bucket.operation.count"
+            - include: kv_vb_curr_items
+              match_type: strict
+              action: update
+              new_name: "couchbase.bucket.item.count"
+            - include: kv_num_vbuckets
+              match_type: strict
+              action: update
+              new_name: "couchbase.bucket.vbucket.count"
+            - include: kv_ep_cursor_memory_freed_bytes
+              match_type: strict
+              action: update
+              new_name: "couchbase.bucket.memory.usage.free"
+            - include: kv_total_memory_used_bytes
+              match_type: strict
+              action: update
+              new_name: "couchbase.bucket.memory.usage.used"
+            - include: kv_ep_num_value_ejects
+              match_type: strict
+              action: update
+              new_name: "couchbase.bucket.item.ejection.count"
+            - include: kv_ep_mem_high_wat
+              match_type: strict
+              action: update
+              new_name: "couchbase.bucket.memory.high_water_mark.limit"
+            - include: kv_ep_mem_low_wat
+              match_type: strict
+              action: update
+              new_name: "couchbase.bucket.memory.low_water_mark.limit"
+            - include: kv_ep_tmp_oom_errors
+              match_type: strict
+              action: update
+              new_name: "couchbase.bucket.error.oom.count.recoverable"
+            - include: kv_ep_oom_errors
+              match_type: strict
+              action: update
+              new_name: "couchbase.bucket.error.oom.count.unrecoverable"
+            # Combine couchbase.bucket.error.oom.count.x and couchbase.bucket.memory.usage.x
+            # metrics.
+            - include: '^couchbase\.bucket\.error\.oom\.count\.(?P<error_type>unrecoverable|recoverable)$$'
+              match_type: regexp
+              action: combine
+              new_name: "couchbase.bucket.error.oom.count"
+            - include: '^couchbase\.bucket\.memory\.usage\.(?P<state>free|used)$$'
+              match_type: regexp
+              action: combine
+              new_name: "couchbase.bucket.memory.usage"
+            # Aggregate "result" label on operation count to keep label sets consistent across the metric datapoints
+            - include: 'couchbase.bucket.operation.count'
+              match_type: strict
+              action: update
+              operations:
+                - action: aggregate_labels
+                  label_set: ["bucket", "op"]
+                  aggregation_type: sum
+
+      - transform:
+          metrics:
+            queries:
+              - convert_gauge_to_sum("cumulative", true) where metric.name == "couchbase.bucket.operation.count"
+              - set(metric.description, "Number of operations on the bucket.") where metric.name == "couchbase.bucket.operation.count"
+              - set(metric.unit, "{operations}") where metric.name == "couchbase.bucket.operation.count"
+
+              - convert_gauge_to_sum("cumulative", false) where metric.name == "couchbase.bucket.item.count"
+              - set(metric.description, "Number of items that belong to the bucket.") where metric.name == "couchbase.bucket.item.count"
+              - set(metric.unit, "{items}") where metric.name == "couchbase.bucket.item.count"
+
+              - convert_gauge_to_sum("cumulative", false) where metric.name == "couchbase.bucket.vbucket.count"
+              - set(metric.description, "Number of non-resident vBuckets.") where metric.name == "couchbase.bucket.vbucket.count"
+              - set(metric.unit, "{vbuckets}") where metric.name == "couchbase.bucket.vbucket.count"
+
+              - convert_gauge_to_sum("cumulative", false) where metric.name == "couchbase.bucket.memory.usage"
+              - set(metric.description, "Usage of total memory available to the bucket.") where metric.name == "couchbase.bucket.memory.usage"
+              - set(metric.unit, "By") where metric.name == "couchbase.bucket.memory.usage"
+
+              - convert_gauge_to_sum("cumulative", true) where metric.name == "couchbase.bucket.item.ejection.count"
+              - set(metric.description, "Number of item value ejections from memory to disk.") where metric.name == "couchbase.bucket.item.ejection.count"
+              - set(metric.unit, "{ejections}") where metric.name == "couchbase.bucket.item.ejection.count"
+
+              - convert_gauge_to_sum("cumulative", true) where metric.name == "couchbase.bucket.error.oom.count"
+              - set(metric.description, "Number of out of memory errors.") where metric.name == "couchbase.bucket.error.oom.count"
+              - set(metric.unit, "{errors}") where metric.name == "couchbase.bucket.error.oom.count"
+
+              - set(metric.description, "The memory usage at which items will be ejected.") where metric.name == "couchbase.bucket.memory.high_water_mark.limit"
+              - set(metric.unit, "By") where metric.name == "couchbase.bucket.memory.high_water_mark.limit"
+
+              - set(metric.description, "The memory usage at which ejections will stop that were previously triggered by a high water mark breach.") where metric.name == "couchbase.bucket.memory.low_water_mark.limit"
+              - set(metric.unit, "By") where metric.name == "couchbase.bucket.memory.low_water_mark.limit"
 
   logs:
     receivers: |
+      {{ if .enable_logs }}
       - plugin:
           path: $OIQ_OTEL_COLLECTOR_HOME/plugins/couchbase_logs.yaml
           parameters:
@@ -189,6 +467,7 @@ spec:
               {{ range $fp := .xdcr_log_path }}
               - '{{ $fp }}'
               {{ end }}
+      {{ end }}
 
     processors: |
       - resourcedetection:

@@ -1,0 +1,25 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: SourceType
+metadata:
+  name: bindplane
+  displayName: BindPlane OP Log parser
+  icon: /icons/sources/network.svg
+  description: Receive logs over UDP
+spec:
+  version: 0.0.1
+  supported_platforms:
+    - macos
+    - linux
+    - windows
+  parameters:
+  logs:
+    receivers: |
+      - plugin:
+          path: $OIQ_OTEL_COLLECTOR_HOME/plugins/bindplane_logs.yaml
+          parameters:
+
+    processors: |
+      - resourcedetection:
+          detectors: ["system"]
+          system:
+            hostname_sources: ["os"]
