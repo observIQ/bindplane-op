@@ -1,0 +1,436 @@
+apiVersion: bindplane.observiq.com/v1beta
+kind: SourceType
+metadata:
+  name: kafka_otlp_source
+  displayName: Kafka (OTLP)
+  description: Read OpenTelemetry Protocol (OTLP) metrics, logs, and traces from Kafka.
+  # Use the destination's icon
+  icon: /icons/destinations/kafka.svg
+spec:
+  version: 0.0.1
+  supported_platforms:
+    - macos
+    - linux
+    - windows
+  parameters:
+    - name: protocol_version
+      label: Protocol Version
+      description: The Kafka protocol version to use when communicating with brokers.
+      type: enum
+      validValues:
+        - "2.2.1"
+        - "2.2.0"
+        - "2.0.0"
+        - "1.0.0"
+      default: "2.0.0"
+
+    - name: brokers
+      label: Brokers
+      description: List of brokers to connect to when sending metrics, traces and logs.
+      type: strings
+      default: 
+        - localhost:9092
+      required: true
+
+    - name: enable_metrics
+      label: Enable Metrics
+      type: bool
+      default: true
+
+    - name: metric_topic
+      label: Metric Topic
+      description: The name of the topic to export metrics to.
+      type: string
+      default: otlp_metrics
+      relevantIf:
+        - name: enable_metrics
+          operator: equals
+          value: true
+
+    - name: enable_logs
+      label: Enable Logs
+      type: bool
+      default: true
+
+    - name: log_topic
+      label: Log Topic
+      description: The name of the topic to export logs to.
+      type: string
+      default: otlp_logs
+      relevantIf:
+        - name: enable_logs
+          operator: equals
+          value: true
+
+    - name: enable_traces
+      label: Enable Traces
+      type: bool
+      default: true
+
+    - name: trace_topic
+      label: Trace Topic
+      description: The name of the topic to export traces to.
+      type: string
+      default: otlp_spans
+      relevantIf:
+        - name: enable_traces
+          operator: equals
+          value: true
+
+    - name: group_id
+      label: Group ID
+      description: Consumer group that receiver will be consuming messages from.
+      type: string
+      default: otel-collector
+      required: true
+
+    - name: client_id
+      label: Client ID
+      description: The consumer client ID that the receiver will use.
+      type: string
+      default: otel-collector
+      required: true
+
+    - name: enable_auth
+      label: Enable Authentication
+      type: bool
+      default: false
+      advancedConfig: true
+
+    - name: auth_type
+      label: Auth Type
+      type: enum
+      validValues:
+        - basic
+        - sasl
+        # TODO: Should be tested before implemented
+        #- tls
+        - kerberos
+      default: basic
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true    
+
+    - name: basic_username
+      label: Username
+      type: string
+      required: true
+      default: ""
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: basic    
+
+    - name: basic_password
+      label: Password
+      type: string
+      required: true 
+      default: ""
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: basic    
+
+    - name: sasl_username
+      label: Username
+      type: string
+      required: true 
+      default: ""
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: sasl    
+
+    - name: sasl_password
+      label: Password
+      type: string
+      required: true 
+      default: ""
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: sasl    
+
+    - name: sasl_mechanism
+      label: Mechanism
+      type: enum
+      validValues:
+        - SCRAM-SHA-256
+        - SCRAM-SHA-512
+        - PLAIN
+      default: SCRAM-SHA-256
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: sasl    
+
+    - name: kerberos_service_name
+      label: Service Name
+      type: string
+      required: true
+      default: ""
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: kerberos    
+
+    - name: kerberos_realm
+      label: Realm
+      type: string
+      required: true 
+      default: ""
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: kerberos    
+
+    - name: kerberos_config_file
+      label: Config File
+      type: string
+      default: /etc/krb5.conf
+      required: true 
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: kerberos
+
+    - name: kerberos_auth_type
+      label: Kerberos Auth Type
+      type: enum
+      validValues:
+        - keytab
+        - basic
+      default: keytab
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: kerberos    
+
+    - name: kerberos_keytab_file
+      label: Keytab File
+      type: string
+      required: true 
+      default: /etc/security/kafka.keytab
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: kerberos
+        - name: kerberos_auth_type
+          operator: equals
+          value: keytab    
+
+    - name: kerberos_username
+      label: Username
+      type: string
+      required: true 
+      default: ""
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: kerberos    
+        - name: kerberos_auth_type
+          operator: equals
+          value: basic    
+
+    - name: kerberos_password
+      label: Password
+      type: string
+      required: true 
+      default: ""
+      relevantIf:
+        - name: enable_auth
+          operator: equals
+          value: true      
+        - name: auth_type
+          operator: equals
+          value: kerberos    
+        - name: kerberos_auth_type
+          operator: equals
+          value: basic   
+
+  metrics:
+    receivers: |
+      {{ if .enable_metrics }}
+      - kafka/metrics:
+          brokers:
+            {{ range $b := .brokers }}
+            - {{ $b }}
+            {{ end }}
+          protocol_version: {{ .protocol_version }}
+          topic: "{{ .metric_topic }}"
+          group_id: "{{ .group_id }}"
+          client_id: "{{ .client_id }}"
+          metadata:
+            # Retry broker connections with a backoff instead of
+            # failing on startup.
+            full: false
+          {{ if .enable_auth }}
+          auth:
+            {{ if eq .auth_type "basic" }}
+            plain_text:
+              username: "{{ .basic_username }}"
+              password: "{{ .basic_password }}"
+            {{ else if eq .auth_type "sasl" }}
+            sasl:
+              username: "{{ .sasl_username }}"
+              password: "{{ .sasl_password }}"
+              mechanism: {{ .sasl_mechanism }}
+            {{ else if eq .auth_type "kerberos" }}
+            kerberos:
+              service_name: {{ .kerberos_service_name }}
+              realm: {{ .kerberos_realm }}
+              {{ if eq .kerberos_auth_type "keytab "}}
+              use_keytab: true
+              keytab_file: {{ .kerberos_keytab_file }}
+              {{ else }}
+              use_keytab: false
+              username: {{ .kerberos_username }}
+              password: {{ .kerberos_password }}
+              {{ end }}
+              config_file: {{ .kerberos_config_file }}
+            {{ end }}
+          autocommit:
+            enable: true
+          message_marking:
+            after: false
+            on_error: false
+          {{ end }}
+        {{ end }}
+    processors: |
+      - batch:
+
+  logs:
+    receivers: |
+      {{ if .enable_logs }}
+      - kafka/logs:
+          brokers:
+            {{ range $b := .brokers }}
+            - {{ $b }}
+            {{ end }}
+          protocol_version: {{ .protocol_version }}
+          topic: "{{ .log_topic }}"
+          group_id: "{{ .group_id }}"
+          client_id: "{{ .client_id }}"
+          metadata:
+            # Retry broker connections with a backoff instead of
+            # failing on startup.
+            full: false
+          {{ if .enable_auth }}
+          auth:
+            {{ if eq .auth_type "basic" }}
+            plain_text:
+              username: "{{ .basic_username }}"
+              password: "{{ .basic_password }}"
+            {{ else if eq .auth_type "sasl" }}
+            sasl:
+              username: "{{ .sasl_username }}"
+              password: "{{ .sasl_password }}"
+              mechanism: {{ .sasl_mechanism }}
+            {{ else if eq .auth_type "kerberos" }}
+            kerberos:
+              service_name: {{ .kerberos_service_name }}
+              realm: {{ .kerberos_realm }}
+              {{ if eq .kerberos_auth_type "keytab "}}
+              use_keytab: true
+              keytab_file: {{ .kerberos_keytab_file }}
+              {{ else }}
+              use_keytab: false
+              username: {{ .kerberos_username }}
+              password: {{ .kerberos_password }}
+              {{ end }}
+              config_file: {{ .kerberos_config_file }}
+            {{ end }}
+          autocommit:
+            enable: true
+          message_marking:
+            after: false
+            on_error: false
+          {{ end }}
+        {{ end }}
+    processors: |
+      - batch:
+
+  traces:
+    receivers: |
+      {{ if .enable_traces }}
+      - kafka/traces:
+          brokers:
+            {{ range $b := .brokers }}
+            - {{ $b }}
+            {{ end }}
+          protocol_version: {{ .protocol_version }}
+          topic: "{{ .trace_topic }}"
+          group_id: "{{ .group_id }}"
+          client_id: "{{ .client_id }}"
+          metadata:
+            # Retry broker connections with a backoff instead of
+            # failing on startup.
+            full: false
+          {{ if .enable_auth }}
+          auth:
+            {{ if eq .auth_type "basic" }}
+            plain_text:
+              username: "{{ .basic_username }}"
+              username: "{{ .basic_password }}"
+            {{ else if eq .auth_type "sasl" }}
+            sasl:
+              username: "{{ .sasl_username }}"
+              username: "{{ .sasl_password }}"
+              mechanism: {{ .sasl_mechanism }}
+            {{ else if eq .auth_type "kerberos" }}
+            kerberos:
+              service_name: {{ .kerberos_service_name }}
+              realm: {{ .kerberos_realm }}
+              {{ if eq .kerberos_auth_type "keytab "}}
+              use_keytab: true
+              keytab_file: {{ .kerberos_keytab_file }}
+              {{ else }}
+              use_keytab: false
+              username: {{ .kerberos_username }}
+              password: {{ .kerberos_password }}
+              {{ end }}
+              config_file: {{ .kerberos_config_file }}
+            {{ end }}
+          autocommit:
+            enable: true
+          message_marking:
+            after: false
+            on_error: false
+          {{ end }}
+        {{ end }}
+    processors: |
+      - batch:
