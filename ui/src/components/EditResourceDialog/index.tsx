@@ -1,6 +1,11 @@
 import { Dialog, DialogContent, DialogProps } from "@mui/material";
-import { Parameter, ParameterDefinition } from "../../graphql/generated";
-import { ResourceConfigForm } from "../ResourceTypeForm";
+import {
+  Maybe,
+  Parameter,
+  ParameterDefinition,
+  ResourceConfiguration,
+} from "../../graphql/generated";
+import { ResourceConfigForm } from "../ResourceConfigForm";
 
 interface EditResourceBaseProps extends DialogProps {
   onSave: (values: { [key: string]: any }) => void;
@@ -8,6 +13,8 @@ interface EditResourceBaseProps extends DialogProps {
   onCancel: () => void;
   parameters: Parameter[];
   parameterDefinitions: ParameterDefinition[];
+  processors?: Maybe<ResourceConfiguration[]>;
+  enableProcessors?: boolean;
   title: string;
   description: string;
   includeNameField?: boolean;
@@ -19,6 +26,8 @@ export const EditResourceDialog: React.FC<EditResourceBaseProps> = ({
   onDelete,
   onCancel,
   parameters,
+  processors,
+  enableProcessors,
   title,
   parameterDefinitions,
   description,
@@ -36,6 +45,8 @@ export const EditResourceDialog: React.FC<EditResourceBaseProps> = ({
           kind={kind}
           parameterDefinitions={parameterDefinitions}
           parameters={parameters}
+          processors={processors}
+          enableProcessors={enableProcessors}
           onSave={onSave}
           onDelete={onDelete}
           onBack={onCancel}

@@ -4,7 +4,7 @@ import {
   Destination1,
   ResourceType1,
   ResourceType2,
-} from "../ResourceTypeForm/__test__/dummyResources";
+} from "../ResourceConfigForm/__test__/dummyResources";
 
 describe("ResourceDialog", () => {
   it("renders without error", () => {

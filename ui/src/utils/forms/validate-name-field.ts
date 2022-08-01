@@ -9,7 +9,7 @@ const LABEL_REGEX = /(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?/;
  */
 export function validateNameField(
   name?: string | null,
-  kind?: "configuration" | "source" | "destination",
+  kind?: "configuration" | "source" | "destination" | "processor",
   existingNames?: string[]
 ): string | null {
   if (name == null || name === "") {

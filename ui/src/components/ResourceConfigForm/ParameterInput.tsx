@@ -97,7 +97,7 @@ export const EnumParamInput: React.FC<ParamInputProps<string>> = ({
   return (
     <TextField
       classes={classes}
-      value={value}
+      value={value ?? ""}
       onChange={(e: ChangeEvent<HTMLInputElement>) =>
         isFunction(onValueChange) && onValueChange(e.target.value)
       }
@@ -491,7 +491,7 @@ export const IntParamInput: React.FC<ParamInputProps<number>> = ({
 interface ResourceNameInputProps
   extends Omit<ParamInputProps<string>, "definition"> {
   existingNames?: string[];
-  kind: "source" | "destination" | "configuration";
+  kind: "source" | "destination" | "configuration" | "processor";
 }
 
 export const ResourceNameInput: React.FC<ResourceNameInputProps> = ({

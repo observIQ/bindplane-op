@@ -161,6 +161,8 @@ const SourcesSectionComponent: React.FC<{
             ?.spec.parameters ?? []
         }
         parameters={sources[editingSourceIx]?.parameters ?? []}
+        processors={sources[editingSourceIx]?.processors}
+        enableProcessors
         open={editingSourceIx !== -1}
         onClose={() => setEditingSourceIx(-1)}
         onCancel={() => {

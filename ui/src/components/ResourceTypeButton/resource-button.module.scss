@@ -30,3 +30,13 @@
 .card {
   border: none;
 }
+
+.box {
+  height: 510px;
+  overflow-y: auto;
+  margin-top: 20px;
+  padding: 5px;
+
+  border: 1px solid colors.$gray;
+  border-radius: 4px;
+}

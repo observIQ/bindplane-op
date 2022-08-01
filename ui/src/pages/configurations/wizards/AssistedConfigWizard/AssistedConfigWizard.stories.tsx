@@ -3,7 +3,7 @@ import { AssistedConfigWizard } from ".";
 import {
   ResourceType1,
   ResourceType2,
-} from "../../../../components/ResourceTypeForm/__test__/dummyResources";
+} from "../../../../components/ResourceConfigForm/__test__/dummyResources";
 import { SourceTypesDocument } from "../../../../graphql/generated";
 
 export default {

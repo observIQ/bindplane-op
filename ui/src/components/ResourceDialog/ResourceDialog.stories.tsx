@@ -8,7 +8,7 @@ import {
   SupportsBoth,
   SupportsLogs,
   SupportsMetrics,
-} from "../ResourceTypeForm/__test__/dummyResources";
+} from "../ResourceConfigForm/__test__/dummyResources";
 
 export default {
   title: "Resource Dialog",

@@ -31,7 +31,7 @@ export const AgentsPageContent: React.FC = () => {
       await deleteAgents(selectedAgents as string[]);
       setDeleteConfirmOpen(false);
     } catch (err) {
-      console.log(err);
+      console.error(err);
       enqueueSnackbar("Failed to delete agents.", { variant: "error" });
     }
   }

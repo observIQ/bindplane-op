@@ -3,25 +3,25 @@ import {
   Dialog,
   DialogContent,
   DialogProps,
-  InputAdornment,
   Stack,
-  TextField,
   Typography,
 } from "@mui/material";
 import React, { useEffect, useMemo, useState } from "react";
-import { ResourceConfigForm } from "../ResourceTypeForm";
-import { ResourceButton } from "./ResourceButton";
+import { ResourceConfigForm } from "../ResourceConfigForm";
 import {
   DestinationType,
   SourceType,
   Parameter,
   Maybe,
 } from "../../graphql/generated";
-import { isEmpty, isFunction } from "lodash";
-import { SearchIcon } from "../Icons";
+import { isFunction } from "lodash";
+import { metadataSatisfiesSubstring } from "../../utils/metadata-satisfies-substring";
 
 import mixins from "../../styles/mixins.module.scss";
-import styles from "./resource-dialog.module.scss";
+import {
+  ResourceTypeButton,
+  ResourceTypeButtonContainer,
+} from "../ResourceTypeButton";
 
 type ResourceType = SourceType | DestinationType;
 
@@ -140,65 +140,38 @@ export const ResourceDialog: React.FC<ResourceDialogProps> = ({
         <Typography variant="h6" className={mixins["mb-5"]}>
           {title}
         </Typography>
-        <TextField
-          placeholder="Search for a technology..."
-          size="small"
-          value={resourceSearchValue}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setResourceSearch(e.target.value)
-          }
-          type="search"
-          fullWidth
-          InputProps={{
-            startAdornment: (
-              <>
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              </>
-            ),
-          }}
-        />
-        <div className={styles.box}>
-          <Stack spacing={1}>
-            {sortedResourceTypes
-              // Filter resource types by the resourceSearchValue
-              .filter((rt) => {
-                return isEmpty(resourceSearchValue)
-                  ? true
-                  : rt.metadata.name.includes(resourceSearchValue) ||
-                      rt.metadata.displayName?.includes(resourceSearchValue) ||
-                      rt.metadata.displayName
-                        ?.toLowerCase()
-                        .includes(resourceSearchValue);
-              })
-              // map the results to resource buttons
-              .map((resourceType) => {
-                const matchingResourcesExist = resources?.some(
-                  (resource) =>
-                    resource.spec.type === resourceType.metadata.name
-                );
 
-                // Either we send the directly to the form if there are no existing resources
-                // of that type, or we send them to the Choose View by just setting the selected.
-                function onSelect() {
-                  setSelected(resourceType);
-                  if (!matchingResourcesExist) {
-                    setCreateNew(true);
-                  }
+        <ResourceTypeButtonContainer
+          onSearchChange={(v: string) => setResourceSearch(v)}
+        >
+          {sortedResourceTypes
+            // Filter resource types by the resourceSearchValue
+            .filter((rt) => metadataSatisfiesSubstring(rt, resourceSearchValue))
+            // map the results to resource buttons
+            .map((resourceType) => {
+              const matchingResourcesExist = resources?.some(
+                (resource) => resource.spec.type === resourceType.metadata.name
+              );
+
+              // Either we send the directly to the form if there are no existing resources
+              // of that type, or we send them to the Choose View by just setting the selected.
+              function onSelect() {
+                setSelected(resourceType);
+                if (!matchingResourcesExist) {
+                  setCreateNew(true);
                 }
-                return (
-                  <ResourceButton
-                    key={resourceType.metadata.name}
-                    icon={resourceType.metadata.icon!}
-                    displayName={resourceType.metadata.displayName!}
-                    onSelect={onSelect}
-                    telemetryTypes={resourceType.spec.telemetryTypes}
-                  />
-                );
-              })}
-          </Stack>
-        </div>
+              }
+              return (
+                <ResourceTypeButton
+                  key={resourceType.metadata.name}
+                  icon={resourceType.metadata.icon!}
+                  displayName={resourceType.metadata.displayName!}
+                  onSelect={onSelect}
+                  telemetryTypes={resourceType.spec.telemetryTypes}
+                />
+              );
+            })}
+        </ResourceTypeButtonContainer>
       </>
     );
   }
@@ -217,7 +190,7 @@ export const ResourceDialog: React.FC<ResourceDialogProps> = ({
         <Stack spacing={1}>
           {matchingResources?.map((resource) => {
             return (
-              <ResourceButton
+              <ResourceTypeButton
                 key={resource.metadata.name}
                 icon={selected?.metadata.icon!}
                 displayName={resource.metadata.name}

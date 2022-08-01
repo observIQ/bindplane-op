@@ -41,6 +41,13 @@ gql`
             name
             value
           }
+          processors {
+            type
+            parameters {
+              name
+              value
+            }
+          }
         }
         destinations {
           type

@@ -1,0 +1,18 @@
+@use '../../styles/colors';
+
+.hover-icon {
+  color: colors.$silver;
+  cursor: grab;
+}
+
+.button {
+  font-weight: 300;
+
+  min-width: unset;
+  padding: 4px 2px;
+}
+
+.card {
+  padding: 5px;
+  margin: 5px 0;
+}

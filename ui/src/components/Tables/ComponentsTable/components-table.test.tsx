@@ -4,7 +4,7 @@ import { resourcesFromSelected } from ".";
 import {
   Destination1,
   Destination2,
-} from "../../ResourceTypeForm/__test__/dummyResources";
+} from "../../ResourceConfigForm/__test__/dummyResources";
 import { ComponentsDataGrid } from "./ComponentsDataGrid";
 
 describe("resourcesFromSelected", () => {
