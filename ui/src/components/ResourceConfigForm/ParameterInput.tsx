@@ -97,7 +97,7 @@ export const EnumParamInput: React.FC<ParamInputProps<string>> = ({
   return (
     <TextField
       classes={classes}
-      value={value}
+      value={value ?? ""}
       onChange={(e: ChangeEvent<HTMLInputElement>) =>
         isFunction(onValueChange) && onValueChange(e.target.value)
       }
