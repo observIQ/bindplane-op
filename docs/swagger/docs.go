@@ -523,7 +523,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/configurations/{name}/duplicate": {
+        "/configurations/{name}/copy": {
             "post": {
                 "produces": [
                     "application/json"
@@ -549,7 +549,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Successful Duplication, created"
+                        "description": "Successful Copy, created"
                     },
                     "404": {
                         "description": "Not Found",

@@ -11,7 +11,7 @@ require (
 	github.com/securego/gosec/v2 v2.12.0
 	github.com/swaggo/swag v1.8.4
 	github.com/uw-labs/lichen v0.1.7
-	honnef.co/go/tools v0.3.2
+	honnef.co/go/tools v0.3.3
 )
 
 require (

@@ -22,7 +22,7 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v3
       - name: Setup Go
-        uses: actions/setup-go@v2.1.4
+        uses: actions/setup-go@v3.2.1
         with:
           go-version: 1.18
       - name: Setup Go Environment
@@ -89,7 +89,7 @@ jobs:
       - name: Check out source code
         uses: actions/checkout@v3
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v3.2.1
         with:
           go-version: 1.18
       - name: Setup Go Environment
@@ -116,7 +116,7 @@ jobs:
       - name: Check out source code
         uses: actions/checkout@v3
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v3.2.1
         with:
           go-version: 1.18
       - name: Setup Go Environment
@@ -141,7 +141,7 @@ jobs:
       - name: Check out source code
         uses: actions/checkout@v3
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v3.2.1
         with:
           go-version: 1.18
       - name: Setup Go Environment
@@ -166,7 +166,7 @@ jobs:
       - name: Check out source code
         uses: actions/checkout@v3
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v3.2.1
         with:
           go-version: 1.18
       - name: Setup Go Environment
@@ -220,7 +220,7 @@ jobs:
       - name: Check out source code
         uses: actions/checkout@v3
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v3.2.1
         with:
           go-version: 1.18
       - name: Setup Go Environment
@@ -250,7 +250,7 @@ jobs:
       - name: Check out source code
         uses: actions/checkout@v3
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v3.2.1
         with:
           go-version: 1.18
       - name: Setup Go Environment
@@ -326,7 +326,7 @@ jobs:
       - name: Check out source code
         uses: actions/checkout@v3
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v3.2.1
         with:
           go-version: 1.18
       - name: Setup Go Environment
@@ -370,7 +370,7 @@ jobs:
       - name: Check out source code
         uses: actions/checkout@v3
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v3.2.1
         with:
           go-version: 1.18
       - name: Setup Go Environment

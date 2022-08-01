@@ -1,16 +1,17 @@
-import { DuplicateConfigPayload } from "../../types/rest";
-export async function duplicateConfig({
+import { CopyConfigPayload } from "../../types/rest";
+
+export async function copyConfig({
   existingName,
   newName,
 }: {
   existingName: string;
   newName: string;
 }): Promise<"created" | "conflict" | "error"> {
-  const payload: DuplicateConfigPayload = {
+  const payload: CopyConfigPayload = {
     name: newName,
   };
   try {
-    const resp = await fetch(`/v1/configurations/${existingName}/duplicate`, {
+    const resp = await fetch(`/v1/configurations/${existingName}/copy`, {
       method: "POST",
       body: JSON.stringify(payload),
     });

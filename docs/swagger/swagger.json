@@ -497,7 +497,7 @@
                 }
             }
         },
-        "/configurations/{name}/duplicate": {
+        "/configurations/{name}/copy": {
             "post": {
                 "produces": [
                     "application/json"
@@ -523,7 +523,7 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "Successful Duplication, created"
+                        "description": "Successful Copy, created"
                     },
                     "404": {
                         "description": "Not Found",
