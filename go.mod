@@ -50,7 +50,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.8.0
 	go.opentelemetry.io/otel/trace v1.8.0
 	golang.org/x/exp v0.0.0-20220414153411-bcd21879b8fd
-	google.golang.org/api v0.88.0
+	google.golang.org/api v0.90.0
 	google.golang.org/grpc v1.48.0
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
