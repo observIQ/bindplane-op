@@ -70,7 +70,7 @@ jobs:
       - name: Run shellcheck
         uses: ludeeus/action-shellcheck@master
         with:
-          scan-dir: './scripts'
+          scandir: './scripts'
           severity: error
           
   # Run go vet against Go code.
